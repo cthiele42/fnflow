@@ -34,7 +34,7 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "functions.decorate")
 @RegisterReflectionForBinding(DecorateProperties.class)
-public class FnFlowConfig extends HashMap<String, DecorateProperties> {
+public class DecorateFnFlowConfig extends HashMap<String, DecorateProperties> {
     private final FunctionRegistry functionRegistry;
     private final DecorateConfig decorateConfig;
 
@@ -42,7 +42,7 @@ public class FnFlowConfig extends HashMap<String, DecorateProperties> {
     private void registerFn() {
         for (Entry<String, DecorateProperties> e : entrySet()) {
             ConfigurableFunction<String, String, DecorateProperties> function =
-                    decorateConfig.function(e.getValue());
+                    decorateConfig.decorateFunction(e.getValue());
             functionRegistry.register(new FunctionRegistration<>(function, e.getKey()).type(Decorate.class));
 
         }

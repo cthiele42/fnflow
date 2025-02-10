@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.functions.decorate;
+package org.ct42.fnflow.functions.replace;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import lombok.Data;
 
 /**
  * @author Claas Thiele
  */
-@Configuration
-public class DecorateConfig {
-    public Decorate decorateFunction(DecorateProperties config) {
-        Decorate fn = decorateFunction();
-        fn.setProperties(config);
-        return fn;
-    }
-
-    @Bean
-    @Scope("prototype")
-    protected Decorate decorateFunction() {
-        return new Decorate();
-    }
+@Data
+public class ReplaceProperties {
+    private String pattern;
+    private String replace;
 }

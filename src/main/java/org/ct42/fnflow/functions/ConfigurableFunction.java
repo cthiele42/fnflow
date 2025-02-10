@@ -29,7 +29,7 @@ import java.util.function.Function;
 public abstract class ConfigurableFunction<T,R,C> implements Function<T,R> {
     protected C properties;
 
-    void setProperties(C properties) {
+    public void setProperties(C properties) {
         this.properties = properties;
     }
 
