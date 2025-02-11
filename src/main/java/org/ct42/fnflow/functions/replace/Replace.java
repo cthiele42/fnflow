@@ -17,14 +17,12 @@
 package org.ct42.fnflow.functions.replace;
 
 import org.ct42.fnflow.functions.ConfigurableFunction;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Claas Thiele
  */
 @Component
-@RegisterReflectionForBinding(ReplaceProperties.class)
 public class Replace extends ConfigurableFunction<String, String, ReplaceProperties> {
     @Override
     public String apply(String input) {
