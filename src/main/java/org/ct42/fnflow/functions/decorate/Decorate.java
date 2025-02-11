@@ -17,6 +17,7 @@
 package org.ct42.fnflow.functions.decorate;
 
 import org.ct42.fnflow.functions.ConfigurableFunction;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
  * @author Claas Thiele
  */
 @Component
+@RegisterReflectionForBinding(DecorateProperties.class)
 public class Decorate extends ConfigurableFunction<String, String, DecorateProperties> {
     @Autowired
     private TailTokenService tailTokenService;
