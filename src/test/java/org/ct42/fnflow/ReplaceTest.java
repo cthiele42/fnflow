@@ -16,10 +16,15 @@
 
 package org.ct42.fnflow;
 
+import lombok.Data;
+import org.ct42.fnflow.functions.ConfigurableFunction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.function.context.FunctionCatalog;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.function.Function;
@@ -39,5 +44,23 @@ public class ReplaceTest {
     public void testReplace() {
         Function<String, String> fn = catalog.lookup("cats-birds|dogs-cats");
         then(fn.apply("dogs and cats are not being friends")).isEqualTo("cats and birds are not being friends");
+    }
+
+    @SpringBootApplication
+    @ComponentScan
+    protected static class TestConfiguration {}
+
+    @Component("replace")
+    protected static class Replace extends ConfigurableFunction<String, String, ReplaceProperties> {
+        @Override
+        public String apply(String input) {
+            return input.replace(properties.getPattern(), properties.getReplace());
+        }
+    }
+
+    @Data
+    protected static class ReplaceProperties {
+        private String pattern;
+        private String replace;
     }
 }

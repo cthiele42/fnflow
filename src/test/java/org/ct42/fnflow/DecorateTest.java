@@ -16,10 +16,17 @@
 
 package org.ct42.fnflow;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.ct42.fnflow.functions.ConfigurableFunction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.function.context.FunctionCatalog;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.function.Function;
@@ -43,4 +50,34 @@ public class DecorateTest {
         Function<String, String> fn2 = catalog.lookup(Function.class, "mydecorate2");
         then(fn2.apply("testtext2")).isEqualTo("Deco2_testtext2_tail");
     }
+
+    @SpringBootApplication
+    @ComponentScan
+    protected static class TestConfiguration {}
+
+    @Component("decorate")
+    @RequiredArgsConstructor
+    protected static class Decorate extends ConfigurableFunction<String, String, DecorateProperties> {
+        private final TailTokenService tailTokenService;
+
+        @Override
+        public String apply(String input) {
+            return properties.getHeadToken() + "_" +
+                    input + "_" +
+                    tailTokenService.getToken();
+        }
+    }
+
+    @Data
+    protected static class DecorateProperties {
+        private String headToken;
+    }
+
+    @Service
+    protected static class TailTokenService {
+        public String getToken() {
+            return "tail";
+        }
+    }
+
 }
