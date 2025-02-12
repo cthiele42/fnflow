@@ -49,25 +49,14 @@ public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPost
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         for(Map.Entry<String, Map<String, Object>> fnPrototypeCfg : functionCfgs.entrySet()) {
-            ConfigurableFunction fnPrototype = context. getBean(fnPrototypeCfg.getKey(), ConfigurableFunction.class);
-            Class<? extends ConfigurableFunction> fnClass = fnPrototype.getClass();
-
-            if(!"true".equals(System.getProperty(AbstractAotProcessor.AOT_PROCESSING))) {
-                registry.removeBeanDefinition(fnPrototypeCfg.getKey());
-            }
-
             for(String key: fnPrototypeCfg.getValue().keySet()) {
                 if(!registry.containsBeanDefinition(key)) {
-                    GenericBeanDefinition fnBeanDefinition = new GenericBeanDefinition();
-                    fnBeanDefinition.setBeanClass(fnClass);
-                    fnBeanDefinition.setLazyInit(false);
-                    fnBeanDefinition.setAbstract(false);
-                    fnBeanDefinition.setAutowireCandidate(false);
-                    fnBeanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-                    fnBeanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
-
+                    GenericBeanDefinition fnBeanDefinition = new GenericBeanDefinition(registry.getBeanDefinition(fnPrototypeCfg.getKey()));
                     registry.registerBeanDefinition(key, fnBeanDefinition);
                 }
+            }
+            if(!"true".equals(System.getProperty(AbstractAotProcessor.AOT_PROCESSING))) {
+                registry.removeBeanDefinition(fnPrototypeCfg.getKey());
             }
         }
     }

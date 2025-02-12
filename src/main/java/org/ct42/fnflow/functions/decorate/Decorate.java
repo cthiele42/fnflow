@@ -16,17 +16,17 @@
 
 package org.ct42.fnflow.functions.decorate;
 
+import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.functions.ConfigurableFunction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Claas Thiele
  */
 @Component
+@RequiredArgsConstructor
 public class Decorate extends ConfigurableFunction<String, String, DecorateProperties> {
-    @Autowired
-    private TailTokenService tailTokenService;
+    private final TailTokenService tailTokenService;
 
     @Override
     public String apply(String input) {
