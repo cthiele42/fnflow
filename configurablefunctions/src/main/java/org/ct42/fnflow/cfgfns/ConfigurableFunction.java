@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.functions;
+package org.ct42.fnflow.cfgfns;
 
 import java.util.function.Function;
 

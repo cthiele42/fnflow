@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow;
+package org.ct42.fnflow.cfgfns;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +25,8 @@ import org.springframework.core.env.Environment;
  */
 @Configuration
 public class ConfigurableFunctionConfiguration {
+    public static final String FUNCTIONS_PREFIX = "cfgfns";
+
     @Bean
     public static ConfigurableFunctionRegistrar configurableFunctionRegistrar(Environment environment) {
         return new ConfigurableFunctionRegistrar(environment);

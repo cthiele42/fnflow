@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow;
+package org.ct42.fnflow.cfgfns;
 
-import org.ct42.fnflow.functions.ConfigurableFunction;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +35,6 @@ import java.lang.reflect.Field;
 @Component
 @RegisterReflectionForBinding(ConfigurableFunction.class)
 public class FnPropsInjectingPostProcessor implements BeanPostProcessor {
-    public static final String FUNCTIONS_PREFIX = "functions";
-
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -51,7 +48,7 @@ public class FnPropsInjectingPostProcessor implements BeanPostProcessor {
                     .as(ConfigurableFunction.class)
                     .getGeneric(2);
 
-            String cfgName = FUNCTIONS_PREFIX + "." + fnCfgName + "." + beanName;
+            String cfgName = ConfigurableFunctionConfiguration.FUNCTIONS_PREFIX + "." + fnCfgName + "." + beanName;
             BindResult<?> bindResult = Binder.get(applicationContext.getEnvironment())
                     .bind(cfgName, Bindable.of(fnPropertiesType.resolve()));
             if(bindResult.isBound()) {

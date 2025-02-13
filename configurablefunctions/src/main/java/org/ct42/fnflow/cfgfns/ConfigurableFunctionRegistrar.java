@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow;
+package org.ct42.fnflow.cfgfns;
 
-import org.ct42.fnflow.functions.ConfigurableFunction;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -36,13 +33,11 @@ import java.util.Map;
  * @author Claas Thiele
  */
 public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPostProcessor, ApplicationContextAware {
-    public static final String FUNCTIONS_PREFIX = "functions";
     private final Map<String, Map<String, Object>> functionCfgs;
-    private ApplicationContext context;
 
     public ConfigurableFunctionRegistrar(Environment environment) {
         functionCfgs = Binder.get(environment)
-                .bind(FUNCTIONS_PREFIX, Bindable.mapOf(String.class, (Class<Map<String, Object>>)(Class<?>)Map.class))
+                .bind(ConfigurableFunctionConfiguration.FUNCTIONS_PREFIX, Bindable.mapOf(String.class, (Class<Map<String, Object>>)(Class<?>)Map.class))
                 .get();
     }
 
@@ -63,6 +58,5 @@ public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPost
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.context = applicationContext;
     }
 }

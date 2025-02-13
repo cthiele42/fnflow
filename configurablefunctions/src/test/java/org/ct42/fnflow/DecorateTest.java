@@ -18,7 +18,7 @@ package org.ct42.fnflow;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.functions.ConfigurableFunction;
+import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -55,9 +55,9 @@ public class DecorateTest {
     @ComponentScan
     protected static class TestConfiguration {}
 
-    @Component("decorate")
+    @Component("decorate-camel-case")
     @RequiredArgsConstructor
-    protected static class Decorate extends ConfigurableFunction<String, String, DecorateProperties> {
+    protected static class DecorateCamelCase extends ConfigurableFunction<String, String, DecorateProperties> {
         private final TailTokenService tailTokenService;
 
         @Override

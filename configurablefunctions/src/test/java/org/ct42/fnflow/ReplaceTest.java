@@ -17,7 +17,7 @@
 package org.ct42.fnflow;
 
 import lombok.Data;
-import org.ct42.fnflow.functions.ConfigurableFunction;
+import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

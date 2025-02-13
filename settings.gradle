@@ -1,1 +1,3 @@
 rootProject.name = 'fnflow'
+include 'configurablefunctions'
+
