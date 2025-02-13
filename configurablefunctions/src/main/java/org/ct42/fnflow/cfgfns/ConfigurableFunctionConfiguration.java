@@ -21,11 +21,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
+ * Configuration for Bean registry and AOT processor.
+ *
  * @author Claas Thiele
  */
 @Configuration
 public class ConfigurableFunctionConfiguration {
+    /**
+     * Property prefix for configurable functions configurations.
+     */
     public static final String FUNCTIONS_PREFIX = "cfgfns";
+
 
     @Bean
     public static ConfigurableFunctionRegistrar configurableFunctionRegistrar(Environment environment) {

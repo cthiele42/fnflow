@@ -30,6 +30,8 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 
 /**
+ * Injects configuration properties data holder into configurable function instances.
+ *
  * @author Claas Thiele
  */
 @Component

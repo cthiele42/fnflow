@@ -23,6 +23,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.ResolvableType;
 
 /**
+ * Registers runtime hints for all configurable functions config data holders.
+ *
  * @author Claas Thiele
  */
 public class ListenerBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {

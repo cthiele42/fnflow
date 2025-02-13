@@ -19,6 +19,7 @@ package org.ct42.fnflow.cfgfns;
 import java.util.function.Function;
 
 /**
+ * Base class to be extended by all configurable function implementations.
  *
  * @param <T> function input type
  * @param <R> function return type
@@ -27,6 +28,9 @@ import java.util.function.Function;
  * @author Claas Thiele
  */
 public abstract class ConfigurableFunction<T,R,C> implements Function<T,R> {
+    /**
+     * External configuration will be injected here.
+     */
     protected C properties;
 
     @Override

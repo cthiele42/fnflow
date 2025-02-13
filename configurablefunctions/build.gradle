@@ -5,6 +5,7 @@ plugins {
 	id 'org.graalvm.buildtools.native' version '0.10.4'
 	id 'idea'
 	id 'maven-publish'
+	id 'org.jreleaser' version '1.16.0'
 }
 
 group = 'org.ct42.fnflow'
@@ -31,6 +32,8 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
+	withJavadocJar()
+	withSourcesJar()
 }
 
 configurations {
@@ -65,25 +68,67 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+javadoc {
+	failOnError false
+}
+
 publishing {
 	repositories {
 		maven {
-			name = "GitHubPackages"
-			url = uri("https://maven.pkg.github.com/cthiele42/fnflow")
-			credentials {
-				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-			}
+			url = layout.buildDirectory.dir('staging-deploy')
 		}
 	}
 	publications {
-		gpr(MavenPublication) {
+		maven(MavenPublication) {
 			versionMapping {
 				allVariants {
 					fromResolutionResult()
 				}
 			}
 			from(components.java)
+
+			pom {
+				name = 'configurablefunctions'
+				description = 'Make Spring Cloud Functions configurable'
+				url = 'https://github.com/cthiele42/fnflow'
+				inceptionYear = '2025'
+				licenses {
+					license {
+						name = 'Apache-2.0'
+						url = 'https://spdx.org/licenses/Apache-2.0.html'
+					}
+				}
+				developers {
+					developer {
+						id = 'cthiele42'
+						name = 'Claas Thiele'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/cthiele42/fnflow.git'
+					developerConnection = 'scm:git:ssh://github.com/cthiele42/fnflow.git'
+					url = 'http://github.com/cthiele42/fnflow'
+				}
+			}
+		}
+	}
+}
+
+jreleaser {
+	gitRootSearch = true
+	signing {
+		active = 'ALWAYS'
+		armored = true
+	}
+	deploy {
+		maven {
+            mavenCentral {
+                sonatype {
+                    active = 'ALWAYS'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('target/staging-deploy')
+                }
+            }
 		}
 	}
 }

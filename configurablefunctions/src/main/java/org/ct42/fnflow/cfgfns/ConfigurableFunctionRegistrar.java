@@ -30,6 +30,8 @@ import org.springframework.core.env.Environment;
 import java.util.Map;
 
 /**
+ * Registers bean instances for all configured functions.
+ *
  * @author Claas Thiele
  */
 public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPostProcessor, ApplicationContextAware {
