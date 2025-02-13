@@ -77,6 +77,11 @@ publishing {
 	}
 	publications {
 		gpr(MavenPublication) {
+			versionMapping {
+				allVariants {
+					fromResolutionResult()
+				}
+			}
 			from(components.java)
 		}
 	}
