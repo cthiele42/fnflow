@@ -6,8 +6,18 @@ plugins {
 	id 'idea'
 }
 
-group = 'org.ct42'
+group = 'org.ct42.fnflow'
 version = '0.0.1-SNAPSHOT'
+
+bootJar {
+	enabled = false
+}
+
+jar {
+	enabled = true
+}
+
+processAot.enabled = false
 
 idea {
 	module {
@@ -37,8 +47,6 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-function-context'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

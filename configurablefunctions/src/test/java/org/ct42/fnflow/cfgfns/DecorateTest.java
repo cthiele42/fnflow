@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow;
+package org.ct42.fnflow.cfgfns;
 
 import lombok.Data;
-import org.ct42.fnflow.cfgfns.ConfigurableFunction;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.function.Function;
@@ -35,32 +36,47 @@ import static org.assertj.core.api.BDDAssertions.then;
  * @author Claas Thiele
  */
 @SpringBootTest
-@TestPropertySource(locations= "classpath:/replace.properties")
-public class ReplaceTest {
+@TestPropertySource(locations= "classpath:/decorate.properties")
+public class DecorateTest {
     @Autowired
     private FunctionCatalog catalog;
 
     @Test
-    public void testReplace() {
-        Function<String, String> fn = catalog.lookup("cats-birds|dogs-cats");
-        then(fn.apply("dogs and cats are not being friends")).isEqualTo("cats and birds are not being friends");
+    public void testDecorate() {
+        Function<String, String> fn = catalog.lookup(Function.class, "mydecorate1");
+        then(fn.apply("testtext1")).isEqualTo("Deco1_testtext1_tail");
+
+        Function<String, String> fn2 = catalog.lookup(Function.class, "mydecorate2");
+        then(fn2.apply("testtext2")).isEqualTo("Deco2_testtext2_tail");
     }
 
     @SpringBootApplication
     @ComponentScan
     protected static class TestConfiguration {}
 
-    @Component("replace")
-    protected static class Replace extends ConfigurableFunction<String, String, ReplaceProperties> {
+    @Component("decorate-camel-case")
+    @RequiredArgsConstructor
+    protected static class DecorateCamelCase extends ConfigurableFunction<String, String, DecorateProperties> {
+        private final TailTokenService tailTokenService;
+
         @Override
         public String apply(String input) {
-            return input.replace(properties.getPattern(), properties.getReplace());
+            return properties.getHeadToken() + "_" +
+                    input + "_" +
+                    tailTokenService.getToken();
         }
     }
 
     @Data
-    protected static class ReplaceProperties {
-        private String pattern;
-        private String replace;
+    protected static class DecorateProperties {
+        private String headToken;
     }
+
+    @Service
+    protected static class TailTokenService {
+        public String getToken() {
+            return "tail";
+        }
+    }
+
 }
