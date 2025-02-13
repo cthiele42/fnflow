@@ -8,13 +8,14 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 
 bootJar {
 	enabled = false
 }
 
 jar {
+	archiveClassifier=''
 	enabled = true
 }
 
