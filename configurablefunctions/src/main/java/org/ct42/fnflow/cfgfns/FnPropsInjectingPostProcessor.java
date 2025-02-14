@@ -16,9 +16,9 @@
 
 package org.ct42.fnflow.cfgfns;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -36,9 +36,9 @@ import java.lang.reflect.Field;
  */
 @Component
 @RegisterReflectionForBinding(ConfigurableFunction.class)
+@RequiredArgsConstructor
 public class FnPropsInjectingPostProcessor implements BeanPostProcessor {
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
     @Override
     public Object postProcessBeforeInitialization( Object bean, String beanName ) throws BeansException {

@@ -16,8 +16,9 @@
 
 package org.ct42.fnflow.cfgfns;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
@@ -25,7 +26,7 @@ import org.springframework.core.env.Environment;
  *
  * @author Claas Thiele
  */
-@Configuration
+@AutoConfiguration
 public class ConfigurableFunctionConfiguration {
     /**
      * Property prefix for configurable functions configurations.
@@ -36,6 +37,11 @@ public class ConfigurableFunctionConfiguration {
     @Bean
     public static ConfigurableFunctionRegistrar configurableFunctionRegistrar(Environment environment) {
         return new ConfigurableFunctionRegistrar(environment);
+    }
+
+    @Bean
+    public static FnPropsInjectingPostProcessor fnPropsInjectingPostProcessor(ApplicationContext applicationContext) {
+        return new FnPropsInjectingPostProcessor(applicationContext);
     }
 
     @Bean
