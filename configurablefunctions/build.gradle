@@ -77,8 +77,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-javadoc {
-	failOnError false
+tasks.withType(Javadoc) {
+	options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 publishing {
