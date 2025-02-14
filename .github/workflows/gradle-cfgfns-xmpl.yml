@@ -9,9 +9,7 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    paths: ['cfgfns-example']
 
 jobs:
   build:
@@ -34,4 +32,4 @@ jobs:
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
     - name: Build with Gradle Wrapper
-      run: ./gradlew configurablefunctions:test configurablefunctions:nativeTest
+      run: ./gradlew cfgfns-example:test cfgfns-example:nativeTest
