@@ -1,3 +1,7 @@
-= FnFlow
+= Introduction
 
-Streamed data processing with Java functions as configurable processors using Spring Boot.
+FnFlow is a project with following goals:
+
+* provide a data processing platform for large input datasets of uncertain quality
+* allow detection of quality issues
+* make it easy to apply corrective actions after erroneous processing
