@@ -3,7 +3,7 @@ site:
   start_page: fnflow::index.adoc
 content:
   sources:
-    - url: .
+    - url: ./..
       branches: HEAD
       start_path: docs
 ui:
