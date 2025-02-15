@@ -1,7 +1,7 @@
 = Introduction
 
-FnFlow is a project with following goals:
+FnFlow is a project with the following goals:
 
 * provide a data processing platform for large input datasets of uncertain quality
 * allow detection of quality issues
-* make it easy to apply corrective actions after erroneous processing
+* easy application of corrective actions after erroneous processing
