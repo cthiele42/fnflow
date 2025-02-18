@@ -1,4 +1,4 @@
 rootProject.name = 'fnflow'
 include 'configurablefunctions'
 include 'cfgfns-example'
-
+include 'fnlib'
