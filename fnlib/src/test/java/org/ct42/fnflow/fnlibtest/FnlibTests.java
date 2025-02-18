@@ -1,4 +1,4 @@
-package org.ct42.fnflow.fnlib;
+package org.ct42.fnflow.fnlibtest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

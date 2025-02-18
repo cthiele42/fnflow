@@ -28,6 +28,17 @@ java {
 	}
 }
 
+bootJar {
+	enabled = false
+}
+
+jar {
+	archiveClassifier=''
+	enabled = true
+}
+
+processAot.enabled = false
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
