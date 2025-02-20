@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.aot.AbstractAotProcessor;
 import org.springframework.core.env.Environment;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -40,7 +41,7 @@ public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPost
     public ConfigurableFunctionRegistrar(Environment environment) {
         functionCfgs = Binder.get(environment)
                 .bind(ConfigurableFunctionConfiguration.FUNCTIONS_PREFIX, Bindable.mapOf(String.class, (Class<Map<String, Object>>)(Class<?>)Map.class))
-                .get();
+                .orElse(Collections.emptyMap());
     }
 
     @Override

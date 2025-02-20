@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.2'
+version = '0.0.3'
 
 bootJar {
 	enabled = false
@@ -26,6 +26,7 @@ jar {
 }
 
 processAot.enabled = false
+processTestAot.enabled = false
 
 idea {
 	module {
