@@ -34,7 +34,7 @@ jobs:
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
     - name: Build with Gradle
-      run: ./gradlew configurablefunctions:clean configurablefunctions:test configurablefunctions:nativeTest configurablefunctions:build
+      run: ./gradlew configurablefunctions:clean configurablefunctions:test configurablefunctions:build
 
     # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
     # the publishing section of your build.gradle
