@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.aot.AbstractAotProcessor;
 import org.springframework.core.env.Environment;
 
@@ -35,7 +33,7 @@ import java.util.Map;
  *
  * @author Claas Thiele
  */
-public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPostProcessor, ApplicationContextAware {
+public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPostProcessor {
     private final Map<String, Map<String, Object>> functionCfgs;
 
     public ConfigurableFunctionRegistrar(Environment environment) {
@@ -57,9 +55,5 @@ public class ConfigurableFunctionRegistrar implements BeanDefinitionRegistryPost
                 registry.removeBeanDefinition(fnPrototypeCfg.getKey());
             }
         }
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 }
