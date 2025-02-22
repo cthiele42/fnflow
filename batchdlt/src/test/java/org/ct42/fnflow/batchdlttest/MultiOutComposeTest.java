@@ -15,10 +15,7 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -75,7 +72,8 @@ public class MultiOutComposeTest {
             ResolvableType imperativeType = ResolvableType.forClassWithGenerics(Function.class, String.class, String.class);
             Set<String> imperativeBeans = Set.of(ctx.getBeanNamesForType(imperativeType));
 
-            ResolvableType batchType = ResolvableType.forClassWithGenerics(Function.class, String[].class, BatchResult.class);
+            ResolvableType batchListType = ResolvableType.forClassWithGenerics(List.class, BatchElement.class);
+            ResolvableType batchType = ResolvableType.forClassWithGenerics(Function.class, batchListType, batchListType);
             Set<String> batchBeans = Set.of(ctx.getBeanNamesForType(batchType));
 
             String[] fns = definition.split("\\|");
@@ -88,7 +86,7 @@ public class MultiOutComposeTest {
                     FunctionWrapper wrappedFn = new FunctionWrapper(fnBean);
                     intermediate = wrappedFn.apply(intermediate, errorSink);
                 } else if(batchBeans.contains(fn)) {
-                    Function<String[], BatchResult> batchFnBean = (Function<String[], BatchResult>) ctx.getBean(fn, Function.class);
+                    Function<List<BatchElement>, List<BatchElement>> batchFnBean = (Function<List<BatchElement>, List<BatchElement>>) ctx.getBean(fn, Function.class);
                     BatchFnWrapper wrappedBatchFn = new BatchFnWrapper(batchFnBean);
                     intermediate = wrappedBatchFn.apply(intermediate, errorSink);
                 } else {
@@ -116,19 +114,20 @@ public class MultiOutComposeTest {
         public static final int MAX_SIZE = 2;
         public static final Duration MAX_TIME = Duration.ofMillis(500);
 
-        private final Function<String[], BatchResult> target;
+        private final Function<List<BatchElement>, List<BatchElement>> target;
 
-        public BatchFnWrapper(Function<String[], BatchResult> target) {
+        public BatchFnWrapper(Function<List<BatchElement>, List<BatchElement>> target) {
             this.target = target;
         }
 
         @Override
         public Flux<String> apply(Flux<String> stringFlux, Sinks.Many<String> error) {
             return stringFlux.bufferTimeout(MAX_SIZE, MAX_TIME).flatMapSequential(b -> {
-                BatchResult batchResult = target.apply(b.toArray(String[]::new));
-                Arrays.stream(batchResult.getErrors()).forEach(
-                        e -> error.tryEmitNext(batchResult.getThrowable().getMessage() + e));
-                return Flux.just(batchResult.getResults());
+                List<BatchElement> result = target.apply(b.stream().map(BatchElement::new).toList());
+                result.forEach(e -> {
+                    if(e.getError() != null) error.tryEmitNext(e.getError().getMessage() + ": " + e.getInput());
+                });
+                return Flux.fromStream(result.stream().filter(e -> e.getOutput() != null).map(BatchElement::getOutput));
             });
         }
     }
@@ -156,52 +155,52 @@ public class MultiOutComposeTest {
         }
     }
 
-    protected final static class BatchResult {
-        private final String[] results;
-        private final String[] errors;
-        private final Throwable throwable;
+    public static final class BatchElement {
+        private final String input;
+        private String output;
+        private Throwable error;
 
-        public BatchResult(String[] results, String[] errors, Throwable throwable) {
-            this.results = results;
-            this.errors = errors;
-            this.throwable = throwable;
+        public BatchElement(String input) {
+            this.input = input;
         }
 
-        public String[] getResults() {
-            return results;
+        public String getInput() {
+            return input;
         }
 
-        public String[] getErrors() {
-            return errors;
+        public void processWithOutput(String output) {
+            this.output = output;
         }
 
-        public Throwable getThrowable() {
-            return throwable;
+        public void processWithError(Throwable error) {
+            this.error = error;
+        }
+
+        public String getOutput() {
+            return output;
+        }
+
+        public Throwable getError() {
+            return error;
         }
     }
 
     @Component("batchfun")
-    protected final static class BatchFun implements Function<String[], BatchResult> {
+    protected final static class BatchFun implements Function<List<BatchElement>, List<BatchElement>> {
         /**
-         * @param s the batch; will be not empty
-         * @return a BatchResult
+         * @param b the batch; will be not empty
+         * @return the batch with processed values
          */
         @Override
-        public BatchResult apply(String[] s) {
-            List<String> results = new ArrayList<>();
-            List<String> errors = new ArrayList<>();
-
-            for (String string : s) {
-                if (string.contains("T2") || string.contains("T6")) {
-                    errors.add(string);
+        public List<BatchElement> apply(List<BatchElement> b) {
+            b.forEach(e -> {
+                if (e.getInput().contains("T2") || e.getInput().contains("T6")) {
+                    e.processWithError(new IllegalStateException("ERRB"));
                 } else {
-                    results.add("BLEN" + s.length + ": " + string);
+                    e.processWithOutput("BLEN" + b.size() + ": " + e.getInput());
                 }
-            }
-            return new BatchResult(
-                    results.toArray(new String[0]),
-                    errors.toArray(new String[0]),
-                    new IllegalStateException("ERRB: "));
+            });
+            return b;
         }
     }
 }
