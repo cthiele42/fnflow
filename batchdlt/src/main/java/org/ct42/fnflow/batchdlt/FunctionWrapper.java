@@ -26,7 +26,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * Wrapper function for functions of type Function<JsonNode, JsonNode>.
+ * Wrapper function for functions of type Function&gt;JsonNode, JsonNode&gt;.
  *
  * @author Claas Thiele
  */

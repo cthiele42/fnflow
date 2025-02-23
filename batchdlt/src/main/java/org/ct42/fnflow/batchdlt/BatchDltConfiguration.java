@@ -22,8 +22,8 @@ import org.springframework.context.annotation.Bean;
 
 /**
  * Create a composed function bean composing all functional beans of type
- * - Function<JsonNode, JsonNode> and
- * - Function<List<BatchElement>, List<BatchElement>>
+ * - Function&lt;JsonNode, JsonNode&gt; and
+ * - Function&lt;List&lt;BatchElement&gt;, List&lt;BatchElement&gt;&gt;
  *
  * @author Claas Thiele
  */

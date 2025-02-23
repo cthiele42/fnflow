@@ -29,7 +29,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * Wrapper function for functions of type Function<List<BatchElement>, List<BatchElement>>.
+ * Wrapper function for functions of type Function&lt;List&lt;BatchElement&gt;, List&lt;BatchElement&gt;&gt;.
  * Organizes a buffer to pass a batch to the target function.
  * Is mapping the input from Message and the result back to Message.
  *
