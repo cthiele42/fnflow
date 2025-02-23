@@ -32,7 +32,8 @@ import static org.assertj.core.api.BDDAssertions.then;
 @SpringBootTest
 @EmbeddedKafka(bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @TestPropertySource(properties = {
-		"spring.cloud.stream.default.group=xmpl"
+		"spring.cloud.stream.default.group=xmpl",
+		"org.ct42.fnflow.default.batch.size=2"
 })
 class BatchdltCfgfnsExampleApplicationTests {
 	public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
