@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 
 idea {
 	module {
@@ -72,4 +72,74 @@ dependencyManagement {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.withType(Javadoc) {
+	options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+publishing {
+	repositories {
+		maven {
+			url = layout.buildDirectory.dir('staging-deploy')
+		}
+	}
+	publications {
+		maven(MavenPublication) {
+			versionMapping {
+				allVariants {
+					fromResolutionResult()
+				}
+			}
+			from(components.java)
+
+			pom {
+				name = 'configurablefunctions'
+				description = 'Make DLT possible for composed reactive functions'
+				url = 'https://github.com/cthiele42/fnflow'
+				inceptionYear = '2025'
+				licenses {
+					license {
+						name = 'Apache-2.0'
+						url = 'https://spdx.org/licenses/Apache-2.0.html'
+					}
+				}
+				developers {
+					developer {
+						id = 'cthiele42'
+						name = 'Claas Thiele'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/cthiele42/fnflow.git'
+					developerConnection = 'scm:git:ssh://github.com/cthiele42/fnflow.git'
+					url = 'http://github.com/cthiele42/fnflow'
+				}
+			}
+		}
+	}
+}
+
+jreleaser {
+	gitRootSearch = true
+	signing {
+		active = 'ALWAYS'
+		armored = true
+	}
+	deploy {
+		maven {
+			mavenCentral {
+				sonatype {
+					active = 'ALWAYS'
+					url = 'https://central.sonatype.com/api/v1/publisher'
+					stagingRepository('build/staging-deploy')
+				}
+			}
+		}
+	}
+	release {
+		github {
+			tagName = '{{projectName}}-{{projectVersion}}'
+		}
+	}
 }

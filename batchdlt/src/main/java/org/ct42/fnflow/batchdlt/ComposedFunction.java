@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.ct42.fnflow.batchdlt;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +31,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * Holds all functions composed together.
+ * The function definition has to be provided with property <code>org.ct42.fnflow.function.definition</code>.
+ * This bean has to be configured as one and only regular function for Spring Cloud Function the following way:
+ * <code>spring.cloud.function.definition=fnFlowComposedFnBean</code>
+ *
+ * @author Claas Thiele
+ */
 public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple2<Flux<Message<JsonNode>>, Flux<Message<JsonNode>>>> {
     private final ApplicationContext ctx;
 
