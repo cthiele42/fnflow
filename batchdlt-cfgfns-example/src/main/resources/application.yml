@@ -1,0 +1,15 @@
+spring:
+  application.name: batchdlt-cfgfns-example
+  cloud.function.definition: fnFlowComposedFnBean
+org.ct42.fnflow.function.definition: tstfail|tstprepend|tstbatch
+
+cfgfns:
+  fail-on-content:
+    tstfail:
+      failOn: T2
+  prepend:
+    tstprepend:
+      prefix: 'PRFX: '
+  batch:
+    tstbatch:
+      failOn: T6
