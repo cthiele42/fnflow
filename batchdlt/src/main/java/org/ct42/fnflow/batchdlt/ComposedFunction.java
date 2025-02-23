@@ -49,6 +49,8 @@ public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple
     @Override
     public Tuple2<Flux<Message<JsonNode>>, Flux<Message<JsonNode>>> apply(Flux<Message<JsonNode>> messageFlux) {
         String definition = Binder.get(ctx.getEnvironment()).bind("org.ct42.fnflow.function.definition", Bindable.of(String.class)).orElse(null);
+        int batchSize = Binder.get(ctx.getEnvironment()).bind("org.ct42.fnflow.default.batch.size", Bindable.of(Integer.class)).orElse(500);
+        long batchTimeout = Binder.get(ctx.getEnvironment()).bind("org.ct42.fnflow.default.batch.timeoutms", Bindable.of(Long.class)).orElse(500L);
         if(definition == null || definition.isEmpty()) throw new IllegalStateException("org.ct42.fnflow.function.definition not configured");
         String[] fns = definition.split("\\|");
 
@@ -69,7 +71,7 @@ public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple
                 intermediate = wrappedFn.apply(intermediate, errorSink);
             } else if(batchBeans.contains(fn)) {
                 Function<List<BatchElement>, List<BatchElement>> batchFnBean = (Function<List<BatchElement>, List<BatchElement>>) ctx.getBean(fn, Function.class);
-                BatchFnWrapper wrappedBatchFn = new BatchFnWrapper(batchFnBean);
+                BatchFnWrapper wrappedBatchFn = new BatchFnWrapper(batchFnBean, batchSize, batchTimeout);
                 intermediate = wrappedBatchFn.apply(intermediate, errorSink);
             } else {
                 throw new IllegalStateException("No matching bean found for name " + fn);

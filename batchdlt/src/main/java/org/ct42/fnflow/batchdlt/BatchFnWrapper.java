@@ -36,18 +36,20 @@ import java.util.function.Function;
  * @author Claas Thiele
  */
 public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<JsonNode>>, Flux<Message<JsonNode>>> {
-        public static final int MAX_SIZE = 2;
-        public static final Duration MAX_TIME = Duration.ofMillis(500);
+        public final int defaultBatchSize;
+        public final Duration defaultBatchTimeout;
 
         private final Function<List<BatchElement>, List<BatchElement>> target;
 
-        public BatchFnWrapper(Function<List<BatchElement>, List<BatchElement>> target) {
+        public BatchFnWrapper(Function<List<BatchElement>, List<BatchElement>> target, int defaultBatchSize, long defaultBatchTimeout) {
+            this.defaultBatchSize = defaultBatchSize;
+            this.defaultBatchTimeout = Duration.ofMillis(defaultBatchTimeout);
             this.target = target;
         }
 
         @Override
         public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<JsonNode>> error) {
-            return messageFlux.bufferTimeout(MAX_SIZE, MAX_TIME).flatMapSequential(b -> {
+            return messageFlux.bufferTimeout(defaultBatchSize, defaultBatchTimeout).flatMapSequential(b -> {
                 List<BatchElement> results = target.apply(b.stream().map(e -> new BatchElement(e.getPayload())).toList());
                 List<Message<JsonNode>> resultMsgs = new ArrayList<>();
                 for(int i = 0; i < results.size(); i++) {

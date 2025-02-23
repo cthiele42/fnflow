@@ -60,7 +60,8 @@ import static org.assertj.core.api.BDDAssertions.then;
 @TestPropertySource(properties = {
         "spring.cloud.function.definition=fnFlowComposedFnBean",
         "spring.cloud.stream.default.group=test",
-        "org.ct42.fnflow.function.definition=jbifun|jbifun2|jbatchfun"
+        "org.ct42.fnflow.function.definition=jbifun|jbifun2|jbatchfun",
+        "org.ct42.fnflow.default.batch.size=2"
 })
 public class BatchDltTest {
     public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
