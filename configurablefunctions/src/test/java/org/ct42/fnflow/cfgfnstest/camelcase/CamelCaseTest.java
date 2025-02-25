@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.cfgfnstest;
+package org.ct42.fnflow.cfgfnstest.camelcase;
 
 import lombok.Data;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
@@ -35,14 +35,14 @@ import static org.assertj.core.api.BDDAssertions.then;
  * @author Claas Thiele
  */
 @SpringBootTest
-@TestPropertySource(locations= "classpath:/replace.properties")
-public class ReplaceTest {
+@TestPropertySource(locations= "classpath:/camel-case-replace.properties")
+public class CamelCaseTest {
     @Autowired
     private FunctionCatalog catalog;
 
     @Test
     public void testReplace() {
-        Function<String, String> fn = catalog.lookup("cats-birds|dogs-cats");
+        Function<String, String> fn = catalog.lookup("catsBirds|dogsCats");
         then(fn.apply("dogs and cats are not being friends")).isEqualTo("cats and birds are not being friends");
     }
 
@@ -50,8 +50,8 @@ public class ReplaceTest {
     @ComponentScan
     protected static class TestConfiguration {}
 
-    @Component("replace")
-    protected static class Replace extends ConfigurableFunction<String, String, ReplaceProperties> {
+    @Component("CamelCaseReplace")
+    protected static class CamelCaseReplace extends ConfigurableFunction<String, String, ReplaceProperties> {
         @Override
         public String apply(String input) {
             return input.replace(properties.getPattern(), properties.getReplace());

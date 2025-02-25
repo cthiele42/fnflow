@@ -50,7 +50,7 @@ public class FnPropsInjectingPostProcessor implements BeanPostProcessor {
                     .as(ConfigurableFunction.class)
                     .getGeneric(2);
 
-            String cfgName = ConfigurableFunctionConfiguration.FUNCTIONS_PREFIX + "." + fnCfgName + "." + beanName;
+            String cfgName = ConfigurableFunctionConfiguration.FUNCTIONS_PREFIX + "." + fnCfgName + "." + convertCamelCaseToKebap(beanName);
             BindResult<?> bindResult = Binder.get(applicationContext.getEnvironment())
                     .bind(cfgName, Bindable.of(fnPropertiesType.resolve()));
             if(bindResult.isBound()) {
