@@ -22,6 +22,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -42,6 +44,19 @@ public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sink
         return messageFlux.map(m -> MessageBuilder
                 .withPayload(target.apply(m.getPayload()))
                 .copyHeaders(m.getHeaders())
-                .build()).onErrorContinue((throwable, m) -> error.tryEmitNext((Message<JsonNode>)m)); //TODO add error message and stacktrace to message headers
+                .build()).onErrorContinue((throwable, m) -> {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            throwable.printStackTrace(printWriter);
+            error.tryEmitNext(
+                        MessageBuilder
+                                .withPayload(((Message<JsonNode>)m).getPayload())
+                                .copyHeaders(((Message<JsonNode>)m).getHeaders())
+                                .setHeader("x-exception-message", throwable.getMessage())
+                                .setHeader("x-exception-fqcn", throwable.getClass().getName())
+                                .setHeader("x-exception-stacktrace", stringWriter.toString())
+                                .build()
+                    );
+                });
     }
 }

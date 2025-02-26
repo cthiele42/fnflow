@@ -88,12 +88,12 @@ public class BatchDltTest {
     @Test
     public void testBatchDltCompose() throws Exception{
         for (int i = 0; i < 10; i++) {
-            template.sendDefault("{\"text\": \"T" + i + "\"}");
+            template.sendDefault("{\"text\":\"T" + i + "\"}");
         }
         List<ConsumerRecord<String, String>> results = new ArrayList<>();
         while (true) {
             ConsumerRecord<String, String> received =
-                    inRecords.poll(200, TimeUnit.MILLISECONDS);
+                    inRecords.poll(2000, TimeUnit.MILLISECONDS);
             if (received == null) {
                 break;
             }
@@ -118,21 +118,22 @@ public class BatchDltTest {
                 """
                 {"text":"BLEN2: MO2: MO: T9"}"""
         );
-        then(errors).extracting(ConsumerRecord::value).filteredOn(s -> !s.contains("MO2")).containsExactly(
+        then(errors).hasSize(6);
+        then(errors).extracting(ConsumerRecord::value).contains(
                 """
                 {"text":"T3"}""",
                 """
-                {"text":"MO: T5"}""",
+                {"text":"T5"}""",
                 """
                 {"text":"T7"}""",
                 """
-                {"text":"MO: T8"}"""
+                {"text":"T8"}"""
         );
-        then(errors).extracting(ConsumerRecord::value).filteredOn(s -> s.contains("MO2")).containsExactly(
+        then(errors).extracting(ConsumerRecord::value).contains(
                 """
-                {"text":"MO2: MO: T2"}""",
+                {"text":"T2"}""",
                 """
-                {"text":"MO2: MO: T6"}"""
+                {"text":"T6"}"""
         );
     }
 

@@ -39,7 +39,7 @@ import java.util.function.Function;
  *
  * @author Claas Thiele
  */
-public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple2<Flux<Message<JsonNode>>, Flux<Message<JsonNode>>>> {
+public class ComposedFunction implements Function<Flux<Message<byte[]>>, Tuple2<Flux<Message<byte[]>>, Flux<Message<byte[]>>>> {
     private final ApplicationContext ctx;
 
     public ComposedFunction(ApplicationContext ctx) {
@@ -47,7 +47,7 @@ public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple
     }
 
     @Override
-    public Tuple2<Flux<Message<JsonNode>>, Flux<Message<JsonNode>>> apply(Flux<Message<JsonNode>> messageFlux) {
+    public Tuple2<Flux<Message<byte[]>>, Flux<Message<byte[]>>> apply(Flux<Message<byte[]>> messageFlux) {
         String definition = Binder.get(ctx.getEnvironment()).bind("org.ct42.fnflow.function.definition", Bindable.of(String.class)).orElse(null);
         int batchSize = Binder.get(ctx.getEnvironment()).bind("org.ct42.fnflow.default.batch.size", Bindable.of(Integer.class)).orElse(500);
         long batchTimeout = Binder.get(ctx.getEnvironment()).bind("org.ct42.fnflow.default.batch.timeoutms", Bindable.of(Long.class)).orElse(500L);
@@ -61,8 +61,7 @@ public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple
         ResolvableType batchListType = ResolvableType.forClassWithGenerics(List.class, BatchElement.class);
         ResolvableType batchType = ResolvableType.forClassWithGenerics(Function.class, batchListType, batchListType);
         Set<String> batchBeans = Set.of(ctx.getBeanNamesForType(batchType));
-
-        Flux<Message<JsonNode>> intermediate = messageFlux.doOnComplete(errorSink::tryEmitComplete);
+        Flux<Message<JsonNode>> intermediate = new InMsg2Header().apply(messageFlux.doOnComplete(errorSink::tryEmitComplete));
 
         for (String fn : fns) {
             if(imperativeBeans.contains(fn)) {
@@ -77,6 +76,9 @@ public class ComposedFunction implements Function<Flux<Message<JsonNode>>, Tuple
                 throw new IllegalStateException("No matching bean found for name " + fn);
             }
         }
-        return Tuples.of(intermediate, errorSink.asFlux());
+        return Tuples.of(
+                    new OutConvert2ByteArray().apply(intermediate),
+                    new ErrorConvert2ByteArray().apply(errorSink.asFlux())
+                );
     }
 }

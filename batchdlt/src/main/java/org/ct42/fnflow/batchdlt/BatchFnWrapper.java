@@ -22,6 +22,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,9 +64,16 @@ public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                         resultMsgs.add(msg);
                     } else if (result.getError() != null) {
                         //TODO set header with error message and stacktrace
+                        StringWriter stringWriter = new StringWriter();
+                        PrintWriter printWriter = new PrintWriter(stringWriter);
+                        result.getError().printStackTrace(printWriter);
+
                         error.tryEmitNext(MessageBuilder
                                 .withPayload(result.getInput())
                                 .copyHeaders(b.get(i).getHeaders())
+                                .setHeader("x-exception-message", result.getError().getMessage())
+                                .setHeader("x-exception-fqcn", result.getError().getClass().getName())
+                                .setHeader("x-exception-stacktrace", stringWriter.toString())
                                 .build());
                     }
                 }

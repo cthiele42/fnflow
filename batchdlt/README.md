@@ -10,5 +10,4 @@ This implementation has the following limitations:
 
 - composition of DLT enabled functions cannot be combined with Spring Cloud Function composition
 - implemented composition does not support argument conversion, the functions of the current implementation have fixed argument type for in and out: JsonNode.
-- In contrast to Spring Cloud Stream DLT handling, the input of the failed function is put into the DLT, not the input from the composed function. In the fnflow implementation, the intermediate result from the function before the failed function is sent to DLT.
 - error messages from batching functions might arrive out of order in relation to errors from non batched functions in the DLT.
