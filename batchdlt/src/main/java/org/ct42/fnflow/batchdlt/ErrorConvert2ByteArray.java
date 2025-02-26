@@ -16,27 +16,36 @@
 
 package org.ct42.fnflow.batchdlt;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.function.Function;
 
 /**
  *
  * @author Claas Thiele
  */
-public class ErrorConvert2ByteArray implements Function<Flux<Message<JsonNode>>, Flux<Message<byte[]>>> {
+public class ErrorConvert2ByteArray implements Function<Flux<Message<Throwable>>, Flux<Message<byte[]>>> {
     @Override
-    public Flux<Message<byte[]>> apply(Flux<Message<JsonNode>> f) {
+    public Flux<Message<byte[]>> apply(Flux<Message<Throwable>> f) {
         return f.map(m -> {
             MessageHeaders headers = m.getHeaders();
             byte[] inPayload = (byte[])headers.get(InMsg2Header.IN_PAYLOAD_HEADER);
+
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            m.getPayload().printStackTrace(printWriter);
+
             return MessageBuilder
                     .withPayload(inPayload)
                     .copyHeaders(headers)
+                    .setHeader("x-exception-message", m.getPayload().getMessage())
+                    .setHeader("x-exception-fqcn", m.getPayload().getClass().getName())
+                    .setHeader("x-exception-stacktrace", stringWriter.toString())
                     .removeHeader(InMsg2Header.IN_PAYLOAD_HEADER)
                     .build();
         });

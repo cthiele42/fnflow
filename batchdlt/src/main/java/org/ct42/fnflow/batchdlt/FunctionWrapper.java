@@ -22,8 +22,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -32,7 +30,7 @@ import java.util.function.Function;
  *
  * @author Claas Thiele
  */
-public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<JsonNode>>, Flux<Message<JsonNode>>> {
+public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<Throwable>>, Flux<Message<JsonNode>>> {
     private final Function<JsonNode, JsonNode> target;
 
     public FunctionWrapper(Function<JsonNode, JsonNode> target) {
@@ -40,23 +38,15 @@ public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sink
     }
 
     @Override
-    public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<JsonNode>> error) {
+    public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
         return messageFlux.map(m -> MessageBuilder
                 .withPayload(target.apply(m.getPayload()))
                 .copyHeaders(m.getHeaders())
-                .build()).onErrorContinue((throwable, m) -> {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(stringWriter);
-            throwable.printStackTrace(printWriter);
-            error.tryEmitNext(
-                        MessageBuilder
-                                .withPayload(((Message<JsonNode>)m).getPayload())
-                                .copyHeaders(((Message<JsonNode>)m).getHeaders())
-                                .setHeader("x-exception-message", throwable.getMessage())
-                                .setHeader("x-exception-fqcn", throwable.getClass().getName())
-                                .setHeader("x-exception-stacktrace", stringWriter.toString())
-                                .build()
-                    );
-                });
+                .build()).onErrorContinue((throwable, m) -> error.tryEmitNext(
+                            MessageBuilder
+                                    .withPayload(throwable)
+                                    .copyHeaders(((Message<JsonNode>)m).getHeaders())
+                                    .build()
+                        ));
     }
 }

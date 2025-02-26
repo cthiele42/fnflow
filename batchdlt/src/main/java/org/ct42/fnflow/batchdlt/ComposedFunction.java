@@ -54,7 +54,7 @@ public class ComposedFunction implements Function<Flux<Message<byte[]>>, Tuple2<
         if(definition == null || definition.isEmpty()) throw new IllegalStateException("org.ct42.fnflow.function.definition not configured");
         String[] fns = definition.split("\\|");
 
-        Sinks.Many<Message<JsonNode>> errorSink = Sinks.many().unicast().onBackpressureBuffer();
+        Sinks.Many<Message<Throwable>> errorSink = Sinks.many().unicast().onBackpressureBuffer();
 
         ResolvableType imperativeType = ResolvableType.forClassWithGenerics(Function.class, JsonNode.class, JsonNode.class);
         Set<String> imperativeBeans = Set.of(ctx.getBeanNamesForType(imperativeType));

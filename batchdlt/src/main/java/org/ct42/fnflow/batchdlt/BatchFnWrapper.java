@@ -22,8 +22,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +35,7 @@ import java.util.function.Function;
  *
  * @author Claas Thiele
  */
-public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<JsonNode>>, Flux<Message<JsonNode>>> {
+public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<Throwable>>, Flux<Message<JsonNode>>> {
         public final int defaultBatchSize;
         public final Duration defaultBatchTimeout;
 
@@ -50,7 +48,7 @@ public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
         }
 
         @Override
-        public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<JsonNode>> error) {
+        public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
             return messageFlux.bufferTimeout(defaultBatchSize, defaultBatchTimeout).flatMapSequential(b -> {
                 List<BatchElement> results = target.apply(b.stream().map(e -> new BatchElement(e.getPayload())).toList());
                 List<Message<JsonNode>> resultMsgs = new ArrayList<>();
@@ -63,17 +61,9 @@ public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                                 .build();
                         resultMsgs.add(msg);
                     } else if (result.getError() != null) {
-                        //TODO set header with error message and stacktrace
-                        StringWriter stringWriter = new StringWriter();
-                        PrintWriter printWriter = new PrintWriter(stringWriter);
-                        result.getError().printStackTrace(printWriter);
-
                         error.tryEmitNext(MessageBuilder
-                                .withPayload(result.getInput())
+                                .withPayload(result.getError())
                                 .copyHeaders(b.get(i).getHeaders())
-                                .setHeader("x-exception-message", result.getError().getMessage())
-                                .setHeader("x-exception-fqcn", result.getError().getClass().getName())
-                                .setHeader("x-exception-stacktrace", stringWriter.toString())
                                 .build());
                     }
                 }
