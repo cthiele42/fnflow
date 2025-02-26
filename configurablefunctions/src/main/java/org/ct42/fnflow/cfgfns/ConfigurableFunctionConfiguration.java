@@ -20,11 +20,13 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.validation.Validator;
 
 /**
  * Configuration for Bean registry and AOT processor.
  *
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @AutoConfiguration
 public class ConfigurableFunctionConfiguration {
@@ -40,8 +42,8 @@ public class ConfigurableFunctionConfiguration {
     }
 
     @Bean
-    public static FnPropsInjectingPostProcessor fnPropsInjectingPostProcessor(ApplicationContext applicationContext) {
-        return new FnPropsInjectingPostProcessor(applicationContext);
+    public static FnPropsInjectingPostProcessor fnPropsInjectingPostProcessor(ApplicationContext applicationContext, Validator validator) {
+        return new FnPropsInjectingPostProcessor(applicationContext, validator);
     }
 
     @Bean

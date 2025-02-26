@@ -20,12 +20,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.bind.validation.ValidationBindHandler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.Validator;
 
 import java.lang.reflect.Field;
 
@@ -33,12 +36,14 @@ import java.lang.reflect.Field;
  * Injects configuration properties data holder into configurable function instances.
  *
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Component
 @RegisterReflectionForBinding(ConfigurableFunction.class)
 @RequiredArgsConstructor
 public class FnPropsInjectingPostProcessor implements BeanPostProcessor {
     private final ApplicationContext applicationContext;
+    private final Validator validator;
 
     @Override
     public Object postProcessBeforeInitialization( Object bean, String beanName ) throws BeansException {
@@ -51,8 +56,9 @@ public class FnPropsInjectingPostProcessor implements BeanPostProcessor {
                     .getGeneric(2);
 
             String cfgName = ConfigurableFunctionConfiguration.FUNCTIONS_PREFIX + "." + fnCfgName + "." + convertCamelCaseToKebap(beanName);
+            BindHandler handler = new ValidationBindHandler(new BindHandler() {}, validator);
             BindResult<?> bindResult = Binder.get(applicationContext.getEnvironment())
-                    .bind(cfgName, Bindable.of(fnPropertiesType.resolve()));
+                    .bind(cfgName, Bindable.of(fnPropertiesType.resolve()), handler);
             if(bindResult.isBound()) {
                 Object props = bindResult.get();
                 try {
