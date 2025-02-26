@@ -18,37 +18,29 @@ package org.ct42.fnflow.cfgfnstest.validator;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.bind.validation.BindValidationException;
-import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
 /**
  * @author Sajjad Safaeian
  */
 public class ValidatorTest {
-    @Autowired
-    private FunctionCatalog catalog;
 
     @Test
     public void testReplace() {
-        Exception exception = assertThrows(Exception.class, () -> {
-            new SpringApplicationBuilder(TestConfiguration.class)
-                    .properties("cfgfns.replace-validator.cats-birds.replace=").run();
-        });
-        Throwable rootCause = ExceptionUtils.getRootCause(exception);
-
-        then(rootCause).isInstanceOf(BindValidationException.class);
+        thenThrownBy(
+                () -> new SpringApplicationBuilder(TestConfiguration.class)
+                .properties("cfgfns.replace-validator.cats-birds.replace=").run()
+        )
+        .hasRootCauseExactlyInstanceOf(BindValidationException.class);
     }
 
     @SpringBootApplication
