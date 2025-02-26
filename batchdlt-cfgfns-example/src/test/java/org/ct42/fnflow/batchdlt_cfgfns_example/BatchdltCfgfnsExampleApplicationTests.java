@@ -3,6 +3,7 @@ package org.ct42.fnflow.batchdlt_cfgfns_example;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
@@ -14,11 +15,14 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.KafkaContainer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +33,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
+@Testcontainers
 @SpringBootTest
-@EmbeddedKafka(bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
+@RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @TestPropertySource(properties = {
 		"spring.cloud.stream.default.group=xmpl",
 		"org.ct42.fnflow.default.batch.size=2"
@@ -40,8 +45,13 @@ class BatchdltCfgfnsExampleApplicationTests {
 	public static final String OUT_TOPIC = "fnFlowComposedFnBean-out-0";
 	public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
 
-	@Autowired
-	private EmbeddedKafkaBroker embeddedKafka;
+	@Container
+	static KafkaContainer kafkaContainer = new KafkaContainer("apache/kafka-native:3.8.1");
+
+	@DynamicPropertySource
+	static void kafkaProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.cloud.stream.kafka.binder.brokers", kafkaContainer::getBootstrapServers);
+	}
 
 	@Autowired
 	private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
@@ -98,20 +108,18 @@ class BatchdltCfgfnsExampleApplicationTests {
 				"""
                 {"text":"BLEN1 PRFX: T9"}"""
 		);
-		then(errors).extracting(ConsumerRecord::value).filteredOn(s -> !s.contains("PRFX")).containsExactly(
+		then(errors).extracting(ConsumerRecord::value).containsExactlyInAnyOrder(
 				"""
-                {"text":"T2"}"""
-		);
-		then(errors).extracting(ConsumerRecord::value).filteredOn(s -> s.contains("PRFX")).containsExactly(
+                {"text": "T2"}""",
 				"""
-                {"text":"PRFX: T6"}"""
+				{"text": "T6"}"""
 		);
 	}
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
 		// set up the Kafka consumer properties
 		Map<String, Object> consumerProperties =
-				KafkaTestUtils.consumerProps("sender", "false", embeddedKafka);
+				KafkaTestUtils.consumerProps(kafkaContainer.getBootstrapServers(), "sender");
 
 		// create a Kafka consumer factory
 		DefaultKafkaConsumerFactory<String, String> consumerFactory =
@@ -137,9 +145,7 @@ class BatchdltCfgfnsExampleApplicationTests {
 
 	private void setupProducer() {
 		// set up the Kafka producer properties
-		Map<String, Object> senderProperties =
-				KafkaTestUtils.producerProps(
-						embeddedKafka.getBrokersAsString());
+		Map<String, Object> senderProperties = KafkaTestUtils.producerProps(kafkaContainer.getBootstrapServers());
 
 		// create a Kafka producer factory
 		ProducerFactory<String, String> producerFactory =
@@ -154,8 +160,7 @@ class BatchdltCfgfnsExampleApplicationTests {
 		// wait until the partitions are assigned
 		for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
 				.getListenerContainers()) {
-			ContainerTestUtils.waitForAssignment(messageListenerContainer,
-					embeddedKafka.getPartitionsPerTopic());
+			ContainerTestUtils.waitForAssignment(messageListenerContainer, 1);
 		}
 	}
 }

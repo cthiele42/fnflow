@@ -39,12 +39,15 @@ ext {
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
-	implementation 'org.ct42.fnflow:configurablefunctions:0.0.4'
-	implementation 'org.ct42.fnflow:batchdlt:0.0.2'
+	implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
+	implementation 'org.ct42.fnflow:batchdlt:0.0.3'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:kafka'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
