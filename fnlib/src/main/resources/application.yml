@@ -1,1 +1,5 @@
-spring.application.name=fnlib
+spring:
+  cloud:
+    stream:
+      default.consumer.retryable-exceptions:
+        org.ct42.fnflow.fnlib.validator.ValidationException: false

@@ -1,2 +1,1 @@
-org.ct42.fnflow.fnlib.MessageConverterConfiguration
-org.ct42.fnflow.fnlib.HasValueValidator
+org.ct42.fnflow.fnlib.validator.hasvalue.HasValueValidator
