@@ -55,13 +55,13 @@ ext {
 }
 
 dependencies {
-	implementation 'org.springframework.cloud:spring-cloud-stream'
+	implementation 'org.springframework.cloud:spring-cloud-function-context'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
 	implementation 'org.apache.commons:commons-lang3'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

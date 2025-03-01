@@ -12,11 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.function.context.FunctionCatalog;
-import org.springframework.cloud.stream.binder.test.EnableTestBinder;
-import org.springframework.cloud.stream.binder.test.InputDestination;
-import org.springframework.cloud.stream.binder.test.OutputDestination;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.messaging.support.GenericMessage;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -36,13 +32,7 @@ import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 class HasValueValidatorTest {
 
     @Autowired
-    FunctionCatalog functionCatalog;
-
-    @Autowired
-    InputDestination input;
-
-    @Autowired
-    OutputDestination output;
+    FunctionCatalog catalog;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -60,7 +50,7 @@ class HasValueValidatorTest {
     void exceptionalSituationTest(String json, String exceptionMessage) throws Exception {
         JsonNode input = convert(json);
 
-        Function<JsonNode, JsonNode> function = functionCatalog.lookup(Function.class, "myvaluecheck");
+        Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "myvaluecheck");
 
         thenThrownBy(() -> function.apply(input))
                 .isInstanceOf(ValidationException.class)
@@ -95,10 +85,10 @@ class HasValueValidatorTest {
     @ParameterizedTest
     @MethodSource("createNormalSamples")
     void normalSituationTest(String json) throws Exception {
-        input.send(new GenericMessage<>(json.getBytes()));
+        JsonNode input = convert(json);
 
-        byte[] payload = output.receive().getPayload();
-        JsonNode result = mapper.readValue(payload, JsonNode.class);
+        Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "myvaluecheck");
+        JsonNode result = function.apply(input);
 
         then(result.toString()).isEqualToIgnoringWhitespace(json.trim());
     }
@@ -126,7 +116,6 @@ class HasValueValidatorTest {
     }
 
     @SpringBootApplication
-    @EnableTestBinder
     @ComponentScan
     protected static class HasValueValidatorTestApplication {}
 
