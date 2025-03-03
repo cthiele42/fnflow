@@ -1,0 +1,158 @@
+/*
+NOTE: The plugin set has to be the same in all submodules,
+otherwise nativeCompile and other native* tasks will fail
+See: https://github.com/graalvm/native-build-tools/issues/572 and https://github.com/gradle/gradle/issues/17559
+ */
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.graalvm.buildtools.native' version '0.10.4'
+    id 'idea'
+    id 'maven-publish'
+    id 'org.jreleaser' version '1.16.0'
+}
+
+group = 'org.ct42.fnflow'
+version = '0.0.1'
+
+idea {
+    module {
+        downloadSources = true
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withJavadocJar()
+    withSourcesJar()
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    archiveClassifier=''
+    enabled = true
+}
+
+processAot.enabled = false
+processTestAot.enabled = false
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', "2024.0.0")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
+    implementation 'org.ct42.fnflow:batchdlt:0.0.3'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.cloud:spring-cloud-function-context:4.2.1'
+    implementation 'org.opensearch.client:opensearch-java:2.15.0'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation ('org.opensearch.client:spring-data-opensearch-starter:1.6.1') {
+        exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
+        exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
+    }
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+publishing {
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            versionMapping {
+                allVariants {
+                    fromResolutionResult()
+                }
+            }
+            from(components.java)
+
+            pom {
+                name = 'batchfnlib'
+                description = 'Function library with functions utilizing batches'
+                url = 'https://github.com/cthiele42/fnflow'
+                inceptionYear = '2025'
+                licenses {
+                    license {
+                        name = 'Apache-2.0'
+                        url = 'https://spdx.org/licenses/Apache-2.0.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'cthiele42'
+                        name = 'Claas Thiele'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/cthiele42/fnflow.git'
+                    developerConnection = 'scm:git:ssh://github.com/cthiele42/fnflow.git'
+                    url = 'http://github.com/cthiele42/fnflow'
+                }
+            }
+        }
+    }
+}
+
+jreleaser {
+    gitRootSearch = true
+    signing {
+        active = 'ALWAYS'
+        armored = true
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active = 'ALWAYS'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('build/staging-deploy')
+                    retryDelay = 30
+                    maxRetries = 60
+                }
+            }
+        }
+    }
+    release {
+        github {
+            tagName = '{{projectName}}-{{projectVersion}}'
+        }
+    }
+}
