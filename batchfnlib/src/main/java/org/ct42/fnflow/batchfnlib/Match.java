@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.batchdlt.BatchElement;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.opensearch.client.json.JsonData;
@@ -33,7 +34,6 @@ import org.opensearch.client.opensearch.core.msearch_template.RequestItem;
 import org.opensearch.client.opensearch.core.msearch_template.TemplateConfig;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.annotation.RegisterReflection;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -42,10 +42,10 @@ import java.util.*;
  * @author Claas Thiele
  */
 @Component("Match")
+@RequiredArgsConstructor
 @RegisterReflection(classes = JsonPointer.class, memberCategories = MemberCategory.INVOKE_PUBLIC_METHODS)
 public class Match extends ConfigurableFunction<List<BatchElement>, List<BatchElement>, MatchProperties> {
-    @Autowired
-    OpenSearchClient client;
+    private final OpenSearchClient client;
 
     @Override
     public List<BatchElement> apply(List<BatchElement> input) {
