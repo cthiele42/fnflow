@@ -5,3 +5,5 @@ include 'fnlib'
 include 'batchdlt'
 include 'batchdlt-cfgfns-example'
 include 'fnflow-json-processors-kafka'
+include 'batchfnlib'
+
