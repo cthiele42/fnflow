@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlib;
+package org.ct42.fnflow.batchfnlibtest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.batchdlt.BatchElement;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.StoredScript;
@@ -59,7 +60,7 @@ public class MatchTest {
     private FunctionCatalog functionCatalog;
 
     @Autowired
-    OpenSearchClient client;
+    private OpenSearchClient client;
 
     @DynamicPropertySource
     static void opensearchProperties(DynamicPropertyRegistry registry) {
@@ -67,6 +68,13 @@ public class MatchTest {
     }
 
     @Test
+    @DisplayName("""
+            GIVEN a searchtemplate with name 'testtemplate'
+            AND an index named 'testindex' with two documents
+            AND an input message with matching ids
+            WHEN the 'Match' function is executed
+            THEN the output will contain both matched documents in the 'matches' array
+            """)
     public void testMatchFunction() throws Exception {
         //given a search template with name 'testtemplate'
         StoredScript storedScript = new StoredScript.Builder()
