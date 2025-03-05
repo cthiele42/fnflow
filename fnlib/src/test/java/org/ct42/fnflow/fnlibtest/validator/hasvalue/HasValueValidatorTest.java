@@ -59,26 +59,34 @@ class HasValueValidatorTest {
 
     private static Stream<Arguments> createExceptionalSamples() {
         return Stream.of(
-          Arguments.of(
-          """ 
-                  {}
-                  """, "The element is not Exist."),
-          Arguments.of(
-          """ 
-                  {"a": 1}
-                  """, "The element is not Exist."),
-          Arguments.of(
-          """ 
-                  {"a": {"b": null}}
-                  """, "The value is null."),
-          Arguments.of(
-          """ 
-                  {"a": {"b": ""}}
-                  """, "The value is empty text."),
-          Arguments.of(
-          """ 
-                  {"a": {"b": [{"c": 1}, "", null]}}
-                  """, "The array element has not value.")
+                Arguments.of(
+                        """ 
+                                {}
+                                """, "The element is not Exist."),
+                Arguments.of(
+                        """ 
+                                {"a": 1}
+                                """, "The element is not Exist."),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": null}}
+                                """, "The value is null."),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": ""}}
+                                """, "The value is empty text."),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": [{"c": 1}, "", null]}}
+                                """, "The array element has not value."),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": [{"c": 1}, {"d": null}]}}
+                                """, "The array element has not value."),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": {"c": 1}}}
+                                """, "Object type is not acceptable.")
         );
     }
 
@@ -95,18 +103,22 @@ class HasValueValidatorTest {
 
     private static Stream<Arguments> createNormalSamples() {
         return Stream.of(
-            Arguments.of(
-            """ 
-                    {"a": {"b": 1}}
-                    """),
-            Arguments.of(
-            """ 
-                    {"a": {"b": "1"}}
-                    """),
-            Arguments.of(
-            """ 
-                    {"a": {"b": [{"c": 1}, null, "1"]}}
-                    """)
+                Arguments.of(
+                        """ 
+                                {"a": {"b": 1}}
+                                """),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": "1"}}
+                                """),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": false}}
+                                """),
+                Arguments.of(
+                        """ 
+                                {"a": {"b": [{"c": 1}, null, "1"]}}
+                                """)
         );
     }
 
@@ -120,4 +132,3 @@ class HasValueValidatorTest {
     protected static class HasValueValidatorTestApplication {}
 
 }
-

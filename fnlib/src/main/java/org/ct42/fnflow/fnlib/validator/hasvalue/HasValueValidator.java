@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.ct42.fnflow.fnlib.validator.ValidationException;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Sajjad Safaeian
  */
-@AutoConfiguration
 @Component("hasValueValidator")
 public class HasValueValidator extends ConfigurableFunction<JsonNode, JsonNode, HasValueProperties> {
 
@@ -22,7 +20,7 @@ public class HasValueValidator extends ConfigurableFunction<JsonNode, JsonNode, 
         JsonPointer pointer = properties.getElementPath();
         JsonNode resultNode = input.at(pointer);
 
-        if(null == resultNode || resultNode.isNull()) {
+        if(resultNode.isNull()) {
             throw new ValidationException("The value is null.");
         }
 
@@ -35,20 +33,21 @@ public class HasValueValidator extends ConfigurableFunction<JsonNode, JsonNode, 
         }
 
         if(resultNode.isArray()) {
-            boolean containsValue = false;
             boolean hasValue = false;
             for (JsonNode node: resultNode) {
-                if(node.isNumber() || node.isTextual() || node.isNull()) {
-                    containsValue = true;
-                    if(node.isNumber() || (node.isTextual() && StringUtils.isNotEmpty(node.asText()))) {
-                        hasValue = true;
-                    }
+                if(node.isNumber() || (node.isTextual() && StringUtils.isNotEmpty(node.asText()))) {
+                    hasValue = true;
+                    break;
                 }
             }
 
-            if(containsValue && !hasValue) {
+            if(!hasValue) {
                 throw new ValidationException("The array element has not value.");
             }
+        }
+
+        if(resultNode.isObject()) {
+            throw new ValidationException("Object type is not acceptable.");
         }
 
         return input;
