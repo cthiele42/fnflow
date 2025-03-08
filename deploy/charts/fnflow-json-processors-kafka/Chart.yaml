@@ -1,0 +1,7 @@
+apiVersion: v2
+name: fnflow-json-processors-kafka
+description: A Helm chart for the fnflow json processors image
+
+type: application
+version: 0.0.1
+appVersion: 0.0.1
