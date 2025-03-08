@@ -67,3 +67,14 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.named("bootBuildImage") {
+	imageName.set("ct42/fnflow-json-processors-kafka:${version}")
+	publish = true
+	docker {
+		publishRegistry {
+			username = "$usr"
+			password = "$pwd"
+		}
+	}
+}
