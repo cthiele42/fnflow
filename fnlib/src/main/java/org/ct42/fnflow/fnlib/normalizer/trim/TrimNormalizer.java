@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.apache.commons.lang3.StringUtils;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.springframework.stereotype.Component;
@@ -25,8 +24,7 @@ public class TrimNormalizer extends ConfigurableFunction<JsonNode, JsonNode, Tri
         if(resultNode.isTextual()) {
             JsonNode parentNode = input.at(pointer.head());
             if(parentNode.isObject()) {
-                TextNode updatedNode = new TextNode(trimString(resultNode.asText()));
-                ((ObjectNode) parentNode).set(pointer.last().getMatchingProperty(), updatedNode);
+                ((ObjectNode) parentNode).put(pointer.last().getMatchingProperty(), trimString(resultNode.asText()));
             }
         }
 
@@ -34,7 +32,7 @@ public class TrimNormalizer extends ConfigurableFunction<JsonNode, JsonNode, Tri
             ArrayNode array = (ArrayNode) resultNode;
             for (int i = 0; i <array.size(); i++) {
                 if(array.get(i).isTextual()) {
-                    array.set(i, new TextNode(trimString(array.get(i).asText())));
+                    array.set(i, trimString(array.get(i).asText()));
                 }
             }
         }
