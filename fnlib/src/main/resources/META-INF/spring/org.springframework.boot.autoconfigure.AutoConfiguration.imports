@@ -1,2 +1,3 @@
 org.ct42.fnflow.fnlib.validator.hasvalue.HasValueValidator
 org.ct42.fnflow.fnlib.normalizer.trim.TrimNormalizer
+org.ct42.fnflow.fnlib.normalizer.pad.PadNormalizer
