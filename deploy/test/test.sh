@@ -42,15 +42,15 @@ function setup() {
   echo
 }
 
-setup
+#setup
 
 MSGS=''
-for i in $(seq 0 999);
+for i in $(seq 0 4);
 do
   if ((i % 3 == 0)); then
     MSGS=$MSGS'|{\"id\":[]}\n'
   else
-    MSGS=$MSGS'|{\"id\":[\"T'$i'\"]}\n'
+    MSGS=$MSGS'|{\"id\":[\"ID'$i'\"]}\n'
   fi
 done
 
