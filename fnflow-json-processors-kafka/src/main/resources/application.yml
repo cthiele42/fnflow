@@ -1,1 +1,3 @@
-spring.application.name: fnflow-json-processors-kafka
+spring:
+  application.name: fnflow-json-processors-kafka
+  cloud.function.definition: fnFlowComposedFnBean

@@ -1,0 +1,28 @@
+opensearch:
+  chartVersion: 2.32.0
+
+osdashboards:
+  chartVersion: 2.28.0
+
+kafka:
+  chartVersion: 31.5.0
+
+akhq:
+  chartVersion: 0.25.1
+
+fnflowprocessors:
+    chartVersion: 0.0.1
+    appversion: 0.0.1
+    functionDefinition: idExist|idMatch
+    cfgfns:
+      hasValueValidator:
+        idExist:
+          elementPath: /id
+      Match:
+        idMatch:
+          index: testindex
+          template: testtemplate
+          paramsFromInput:
+            ids: /id
+          literalParams:
+            field: id
