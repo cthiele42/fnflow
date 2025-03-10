@@ -40,7 +40,7 @@ public class PadNormalizerTest {
         @ParameterizedTest
         @MethodSource("rightPadSamples")
         void name(String json, String elementPath, String expectedValue) throws Exception {
-            testTrim(json, elementPath, catalog.lookup(Function.class, FUNCTION_NAME), expectedValue);
+            testPad(json, elementPath, catalog.lookup(Function.class, FUNCTION_NAME), expectedValue);
         }
 
         private static Stream<Arguments> rightPadSamples() {
@@ -57,7 +57,7 @@ public class PadNormalizerTest {
         @ParameterizedTest
         @MethodSource("leftPadSamples")
         void name(String json, String elementPath, String expectedValue) throws Exception {
-            testTrim(json, elementPath, catalog.lookup(Function.class, FUNCTION_NAME), expectedValue);
+            testPad(json, elementPath, catalog.lookup(Function.class, FUNCTION_NAME), expectedValue);
         }
 
         private static Stream<Arguments> leftPadSamples() {
@@ -66,7 +66,7 @@ public class PadNormalizerTest {
 
     }
 
-    private void testTrim(String json, String elementPath, Function<JsonNode, JsonNode> function, String expectedValue)
+    private void testPad(String json, String elementPath, Function<JsonNode, JsonNode> function, String expectedValue)
             throws Exception {
         JsonPointer pointer = JsonPointer.compile(elementPath);
         JsonNode input = convert(json);
