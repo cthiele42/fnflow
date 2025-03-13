@@ -5,6 +5,10 @@ environments:
 
 ---
 
+helmDefaults:
+  wait: true
+  timeout: 600
+
 repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
