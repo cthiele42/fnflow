@@ -30,14 +30,14 @@ import org.springframework.web.bind.annotation.*;
 public class Controller {
     private final KafkaService kafkaService;
 
-    @RequestMapping(value="/{topic}", method = RequestMethod.POST)
+    @PostMapping(value="/{topic}")
     public ResponseEntity<Void> write(@PathVariable String topic,
                       @RequestBody BatchDTO batch) {
         kafkaService.write(topic, null, batch.getMessages());
         return ResponseEntity.noContent().build();
     }
 
-    @RequestMapping(value="/{topic}/{partition}", method = RequestMethod.POST)
+    @PostMapping(value="/{topic}/{partition}")
     public ResponseEntity<Void> write(@PathVariable String topic,
                                 @PathVariable int partition,
                                 @RequestBody BatchDTO batch) {
