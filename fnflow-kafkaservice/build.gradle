@@ -32,36 +32,18 @@ repositories {
 	mavenCentral()
 }
 
-ext {
-	set('springCloudVersion', "2024.0.0")
-}
-
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.cloud:spring-cloud-stream'
-	implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
-	implementation 'org.opensearch.client:opensearch-java:2.15.0'
-	implementation ('org.opensearch.client:spring-data-opensearch-starter:1.6.1') {
-		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
-		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
-	}
-	implementation 'org.ct42.fnflow:fnlib:0.0.1'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.1'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.kafka:spring-kafka'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
 	testImplementation 'org.testcontainers:kafka'
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
@@ -69,7 +51,7 @@ tasks.named('test') {
 }
 
 tasks.named("bootBuildImage") {
-	imageName.set("ct42/fnflow-json-processors-kafka:${version}")
+	imageName.set("ct42/fnflow-kafkaservice:${version}")
 	publish = true
 	docker {
 		publishRegistry {
