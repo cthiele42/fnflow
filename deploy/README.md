@@ -10,6 +10,7 @@ The exposed adresses are:
 - Opensearch: [http://locahost:9200](http://locahost:9200)
 - Opensearch Dashboards: [http://locahost:5601](http://locahost:5601)
 - AKHQ: [http://locahost:32551](http://locahost:32551)
+- KafkaService: [http://localhost:32580](http://localhost:32580)
 
 The deployment is made with [helmfile](https://github.com/helmfile/helmfile).  
 Following will be deployed:
@@ -18,6 +19,7 @@ Following will be deployed:
 - Opensearch
 - Opensearch Dashboards
 - fnflow-json-processors-kafka application
+- fnflow-kafkaservice
 
 The functions can be configured in the [values.yaml](local/values.yaml)
 
