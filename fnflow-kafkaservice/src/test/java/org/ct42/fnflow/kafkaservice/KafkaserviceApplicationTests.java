@@ -124,6 +124,8 @@ class KafkaserviceApplicationTests {
 				{"id":"ID0"}""");
 		then(results.getFirst().headers()).hasSize(1);
 		then(new String(results.getFirst().headers().lastHeader("KEY").value())).isEqualTo("key0");
+		then(results.get(1).headers().headers("KEY")).hasSize(1);
+		then(results.get(2).headers().headers("KEY")).hasSize(1);
 	}
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
