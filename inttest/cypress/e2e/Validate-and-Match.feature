@@ -22,6 +22,6 @@ Feature: Validate and match input data
     }
     """
     And two documents in the index
-    When ten input messages are provided
+    When messages from 'input/six-valid-four-invalid.json' were sent to the topic 'fnFlowComposedFnBean-in-0'
     Then six messages are landing in the output topic
     And three messages are landing in the error topic

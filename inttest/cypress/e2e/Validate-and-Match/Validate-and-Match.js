@@ -16,14 +16,22 @@ Given("an index {string} with mapping:", (name, body) => {
         failOnStatusCode: true,
         body: JSON.parse(body)
     })
+    Cypress.env('ENTITY_TOPIC', name)
 })
 
 Given("two documents in the index", () => {
 
 })
 
-When("ten input messages are provided", () => {
-
+When("messages from {string} were sent to the topic {string}", (fixture, topic) => {
+    cy.fixture(fixture).then((file) => {
+        const body = Object.assign(file);
+        cy.request({
+            method: 'POST',
+            url: 'http://localhost:32580/' + topic,
+            body: body
+        })
+    })
 })
 
 Then("six messages are landing in the output topic", () => {
@@ -32,4 +40,12 @@ Then("six messages are landing in the output topic", () => {
 
 Then("three messages are landing in the error topic", () => {
 
+})
+
+//cleanup
+after(()=>{
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:9200/' + Cypress.env('ENTITY_TOPIC')
+    })
 })
