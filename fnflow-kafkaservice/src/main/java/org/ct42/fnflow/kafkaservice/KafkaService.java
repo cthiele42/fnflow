@@ -37,8 +37,8 @@ public class KafkaService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     public void write(String topic, Integer partition, Message[] messages) {
-        List<Header> headers = new ArrayList<>();
         for (Message m : messages) {
+            List<Header> headers = new ArrayList<>();
             Arrays.stream(m.getHeaders()).forEach(h ->
                     headers.add(new RecordHeader(h.getKey(), h.getValue().getBytes(StandardCharsets.UTF_8))));
             kafkaTemplate.send(new ProducerRecord<>(topic, partition, m.getKey(), m.getValue().toString(), headers));
