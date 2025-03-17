@@ -35,7 +35,7 @@ When("messages from {string} were sent to the topic {string}", (fixture, topic) 
 })
 
 Then("six messages are landing in the output topic", () => {
-
+    cy.wait(2000)
 })
 
 Then("three messages are landing in the error topic", () => {
