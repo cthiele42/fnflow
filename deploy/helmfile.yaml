@@ -97,3 +97,19 @@ releases:
           definition: {{ .Values.fnflowprocessors.functionDefinition }}
         cfgfns:
           {{- toYaml .Values.fnflowprocessors.cfgfns | nindent 10 }}
+
+  - name: kafkaservice
+    namespace: default
+    chart: charts/fnflow-kafkaservice
+    version: {{ .Values.kafkaservice.chartVersion }}
+    needs:
+      - default/kafka
+    values:
+      - kafka:
+          brokers: kafka.default.svc:9092
+        spring:
+          kafka:
+            {{- toYaml .Values.kafkaservice.spring.kafka | nindent 12 }}
+        service:
+          type: NodePort
+          nodePort: 32580

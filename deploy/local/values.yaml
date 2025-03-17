@@ -26,3 +26,14 @@ fnflowprocessors:
             ids: /id
           literalParams:
             field: id
+
+kafkaservice:
+  chartVersion: 0.0.1
+  appversion: 0.0.2
+  spring:
+    kafka:
+      producer:
+        batch-size: 131072
+        compression-type: lz4
+        properties:
+          linger.ms: 50
