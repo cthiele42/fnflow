@@ -62,6 +62,8 @@ releases:
         listeners:
           client:
             protocol: PLAINTEXT
+        kraft:
+          clusterId: 'zDq05XBOLRNvLA9pZfadA8'
 
   - name: akhq
     namespace: default
@@ -89,7 +91,9 @@ releases:
       - default/kafka
       - default/opensearch
     values:
-      - opensearch:
+      - image:
+          tag: {{ .Values.fnflowprocessors.appVersion }}
+        opensearch:
           uris: http://opensearch-cluster-master.default.svc:9200
         kafka:
           brokers: kafka.default.svc:9092
@@ -105,7 +109,9 @@ releases:
     needs:
       - default/kafka
     values:
-      - kafka:
+      - image:
+          tag: {{ .Values.kafkaservice.appVersion }}
+        kafka:
           brokers: kafka.default.svc:9092
         spring:
           kafka:
