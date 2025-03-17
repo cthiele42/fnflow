@@ -38,10 +38,14 @@ public class KafkaService {
 
     public void write(String topic, Integer partition, Message[] messages) {
         for (Message m : messages) {
-            List<Header> headers = new ArrayList<>();
-            Arrays.stream(m.getHeaders()).forEach(h ->
-                    headers.add(new RecordHeader(h.getKey(), h.getValue().getBytes(StandardCharsets.UTF_8))));
-            kafkaTemplate.send(new ProducerRecord<>(topic, partition, m.getKey(), m.getValue().toString(), headers));
+            if(m.getHeaders() != null) {
+                List<Header> headers = new ArrayList<>();
+                Arrays.stream(m.getHeaders()).forEach(h ->
+                        headers.add(new RecordHeader(h.getKey(), h.getValue().getBytes(StandardCharsets.UTF_8))));
+                kafkaTemplate.send(new ProducerRecord<>(topic, partition, m.getKey(), m.getValue().toString(), headers));
+            } else {
+                kafkaTemplate.send(new ProducerRecord<>(topic, partition, m.getKey(), m.getValue().toString()));
+            }
         }
     }
 }
