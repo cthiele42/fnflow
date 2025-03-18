@@ -44,4 +44,9 @@ public class Controller {
         kafkaService.write(topic, partition, batch.getMessages());
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{topic}")
+    public TopicInfoDTO getTopicInfo(@PathVariable String topic) {
+        return kafkaService.getTopicInfo(topic);
+    }
 }

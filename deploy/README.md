@@ -46,3 +46,10 @@ Redeploying the fnflow app after a config change can be done this way:
 ```shell
 helmfile -e local -l name=fnflowprocessors apply
 ```
+
+## Building and Deploying Images locally
+**Example for kafkaservice with version 0.0.4-SNAPSHOT**
+1. Set the version to a SNAPSHOT version
+2. `./gradlew fnflow-kafkaservice:bootBuildImage`
+3. `docker image tag docker.io/ct42/fnflow-kafkaservice:0.0.4-SNAPSHOT ct42/fnflow-kafkaservice:0.0.4-SNAPSHOT`
+4. `kind load docker-image docker.io/ct42/fnflow-kafkaservice:0.0.4-SNAPSHOT`
