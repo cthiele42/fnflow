@@ -17,7 +17,7 @@ Given("an index {string} with mapping:", (name, body) => {
         failOnStatusCode: true,
         body: JSON.parse(body)
     })
-    Cypress.env('ENTITY_TOPIC', name)
+    Cypress.env('ENTITY_INDEX', name)
 })
 
 Given("two documents in the index", () => {
@@ -54,8 +54,23 @@ Then("a number of {int} messages are landing in the topic {string}", (expected, 
 
 //cleanup
 after(()=>{
+    //delete entity index
     cy.request({
         method: 'DELETE',
-        url: 'http://localhost:9200/' + Cypress.env('ENTITY_TOPIC')
+        url: 'http://localhost:9200/' + Cypress.env('ENTITY_INDEX')
+    })
+
+    //delete all topics
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:32580/fnFlowComposedFnBean-in-0'
+    })
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:32580/fnFlowComposedFnBean-out-0'
+    })
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:32580/fnFlowComposedFnBean-out-1'
     })
 })
