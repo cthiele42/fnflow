@@ -19,7 +19,6 @@ package org.ct42.fnflow.kafkaservice;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +61,7 @@ properties = {
 })
 class KafkaserviceApplicationTests {
 	public static final String TOPIC = "testtopic";
+	public static final String INFOTOPIC = "testinfotopic";
 
 	@Autowired
 	private TestRestTemplate restTemplate;
@@ -75,13 +75,10 @@ class KafkaserviceApplicationTests {
 
 	private final BlockingQueue<ConsumerRecord<String, String>> inRecords = new LinkedBlockingQueue<>();
 
-	@BeforeEach
-	void setup() {
-		setupConsumer(inRecords, TOPIC);
-	}
-
 	@Test
 	void testWriteBatch() throws Exception {
+		setupConsumer(inRecords, TOPIC);
+
 		String content = """
 				{
 					"messages": [
@@ -126,6 +123,42 @@ class KafkaserviceApplicationTests {
 		then(results.get(1).headers()).isEmpty();
 		then(results.get(2).headers().headers("KEY")).hasSize(1);
 	}
+
+	@Test
+	void testTopicInfo() {
+		String content = """
+				{
+					"messages": [
+						{
+							"key": "key0",
+							"headers": [{"key": "KEY","value": "key0"}],
+							"value": {"id":"ID0"}
+						},
+						{
+							"key": "key1",
+							"value": {"id":"ID1"}
+						},
+						{
+							"key": "key2",
+							"headers": [{"key": "KEY","value": "key2"}],
+							"value": {"id":"ID2"}
+						}
+					]
+				}""";
+
+		HttpEntity<String> httpEntity = new HttpEntity<>(content, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
+		ResponseEntity<Void> response = restTemplate.postForEntity("/" + INFOTOPIC, httpEntity, Void.class);
+
+		then(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+		ResponseEntity<TopicInfoDTO> infoResponse = restTemplate.getForEntity("/" + INFOTOPIC, TopicInfoDTO.class);
+		then(infoResponse.getStatusCode().is2xxSuccessful()).isTrue();
+		then(infoResponse.getBody().getMessageCount()).isEqualTo(3);
+		then(infoResponse.getBody().getLastUpdated()).isLessThanOrEqualTo(System.currentTimeMillis());
+		then(infoResponse.getBody().getSizeOnDiskBytes()).isStrictlyBetween(50L, 500L);
+
+	}
+
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
 		// set up the Kafka consumer properties

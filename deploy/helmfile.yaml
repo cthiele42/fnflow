@@ -101,7 +101,9 @@ releases:
     needs:
       - default/kafka
     values:
-      - kafka:
+      - image:
+          tag: {{  .Values.kafkaservice.appVersion }}
+        kafka:
           brokers: kafka.default.svc:9092
         spring:
           kafka:
