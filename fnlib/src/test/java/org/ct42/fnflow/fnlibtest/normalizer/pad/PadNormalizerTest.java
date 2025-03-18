@@ -73,7 +73,7 @@ public class PadNormalizerTest {
 
         JsonNode result = function.apply(input);
 
-        then(result.at(pointer).asText()).isEqualTo(expectedValue);
+        then(result.at(pointer).toString()).isEqualTo(expectedValue);
     }
 
     protected static Stream<Arguments> createSamples() {
@@ -81,15 +81,35 @@ public class PadNormalizerTest {
                 Arguments.of(
             """ 
                        {"a": {"b": "12345"}}
-                       """, "/a/b", "00012345", "12345000"),
+                       """, "/a/b", """
+                       "00012345"\
+                       """, """
+                       "12345000"\
+                       """),
                 Arguments.of(
             """ 
                        {"a": {"b": [{"c": 1}, "12345"]}}
-                       """, "/a/b/1", "00012345", "12345000"),
+                       """, "/a/b/1", """
+                       "00012345"\
+                       """, """
+                       "12345000"\
+                       """),
                 Arguments.of(
             """ 
                        {"a": {"b": "123456789"}}
-                       """, "/a/b", "123456789", "123456789")
+                       """, "/a/b", """
+                       "123456789"\
+                       """, """
+                       "123456789"\
+                       """),
+                Arguments.of(
+                        """ 
+                       {"a": {"b": ["12345","123"]}}
+                       """, "/a/b", """
+                       ["00012345","00000123"]\
+                       """, """
+                       ["12345000","12300000"]\
+                       """)
         );
     }
 
