@@ -20,8 +20,21 @@ Given("an index {string} with mapping:", (name, body) => {
     Cypress.env('ENTITY_INDEX', name)
 })
 
-Given("two documents in the index", () => {
-
+Given("documents from {string} were indexed to {string}", (fixture, index) => {
+    cy.fixture(fixture).then((file) => {
+        const docs = Object.assign(file);
+        docs.docs.forEach(doc =>
+            cy.request({
+                method: 'PUT',
+                url: 'http://localhost:9200/' + index + '/_doc/' + doc.id,
+                body: doc.content
+            })
+        )
+        cy.request({
+            method: 'POST',
+            url: 'http://localhost:9200/' + index + '/_refresh'
+        })
+    })
 })
 
 When("messages from {string} were sent to the topic {string}", (fixture, topic) => {

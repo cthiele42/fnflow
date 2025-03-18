@@ -1,0 +1,12 @@
+{
+  "docs": [
+    {
+      "id": "doc1",
+      "content": {"id":["ID1","ID2","ID3"]}
+    },
+    {
+      "id": "doc2",
+      "content": {"id":"ID4"}
+    }
+  ]
+}

@@ -29,7 +29,7 @@ fnflowprocessors:
 
 kafkaservice:
   chartVersion: 0.0.1
-  appVersion: 0.0.5-SNAPSHOT
+  appVersion: 0.0.5
   spring:
     kafka:
       producer:
