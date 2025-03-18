@@ -1,4 +1,5 @@
 import { When, Then, Given } from "/usr/local/lib/node_modules/@badeball/cypress-cucumber-preprocessor";
+import {recurse} from "/usr/local/lib/node_modules/cypress-recurse"
 
 Given("a searchtemplate with name {string} with:", (name, body) => {
     cy.request({
@@ -34,12 +35,21 @@ When("messages from {string} were sent to the topic {string}", (fixture, topic) 
     })
 })
 
-Then("six messages are landing in the output topic", () => {
-    cy.wait(2000)
-})
-
-Then("three messages are landing in the error topic", () => {
-
+Then("a number of {int} messages are landing in the topic {string}", (expected, topic) => {
+    recurse(
+        () => cy.request({
+            method: 'GET',
+            url: 'http://localhost:32580/' + topic,
+            failOnStatusCode: false
+        }),
+        (response) => response.body.messageCount === expected,
+        {
+            log: true,
+            limit: 120,
+            timeout: 60000,
+            delay: 500
+        }
+    )
 })
 
 //cleanup
