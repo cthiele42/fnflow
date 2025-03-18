@@ -18,6 +18,7 @@ package org.ct42.fnflow.kafkaservice;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,5 +49,12 @@ public class Controller {
     @GetMapping("/{topic}")
     public TopicInfoDTO getTopicInfo(@PathVariable String topic) {
         return kafkaService.getTopicInfo(topic);
+    }
+
+    @DeleteMapping("/{topic}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> delete(@PathVariable String topic) {
+        kafkaService.deleteTopic(topic);
+        return ResponseEntity.noContent().build();
     }
 }
