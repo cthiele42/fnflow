@@ -1,0 +1,113 @@
+environments:
+  local:
+    values:
+      - local/values.yaml
+
+---
+
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: opensearch
+    url: https://opensearch-project.github.io/helm-charts/
+  - name: akhq
+    url: https://akhq.io/
+
+releases:
+  - name: opensearch
+    namespace: default
+    chart: opensearch/opensearch
+    version: {{ .Values.opensearch.chartVersion }}
+    values:
+      - minimumMasterNodes: 1
+      - replicas: 1
+      - extraEnvs:
+          - name: DISABLE_INSTALL_DEMO_CONFIG
+            value: "true"
+          - name: DISABLE_SECURITY_PLUGIN
+            value: "true"
+      - service:
+          type: NodePort
+          nodePort: 32592
+
+  - name: osdashboards
+    namespace: default
+    chart: opensearch/opensearch-dashboards
+    version: {{ .Values.osdashboards.chartVersion }}
+    needs:
+      - default/opensearch
+    values:
+      - extraEnvs:
+          - name: OPENSEARCH_HOSTS
+            value: http://opensearch-cluster-master.default.svc:9200
+          - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+            value: "true"
+      - service:
+          type: NodePort
+          nodePort: 32561
+
+  - name: kafka
+    namespace: default
+    chart: bitnami/kafka
+    version: {{ .Values.kafka.chartVersion }}
+    values:
+      - controller:
+          replicaCount: 1
+        replicaCount: 1
+        extraConfig: offsets.topic.replication.factor=1
+        listeners:
+          client:
+            protocol: PLAINTEXT
+
+  - name: akhq
+    namespace: default
+    chart: akhq/akhq
+    version: {{ .Values.akhq.chartVersion }}
+    needs:
+      - default/kafka
+    values:
+      - configuration:
+          akhq:
+            connections:
+              local:
+                properties:
+                  bootstrap:
+                    servers: kafka.default.svc:9092
+        service:
+          type: NodePort
+          httpNodePort: 32551
+
+  - name: fnflowprocessors
+    namespace: default
+    chart: charts/fnflow-json-processors-kafka
+    version: {{ .Values.fnflowprocessors.chartVersion }}
+    needs:
+      - default/kafka
+      - default/opensearch
+    values:
+      - opensearch:
+          uris: http://opensearch-cluster-master.default.svc:9200
+        kafka:
+          brokers: kafka.default.svc:9092
+        function:
+          definition: {{ .Values.fnflowprocessors.functionDefinition }}
+        cfgfns:
+          {{- toYaml .Values.fnflowprocessors.cfgfns | nindent 10 }}
+
+  - name: kafkaservice
+    namespace: default
+    chart: charts/fnflow-kafkaservice
+    version: {{ .Values.kafkaservice.chartVersion }}
+    needs:
+      - default/kafka
+    values:
+      - image:
+          tag: {{  .Values.kafkaservice.appVersion }}
+        kafka:
+          brokers: kafka.default.svc:9092
+        spring:
+          kafka:
+            {{- toYaml .Values.kafkaservice.spring.kafka | nindent 12 }}
+        service:
+          type: NodePort
+          nodePort: 32580
