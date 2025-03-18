@@ -83,7 +83,7 @@ public class KafkaService {
             earliestResults.forEach((p, ei) -> {
                 ListOffsetsResult.ListOffsetsResultInfo li = latestResults.get(p);
 
-                ConsumerRecord<String, String> latestRecord = kafkaTemplate.receive(p.topic(), p.partition(), Math.min(0, li.offset() -1), Duration.ofMillis(500));
+                ConsumerRecord<String, String> latestRecord = kafkaTemplate.receive(p.topic(), p.partition(), Math.max(0, li.offset() -1), Duration.ofMillis(500));
                 if(latestRecord != null) {
                     topicInfo.setLastUpdated(Math.max(topicInfo.getLastUpdated(), latestRecord.timestamp()));
                 }
@@ -99,9 +99,17 @@ public class KafkaService {
             });
 
         } catch (ExecutionException | InterruptedException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Getting topic info failed", e);
         }
 
         return topicInfo;
+    }
+
+    public void deleteTopic(String topic) {
+        try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
+            adminClient.deleteTopics(List.of(topic)).all().get();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new IllegalStateException("Deleting topic failed", e);
+        }
     }
 }
