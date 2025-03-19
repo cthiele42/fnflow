@@ -58,6 +58,8 @@ releases:
         listeners:
           client:
             protocol: PLAINTEXT
+        kraft:
+          clusterId: fnflowtest
 
   - name: akhq
     namespace: default
@@ -93,3 +95,5 @@ releases:
           definition: {{ .Values.fnflowprocessors.functionDefinition }}
         cfgfns:
           {{- toYaml .Values.fnflowprocessors.cfgfns | nindent 10 }}
+        topicConfig:
+          {{- toYaml .Values.fnflowprocessors.topicConfig | nindent 10 }}

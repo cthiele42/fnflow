@@ -20,9 +20,9 @@ spring:
 ## App Props
 ```yaml
 spring.cloud.stream.default.group: ${pipeline-name}
-spring.cloud.stream.fnFlowComposedFnBean-in-0.destination: ${source-topic}
-spring.cloud.stream.fnFlowComposedFnBean-out-0.destination: ${out-topic}
-spring.cloud.stream.fnFlowComposedFnBean-out-1.destination: ${error-topic}
+spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination: ${source-topic}
+spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination: ${out-topic}
+spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination: ${error-topic}
 spring.cloud.stream.kafka.binder.autoAlterTopics: true
 spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.retention.ms: -1
 spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.cleanup.policy: compact
