@@ -65,6 +65,21 @@ Then("a number of {int} messages are landing in the topic {string}", (expected, 
     )
 })
 
+Then("in topic {string} for input ID1, ID2 and ID4 there will be matches", (topic) => {
+    cy.request({
+        method: 'GET',
+        url: 'http://localhost:32580/' + topic + '/0',
+        failOnStatusCode: true
+    }).then((response) => {
+        expect(response.body.messages).to.be.an('array').that.is.not.empty;
+        response.body.messages.forEach((m) => {
+            if(["ID1", "ID2", "ID4"].includes(m.value.input.id[0])) {
+                expect(m.value.matches, 'for input.id ' + m.value.input.id[0] + ' unexpectingly matches is empty').to.be.an('array').that.is.not.empty;
+            }
+        })
+    })
+})
+
 //cleanup
 after(()=>{
     //delete entity index
