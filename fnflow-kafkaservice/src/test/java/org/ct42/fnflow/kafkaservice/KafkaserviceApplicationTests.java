@@ -188,7 +188,7 @@ class KafkaserviceApplicationTests {
 
 		 infoResponse = restTemplate.getForEntity("/" + TOPIC_TOBE_DELETED, TopicInfoDTO.class);
 		 then(infoResponse.getStatusCode().is5xxServerError()).isTrue();
-	 }
+	}
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
 		// set up the Kafka consumer properties
