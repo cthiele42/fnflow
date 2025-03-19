@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RegisterReflectionForBinding(classes = {Message.class, Header.class})
+@RegisterReflectionForBinding(classes = {Message.class, Header.class, ReadMessage.class})
 public class Controller {
     private final KafkaService kafkaService;
 
@@ -56,5 +56,20 @@ public class Controller {
     public ResponseEntity<Void> delete(@PathVariable String topic) {
         kafkaService.deleteTopic(topic);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{topic}/{partition}")
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition) {
+        return kafkaService.read(topic, partition, null, null);
+    }
+
+    @GetMapping("/{topic}/{partition}/{from}")
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from) {
+        return kafkaService.read(topic, partition, from, null);
+    }
+
+    @GetMapping("/{topic}/{partition}/{from}/{to}")
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from, @PathVariable String to) {
+        return kafkaService.read(topic, partition, from, to);
     }
 }

@@ -16,9 +16,12 @@
 
 package org.ct42.fnflow.kafkaservice;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.*;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
@@ -31,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -43,6 +48,7 @@ public class KafkaService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final DefaultKafkaConsumerFactory<String, String> defaultKafkaConsumerFactory;
     private final KafkaAdmin kafkaAdmin;
+    private final ObjectMapper objectMapper;
 
     public void write(String topic, Integer partition, Message[] messages) {
         for (Message m : messages) {
@@ -110,6 +116,107 @@ public class KafkaService {
             adminClient.deleteTopics(List.of(topic)).all().get();
         } catch (ExecutionException | InterruptedException e) {
             throw new IllegalStateException("Deleting topic failed", e);
+        }
+    }
+
+    public ReadBatchDTO read(String topic, int partition, String from, String to) {
+        long fromOffset = 0;
+        long toOffset = Long.MAX_VALUE;
+        TopicPartition topicPartition = new TopicPartition(topic, partition);
+
+        try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
+            if (from == null) { // no value given
+                fromOffset = 0;
+            } else if (from.startsWith("ts")) { // timestamp
+                fromOffset = getTsOffset(from, topicPartition, adminClient);
+            } else if(from.contains("-")) { // iso date
+                fromOffset = getDateOffset(from, topicPartition, adminClient);
+            }  else { // offset
+                fromOffset = Long.parseLong(from);
+            }
+
+        if (to == null) { // no value given
+                toOffset = Long.MAX_VALUE;
+            } else if (to.startsWith("ts")) { // timestamp
+                toOffset = getTsOffset(to, topicPartition, adminClient) - 1;
+            } else if(to.contains("-")) { // iso date
+                toOffset = getDateOffset(to, topicPartition, adminClient);
+            } else { // offset
+                toOffset = Long.parseLong(to);
+            }
+        }
+
+        final long toOffsetL = toOffset;
+
+        ReadBatchDTO batch = new ReadBatchDTO();
+        List<ConsumerRecord<String, String>> records = receive(topicPartition, fromOffset, Duration.ofMillis(500));
+        batch.setMessages(records
+            .stream()
+            .filter(r -> r.offset() <= toOffsetL)
+            .map(r -> {
+            ReadMessage message = new ReadMessage();
+            message.setKey(r.key());
+            message.setOffset(r.offset());
+            message.setTimestamp(r.timestamp());
+
+            List<org.ct42.fnflow.kafkaservice.Header> headers = new ArrayList<>();
+            r.headers().forEach(h -> {
+                org.ct42.fnflow.kafkaservice.Header header = new org.ct42.fnflow.kafkaservice.Header();
+                header.setKey(h.key());
+                header.setValue(new String(h.value()));
+                headers.add(header);
+            });
+            message.setHeaders(headers.toArray(new org.ct42.fnflow.kafkaservice.Header[0]));
+
+            try {
+                message.setValue(objectMapper.readValue(r.value(), JsonNode.class));
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("Failed to parse value as Json", e);
+            }
+            return message;
+        }).toArray(ReadMessage[]::new));
+        return batch;
+    }
+
+    private long getDateOffset(String date, TopicPartition topicPartition, AdminClient adminClient) {
+        long offset;
+        long timestamp = ZonedDateTime.parse(date, DateTimeFormatter.ISO_ZONED_DATE_TIME).toInstant().toEpochMilli();
+        try {
+            offset = adminClient.listOffsets(Map.of(topicPartition, OffsetSpec.forTimestamp(timestamp)))
+                    .all().get().get(topicPartition).offset();
+            if(offset == -1) {
+                offset = Long.MAX_VALUE;
+            }
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Failed  determine offset for timestamp", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        return offset;
+    }
+
+    private long getTsOffset(String ts, TopicPartition topicPartition, AdminClient adminClient) {
+        long offset;
+        long timestamp = Long.parseLong(ts.substring(2));
+        try {
+            offset = adminClient.listOffsets(Map.of(topicPartition, OffsetSpec.forTimestamp(timestamp)))
+                    .all().get().get(topicPartition).offset();
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Failed to determine offset for timestamp", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        return offset;
+    }
+
+    private List<ConsumerRecord<String, String>> receive(TopicPartition topicPartition, long from, Duration pollTimeout) {
+        Properties props = new Properties();
+        props.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "500");
+        try (Consumer<String, String> consumer = defaultKafkaConsumerFactory.createConsumer(null, null, null, props)) {
+            consumer.assign(Collections.singletonList(topicPartition));
+            consumer.seek(topicPartition, from);
+            ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
+            return records.records(topicPartition);
         }
     }
 }
