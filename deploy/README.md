@@ -10,6 +10,7 @@ The exposed adresses are:
 - Opensearch: [http://locahost:9200](http://locahost:9200)
 - Opensearch Dashboards: [http://locahost:5601](http://locahost:5601)
 - AKHQ: [http://locahost:32551](http://locahost:32551)
+- KafkaService: [http://localhost:32580](http://localhost:32580)
 
 The deployment is made with [helmfile](https://github.com/helmfile/helmfile).  
 Following will be deployed:
@@ -18,6 +19,7 @@ Following will be deployed:
 - Opensearch
 - Opensearch Dashboards
 - fnflow-json-processors-kafka application
+- fnflow-kafkaservice
 
 The functions can be configured in the [values.yaml](local/values.yaml)
 
@@ -44,3 +46,10 @@ Redeploying the fnflow app after a config change can be done this way:
 ```shell
 helmfile -e local -l name=fnflowprocessors apply
 ```
+
+## Building and Deploying Images locally
+**Example for kafkaservice with version 0.0.4-SNAPSHOT**
+1. Set the version to a SNAPSHOT version
+2. `./gradlew fnflow-kafkaservice:bootBuildImage`
+3. `docker image tag docker.io/ct42/fnflow-kafkaservice:0.0.4-SNAPSHOT ct42/fnflow-kafkaservice:0.0.4-SNAPSHOT`
+4. `kind load docker-image docker.io/ct42/fnflow-kafkaservice:0.0.4-SNAPSHOT`

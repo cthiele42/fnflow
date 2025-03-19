@@ -5,11 +5,11 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: ConfigFunctions Example test
+name: FnLib test
 
 on:
   push:
-    paths: ['cfgfns-example']
+    paths: ['fnlib']
 
 jobs:
   build:
@@ -32,4 +32,4 @@ jobs:
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
     - name: Build with Gradle Wrapper
-      run: ./gradlew cfgfns-example:test cfgfns-example:nativeTest
+      run: ./gradlew fnlib:test

@@ -19,7 +19,6 @@ package org.ct42.fnflow.kafkaservice;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +26,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -62,6 +63,8 @@ properties = {
 })
 class KafkaserviceApplicationTests {
 	public static final String TOPIC = "testtopic";
+	public static final String INFOTOPIC = "testinfotopic";
+	public static final String TOPIC_TOBE_DELETED = "testdeltopic";
 
 	@Autowired
 	private TestRestTemplate restTemplate;
@@ -75,13 +78,10 @@ class KafkaserviceApplicationTests {
 
 	private final BlockingQueue<ConsumerRecord<String, String>> inRecords = new LinkedBlockingQueue<>();
 
-	@BeforeEach
-	void setup() {
-		setupConsumer(inRecords, TOPIC);
-	}
-
 	@Test
 	void testWriteBatch() throws Exception {
+		setupConsumer(inRecords, TOPIC);
+
 		String content = """
 				{
 					"messages": [
@@ -92,7 +92,6 @@ class KafkaserviceApplicationTests {
 						},
 						{
 							"key": "key1",
-							"headers": [{"key": "KEY","value": "key1"}],
 							"value": {"id":"ID1"}
 						},
 						{
@@ -124,6 +123,71 @@ class KafkaserviceApplicationTests {
 				{"id":"ID0"}""");
 		then(results.getFirst().headers()).hasSize(1);
 		then(new String(results.getFirst().headers().lastHeader("KEY").value())).isEqualTo("key0");
+		then(results.get(1).headers()).isEmpty();
+		then(results.get(2).headers().headers("KEY")).hasSize(1);
+	}
+
+	@Test
+	void testTopicInfo() throws InterruptedException {
+		String content = """
+				{
+					"messages": [
+						{
+							"key": "key0",
+							"headers": [{"key": "KEY","value": "key0"}],
+							"value": {"id":"ID0"}
+						},
+						{
+							"key": "key1",
+							"value": {"id":"ID1"}
+						},
+						{
+							"key": "key2",
+							"headers": [{"key": "KEY","value": "key2"}],
+							"value": {"id":"ID2"}
+						}
+					]
+				}""";
+
+		HttpEntity<String> httpEntity = new HttpEntity<>(content, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
+		ResponseEntity<Void> response = restTemplate.postForEntity("/" + INFOTOPIC, httpEntity, Void.class);
+		then(response.getStatusCode().is2xxSuccessful()).isTrue();
+		Thread.sleep(100);
+
+		ResponseEntity<TopicInfoDTO> infoResponse = restTemplate.getForEntity("/" + INFOTOPIC, TopicInfoDTO.class);
+		then(infoResponse.getStatusCode().is2xxSuccessful()).isTrue();
+		then(infoResponse.getBody().getMessageCount()).isEqualTo(3);
+		then(infoResponse.getBody().getLastUpdated()).isLessThanOrEqualTo(System.currentTimeMillis());
+		then(infoResponse.getBody().getSizeOnDiskBytes()).isStrictlyBetween(50L, 500L);
+
+	}
+
+	 @Test
+	void testTopicDelete() throws InterruptedException {
+		String content = """
+				{
+					"messages": [
+						{
+							"key": "key0",
+							"value": {"id":"ID0"}
+						}
+					]
+				}""";
+
+		 HttpEntity<String> httpEntity = new HttpEntity<>(content, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
+		 ResponseEntity<Void> response = restTemplate.postForEntity("/" + TOPIC_TOBE_DELETED, httpEntity, Void.class);
+		 then(response.getStatusCode().is2xxSuccessful()).isTrue();
+		 Thread.sleep(100);
+
+		 ResponseEntity<TopicInfoDTO> infoResponse = restTemplate.getForEntity("/" + TOPIC_TOBE_DELETED, TopicInfoDTO.class);
+		 then(infoResponse.getStatusCode().is2xxSuccessful()).isTrue();
+		 then(infoResponse.getBody().getMessageCount()).isEqualTo(1);
+
+		 ResponseEntity<Void> delResponse = restTemplate.exchange("/" + TOPIC_TOBE_DELETED, HttpMethod.DELETE, null, Void.class);
+		 then(delResponse.getStatusCode().isSameCodeAs(HttpStatusCode.valueOf(204))).isTrue();
+
+		 infoResponse = restTemplate.getForEntity("/" + TOPIC_TOBE_DELETED, TopicInfoDTO.class);
+		 then(infoResponse.getStatusCode().is5xxServerError()).isTrue();
 	}
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {

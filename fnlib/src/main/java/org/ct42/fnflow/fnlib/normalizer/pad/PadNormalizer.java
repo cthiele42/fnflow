@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.fnlib.normalizer.trim;
+package org.ct42.fnflow.fnlib.normalizer.pad;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,12 +25,12 @@ import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.springframework.stereotype.Component;
 
 /**
- * It is a function for trimming a text value in a JsonNode input object's specific path.
+ * It is a function for padding a text value in a JsonNode input object's specific path.
  *
  * @author Sajjad Safaeian
  */
-@Component("trimNormalizer")
-public class TrimNormalizer extends ConfigurableFunction<JsonNode, JsonNode, TrimProperties> {
+@Component("padNormalizer")
+public class PadNormalizer extends ConfigurableFunction<JsonNode, JsonNode, PadProperties> {
 
     @Override
     public JsonNode apply(JsonNode input) {
@@ -40,7 +40,7 @@ public class TrimNormalizer extends ConfigurableFunction<JsonNode, JsonNode, Tri
         if(resultNode.isTextual()) {
             JsonNode parentNode = input.at(pointer.head());
             if(parentNode.isObject()) {
-                ((ObjectNode) parentNode).put(pointer.last().getMatchingProperty(), trimString(resultNode.asText()));
+                ((ObjectNode) parentNode).put(pointer.last().getMatchingProperty(), padString(resultNode.asText()));
             }
         }
 
@@ -48,7 +48,7 @@ public class TrimNormalizer extends ConfigurableFunction<JsonNode, JsonNode, Tri
             ArrayNode array = (ArrayNode) resultNode;
             for (int i = 0; i <array.size(); i++) {
                 if(array.get(i).isTextual()) {
-                    array.set(i, trimString(array.get(i).asText()));
+                    array.set(i, padString(array.get(i).asText()));
                 }
             }
         }
@@ -56,11 +56,10 @@ public class TrimNormalizer extends ConfigurableFunction<JsonNode, JsonNode, Tri
         return input;
     }
 
-    private String trimString(String input) {
-        return switch (properties.getMode()) {
-            case RIGHT -> StringUtils.stripStart(input, null);
-            case LEFT -> StringUtils.stripEnd(input, null);
-            case BOTH -> StringUtils.strip(input);
+    private String padString(String input) {
+        return switch (properties.getPad()) {
+            case LEFT -> StringUtils.leftPad(input, properties.getLength(), properties.getFillerCharacter());
+            case RIGHT -> StringUtils.rightPad(input, properties.getLength(), properties.getFillerCharacter());
         };
     }
 }

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.fnlib.validator;
+package org.ct42.fnflow.kafkaservice;
+
+import lombok.Data;
 
 /**
- * @author Sajjad Safaeian
+ * @author Claas Thiele
  */
-public class ValidationException extends RuntimeException {
-    public ValidationException(String message) {
-        super(message);
-    }
+@Data
+public class ReadBatchDTO {
+    private ReadMessage[] messages;
 }

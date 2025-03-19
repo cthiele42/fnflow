@@ -32,3 +32,14 @@ fnflowprocessors:
       output: output-topic
       error: error-topic
       errorRetention: 10001
+
+kafkaservice:
+  chartVersion: 0.0.1
+  appVersion: 0.0.4
+  spring:
+    kafka:
+      producer:
+        batch-size: 131072
+        compression-type: lz4
+        properties:
+          linger.ms: 50

@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.1'
+version = '0.0.6'
 
 java {
 	toolchain {
@@ -52,7 +52,6 @@ tasks.named('test') {
 
 tasks.named("bootBuildImage") {
 	imageName.set("ct42/fnflow-kafkaservice:${version}")
-	publish = true
 	docker {
 		publishRegistry {
 			username = "$usr"

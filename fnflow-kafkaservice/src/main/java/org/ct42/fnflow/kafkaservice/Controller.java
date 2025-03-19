@@ -18,6 +18,7 @@ package org.ct42.fnflow.kafkaservice;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RegisterReflectionForBinding(classes = {Message.class, Header.class})
+@RegisterReflectionForBinding(classes = {Message.class, Header.class, ReadMessage.class})
 public class Controller {
     private final KafkaService kafkaService;
 
@@ -43,5 +44,32 @@ public class Controller {
                                 @RequestBody BatchDTO batch) {
         kafkaService.write(topic, partition, batch.getMessages());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{topic}")
+    public TopicInfoDTO getTopicInfo(@PathVariable String topic) {
+        return kafkaService.getTopicInfo(topic);
+    }
+
+    @DeleteMapping("/{topic}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> delete(@PathVariable String topic) {
+        kafkaService.deleteTopic(topic);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{topic}/{partition}")
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition) {
+        return kafkaService.read(topic, partition, null, null);
+    }
+
+    @GetMapping("/{topic}/{partition}/{from}")
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from) {
+        return kafkaService.read(topic, partition, from, null);
+    }
+
+    @GetMapping("/{topic}/{partition}/{from}/{to}")
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from, @PathVariable String to) {
+        return kafkaService.read(topic, partition, from, to);
     }
 }
