@@ -12,7 +12,7 @@ akhq:
 
 fnflowprocessors:
     chartVersion: 0.0.1
-    appVersion: 0.0.4
+    appversion: 0.0.5
     functionDefinition: idExist|idMatch
     cfgfns:
       hasValueValidator:
@@ -26,6 +26,12 @@ fnflowprocessors:
             ids: /id
           literalParams:
             field: id
+    topicConfig:
+      group: pipeline-name
+      input: input-topic
+      output: output-topic
+      error: error-topic
+      errorRetention: 10001
 
 kafkaservice:
   chartVersion: 0.0.1

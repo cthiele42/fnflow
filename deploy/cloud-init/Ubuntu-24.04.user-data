@@ -1,0 +1,27 @@
+package_update: true
+package_upgrade: true
+
+groups:
+  - docker
+
+system_info:
+  default_user:
+    groups: [docker]
+
+packages:
+  - docker.io
+  - unattended-upgrades
+  - curl
+  - jq
+  - git
+
+runcmd:
+  - curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
+  - chmod +x ./kind
+  - sudo mv ./kind /usr/local/bin/kind
+  - runuser -l ubuntu -c 'cd /home/ubuntu && git clone -n --depth=1 --filter=tree:0 https://github.com/cthiele42/fnflow.git && cd fnflow && git sparse-checkout set --no-cone /deploy && git checkout'
+  - printf '%s\n' '#!/bin/sh' 'docker run --rm --net=host -v "${HOME}/.kube:/helm/.kube" -v "${HOME}/.config/helm:/helm/.config/helm" -v "${PWD}:/wd" --workdir /wd ghcr.io/helmfile/helmfile:v0.156.0 helmfile "$@"' > /usr/local/bin/helmfile
+  - chmod +x /usr/local/bin/helmfile
+  - printf '%s\n' '#!/bin/sh' 'docker run --rm --net=host -v "${HOME}/.kube:/helm/.kube" -v "${PWD}:/wd" --workdir /wd ghcr.io/helmfile/helmfile:v0.156.0 kubectl "$@"' > /usr/local/bin/kubectl
+  - chmod +x /usr/local/bin/kubectl
+  - runuser -l ubuntu -c 'cd /home/ubuntu/fnflow/deploy && kind create cluster --config kind-clusterconfig.yml'

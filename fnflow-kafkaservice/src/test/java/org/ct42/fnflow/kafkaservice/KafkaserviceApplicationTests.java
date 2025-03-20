@@ -26,6 +26,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -62,6 +64,7 @@ properties = {
 class KafkaserviceApplicationTests {
 	public static final String TOPIC = "testtopic";
 	public static final String INFOTOPIC = "testinfotopic";
+	public static final String TOPIC_TOBE_DELETED = "testdeltopic";
 
 	@Autowired
 	private TestRestTemplate restTemplate;
@@ -125,7 +128,7 @@ class KafkaserviceApplicationTests {
 	}
 
 	@Test
-	void testTopicInfo() {
+	void testTopicInfo() throws InterruptedException {
 		String content = """
 				{
 					"messages": [
@@ -148,8 +151,8 @@ class KafkaserviceApplicationTests {
 
 		HttpEntity<String> httpEntity = new HttpEntity<>(content, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
 		ResponseEntity<Void> response = restTemplate.postForEntity("/" + INFOTOPIC, httpEntity, Void.class);
-
 		then(response.getStatusCode().is2xxSuccessful()).isTrue();
+		Thread.sleep(100);
 
 		ResponseEntity<TopicInfoDTO> infoResponse = restTemplate.getForEntity("/" + INFOTOPIC, TopicInfoDTO.class);
 		then(infoResponse.getStatusCode().is2xxSuccessful()).isTrue();
@@ -159,6 +162,33 @@ class KafkaserviceApplicationTests {
 
 	}
 
+	 @Test
+	void testTopicDelete() throws InterruptedException {
+		String content = """
+				{
+					"messages": [
+						{
+							"key": "key0",
+							"value": {"id":"ID0"}
+						}
+					]
+				}""";
+
+		 HttpEntity<String> httpEntity = new HttpEntity<>(content, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
+		 ResponseEntity<Void> response = restTemplate.postForEntity("/" + TOPIC_TOBE_DELETED, httpEntity, Void.class);
+		 then(response.getStatusCode().is2xxSuccessful()).isTrue();
+		 Thread.sleep(100);
+
+		 ResponseEntity<TopicInfoDTO> infoResponse = restTemplate.getForEntity("/" + TOPIC_TOBE_DELETED, TopicInfoDTO.class);
+		 then(infoResponse.getStatusCode().is2xxSuccessful()).isTrue();
+		 then(infoResponse.getBody().getMessageCount()).isEqualTo(1);
+
+		 ResponseEntity<Void> delResponse = restTemplate.exchange("/" + TOPIC_TOBE_DELETED, HttpMethod.DELETE, null, Void.class);
+		 then(delResponse.getStatusCode().isSameCodeAs(HttpStatusCode.valueOf(204))).isTrue();
+
+		 infoResponse = restTemplate.getForEntity("/" + TOPIC_TOBE_DELETED, TopicInfoDTO.class);
+		 then(infoResponse.getStatusCode().is5xxServerError()).isTrue();
+	}
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
 		// set up the Kafka consumer properties

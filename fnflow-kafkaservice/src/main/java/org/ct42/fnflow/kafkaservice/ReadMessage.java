@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.fnlib.validator;
+package org.ct42.fnflow.kafkaservice;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 
 /**
- * @author Sajjad Safaeian
+ * @author Claas Thiele
  */
-public class ValidationException extends RuntimeException {
-    public ValidationException(String message) {
-        super(message);
-    }
+@Data
+public class ReadMessage {
+    private String key;
+    private long offset;
+    private long timestamp;
+    private Header[] headers;
+    private JsonNode value;
 }

@@ -63,7 +63,7 @@ releases:
           client:
             protocol: PLAINTEXT
         kraft:
-          clusterId: 'zDq05XBOLRNvLA9pZfadA8'
+          clusterId: fnflowtest
 
   - name: akhq
     namespace: default
@@ -101,6 +101,8 @@ releases:
           definition: {{ .Values.fnflowprocessors.functionDefinition }}
         cfgfns:
           {{- toYaml .Values.fnflowprocessors.cfgfns | nindent 10 }}
+        topicConfig:
+          {{- toYaml .Values.fnflowprocessors.topicConfig | nindent 10 }}
 
   - name: kafkaservice
     namespace: default

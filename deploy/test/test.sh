@@ -54,7 +54,7 @@ do
   fi
 done
 
-curl -sf -H 'Content-Type: application/json' -XPOST http://localhost:32551/api/local/topic/fnFlowComposedFnBean-in-0/data -d '
+curl -sf -H 'Content-Type: application/json' -XPOST http://localhost:32551/api/local/topic/input-topic/data -d '
 {
   "key": "",
   "value": "'${MSGS}'",
