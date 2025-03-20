@@ -22,7 +22,7 @@ Feature: Validate and match input data
     }
     """
     And documents from 'entities/two-docs.json' were indexed to 'testindex'
-    When messages from 'input/six-valid-four-invalid.json' were sent to the topic 'fnFlowComposedFnBean-in-0'
-    Then a number of 6 messages are landing in the topic 'fnFlowComposedFnBean-out-0'
-    And a number of 4 messages are landing in the topic 'fnFlowComposedFnBean-out-1'
-    And in topic 'fnFlowComposedFnBean-out-0' for input ID1, ID2 and ID4 there will be matches
+    When messages from 'input/six-valid-four-invalid.json' were sent to the topic 'input-topic'
+    Then a number of 6 messages are landing in the topic 'output-topic'
+    And a number of 4 messages are landing in the topic 'error-topic'
+    And in topic 'output-topic' for input ID1, ID2 and ID4 there will be matches

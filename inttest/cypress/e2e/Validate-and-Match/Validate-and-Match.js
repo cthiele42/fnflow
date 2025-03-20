@@ -91,14 +91,14 @@ after(()=>{
     //delete all topics
     cy.request({
         method: 'DELETE',
-        url: 'http://localhost:32580/fnFlowComposedFnBean-in-0'
+        url: 'http://localhost:32580/input-topic'
     })
     cy.request({
         method: 'DELETE',
-        url: 'http://localhost:32580/fnFlowComposedFnBean-out-0'
+        url: 'http://localhost:32580/output-topic'
     })
     cy.request({
         method: 'DELETE',
-        url: 'http://localhost:32580/fnFlowComposedFnBean-out-1'
+        url: 'http://localhost:32580/error-topic'
     })
 })
