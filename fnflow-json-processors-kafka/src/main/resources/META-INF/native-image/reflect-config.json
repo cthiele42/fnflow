@@ -1,0 +1,114 @@
+[
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.properties.KafkaBinderConfigurationProperties",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true,
+    "queryAllDeclaredConstructors":true,
+    "methods":[
+      {"name":"setAutoAlterTopics","parameterTypes":["boolean"] },
+      {"name":"setBrokers","parameterTypes":["java.lang.String[]"] }
+    ]
+  },
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.properties.KafkaBindingProperties",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true,
+    "queryAllDeclaredConstructors":true,
+    "methods":[
+      {"name":"<init>","parameterTypes":[] },
+      {"name":"getConsumer","parameterTypes":[] },
+      {"name":"getProducer","parameterTypes":[] },
+      {"name":"setConsumer","parameterTypes":["org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties"] },
+      {"name":"setProducer","parameterTypes":["org.springframework.cloud.stream.binder.kafka.properties.KafkaProducerProperties"] }
+    ]
+  },
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true,
+    "queryAllDeclaredConstructors":true,
+    "methods":[
+      {"name":"<init>","parameterTypes":[] },
+      {"name":"setResetOffsets","parameterTypes":["boolean"] },
+      {"name":"setStartOffset","parameterTypes":["org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties$StartOffset"] },
+      {"name":"setEnableDlq","parameterTypes":["boolean"] }
+    ]
+  },
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.properties.KafkaExtendedBindingProperties",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true,
+    "queryAllDeclaredConstructors":true,
+    "methods":[
+      {"name":"<init>","parameterTypes":[] },
+      {"name":"getBindings","parameterTypes":[] }
+    ]
+  },
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.properties.KafkaProducerProperties",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true,
+    "queryAllDeclaredConstructors":true,
+    "methods":[
+      {"name":"<init>","parameterTypes":[] },
+      {"name":"getConfiguration","parameterTypes":[] },
+      {"name":"getTopic","parameterTypes":[] },
+      {"name":"setCompressionType","parameterTypes":["org.springframework.cloud.stream.binder.kafka.properties.KafkaProducerProperties$CompressionType"] },
+      {"name":"setConfiguration","parameterTypes":["java.util.Map"] },
+      {"name":"setTopic","parameterTypes":["org.springframework.cloud.stream.binder.kafka.properties.KafkaTopicProperties"] }
+    ]
+  },
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.properties.KafkaTopicProperties",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true,
+    "queryAllDeclaredConstructors":true,
+    "methods":[
+      {"name":"<init>","parameterTypes":[] },
+      {"name":"getProperties","parameterTypes":[] },
+      {"name":"setProperties","parameterTypes":["java.util.Map"] }
+    ]
+  },
+  {
+    "name":"org.springframework.cloud.stream.binder.kafka.provisioning.KafkaTopicProvisioner",
+    "allDeclaredFields":true,
+    "queryAllDeclaredMethods":true
+  },
+  {
+    "name":"java.util.LinkedHashMap",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"net.jpountz.lz4.LZ4HCJNICompressor",
+    "fields":[{"name":"INSTANCE"}],
+    "methods":[{"name":"<init>","parameterTypes":["int"] }]
+  },
+  {
+    "name":"net.jpountz.lz4.LZ4JNICompressor",
+    "fields":[{"name":"INSTANCE"}]
+  },
+  {
+    "name":"net.jpountz.lz4.LZ4JNIFastDecompressor",
+    "fields":[{"name":"INSTANCE"}]
+  },
+  {
+    "name":"net.jpountz.lz4.LZ4JNISafeDecompressor",
+    "fields":[{"name":"INSTANCE"}]
+  },
+  {
+    "name":"net.jpountz.xxhash.StreamingXXHash32JNI$Factory",
+    "fields":[{"name":"INSTANCE"}]
+  },
+  {
+    "name":"net.jpountz.xxhash.StreamingXXHash64JNI$Factory",
+    "fields":[{"name":"INSTANCE"}]
+  },
+  {
+    "name":"net.jpountz.xxhash.XXHash32JNI",
+    "fields":[{"name":"INSTANCE"}]
+  },
+  {
+    "name":"net.jpountz.xxhash.XXHash64JNI",
+    "fields":[{"name":"INSTANCE"}]
+  }
+]

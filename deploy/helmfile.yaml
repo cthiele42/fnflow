@@ -5,6 +5,10 @@ environments:
 
 ---
 
+helmDefaults:
+  wait: true
+  timeout: 600
+
 repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
@@ -58,6 +62,8 @@ releases:
         listeners:
           client:
             protocol: PLAINTEXT
+        kraft:
+          clusterId: fnflowtest
 
   - name: akhq
     namespace: default
@@ -85,7 +91,9 @@ releases:
       - default/kafka
       - default/opensearch
     values:
-      - opensearch:
+      - image:
+          tag: {{ .Values.fnflowprocessors.appVersion }}
+        opensearch:
           uris: http://opensearch-cluster-master.default.svc:9200
         kafka:
           brokers: kafka.default.svc:9092
@@ -93,3 +101,23 @@ releases:
           definition: {{ .Values.fnflowprocessors.functionDefinition }}
         cfgfns:
           {{- toYaml .Values.fnflowprocessors.cfgfns | nindent 10 }}
+        topicConfig:
+          {{- toYaml .Values.fnflowprocessors.topicConfig | nindent 10 }}
+
+  - name: kafkaservice
+    namespace: default
+    chart: charts/fnflow-kafkaservice
+    version: {{ .Values.kafkaservice.chartVersion }}
+    needs:
+      - default/kafka
+    values:
+      - image:
+          tag: {{ .Values.kafkaservice.appVersion }}
+        kafka:
+          brokers: kafka.default.svc:9092
+        spring:
+          kafka:
+            {{- toYaml .Values.kafkaservice.spring.kafka | nindent 12 }}
+        service:
+          type: NodePort
+          nodePort: 32580

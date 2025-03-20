@@ -2,7 +2,7 @@ image:
   repository: docker.io/ct42/fnflow-json-processors-kafka
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.0.1"
+  tag: "0.0.5"
 
 nameOverride: ""
 fullnameOverride: ""

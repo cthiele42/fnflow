@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fnflow-json-processors-kafka.fullname" . }}
+  name: {{ include "fnflow-kafkaservice.fullname" . }}
   labels:
-    {{- include "fnflow-json-processors-kafka.labels" . | nindent 4 }}
+    {{- include "fnflow-kafkaservice.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -18,4 +18,4 @@ spec:
   {{- end }}
 
   selector:
-    {{- include "fnflow-json-processors-kafka.selectorLabels" . | nindent 4 }}
+    {{- include "fnflow-kafkaservice.selectorLabels" . | nindent 4 }}
