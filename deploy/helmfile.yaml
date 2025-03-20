@@ -5,6 +5,10 @@ environments:
 
 ---
 
+helmDefaults:
+  wait: true
+  timeout: 600
+
 repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
@@ -87,7 +91,9 @@ releases:
       - default/kafka
       - default/opensearch
     values:
-      - opensearch:
+      - image:
+          tag: {{ .Values.fnflowprocessors.appVersion }}
+        opensearch:
           uris: http://opensearch-cluster-master.default.svc:9200
         kafka:
           brokers: kafka.default.svc:9092
@@ -106,7 +112,7 @@ releases:
       - default/kafka
     values:
       - image:
-          tag: {{  .Values.kafkaservice.appVersion }}
+          tag: {{ .Values.kafkaservice.appVersion }}
         kafka:
           brokers: kafka.default.svc:9092
         spring:
