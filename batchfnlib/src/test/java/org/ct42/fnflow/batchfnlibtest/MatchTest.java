@@ -141,11 +141,14 @@ public class MatchTest {
         List<BatchElement> result = fn.apply(List.of(new BatchElement(input)));
         then(result).hasSize(1);
         then(result.getFirst().getOutput().at("/matches").isArray()).isTrue();
-        then(result.getFirst().getOutput().at("/matches/0/id").isArray()).isTrue();
-        then(result.getFirst().getOutput().at("/matches/0/id/0").asText()).isEqualTo("ID1");
-        then(result.getFirst().getOutput().at("/matches/0/id/1").asText()).isEqualTo("ID2");
-        then(result.getFirst().getOutput().at("/matches/0/id/2").asText()).isEqualTo("ID3");
-        then(result.getFirst().getOutput().at("/matches/1/id").asText()).isEqualTo("ID4");
+        then(result.getFirst().getOutput().at("/matches/0/source/id").isArray()).isTrue();
+        then(result.getFirst().getOutput().at("/matches/0/source/id/0").asText()).isEqualTo("ID1");
+        then(result.getFirst().getOutput().at("/matches/0/source/id/1").asText()).isEqualTo("ID2");
+        then(result.getFirst().getOutput().at("/matches/0/source/id/2").asText()).isEqualTo("ID3");
+        then(result.getFirst().getOutput().at("/matches/0/id").asText()).isEqualTo("doc1");
+        then(result.getFirst().getOutput().at("/matches/0/score").asDouble()).isEqualTo(1.0);
+        then(result.getFirst().getOutput().at("/matches/1/source/id").asText()).isEqualTo("ID4");
+        then(result.getFirst().getOutput().at("/matches/1/id").asText()).isEqualTo("doc2");
     }
 
     @SpringBootApplication

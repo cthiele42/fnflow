@@ -77,7 +77,13 @@ public class Match extends ConfigurableFunction<List<BatchElement>, List<BatchEl
                     result.set("input", input.get(i).getInput());
                     ArrayNode matches = JsonNodeFactory.instance.arrayNode();
                     result.set("matches", matches);
-                    r.result().hits().hits().forEach(hit -> matches.add(hit.source()));
+                    r.result().hits().hits().forEach(hit -> {
+                        ObjectNode matchResult = JsonNodeFactory.instance.objectNode();
+                        matchResult.set("source", hit.source());
+                        matchResult.put("id", hit.id());
+                        matchResult.put("score", hit.score());
+                        matches.add(matchResult);
+                    });
                     input.get(i).processWithOutput(result);
                 } else {
                     input.get(i).processWithError(new TemplateMatchError(r.failure().error().reason()));
