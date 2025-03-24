@@ -24,5 +24,5 @@ import java.util.Map;
  * @author Claas Thiele
  */
 public interface HeaderAware {
-    Map<String, String> headersToBeAdded(JsonNode input);
+    Map<String, Object> headersToBeAdded(JsonNode input);
 }

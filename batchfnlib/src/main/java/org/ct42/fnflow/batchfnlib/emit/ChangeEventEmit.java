@@ -26,6 +26,7 @@ import org.springframework.aot.hint.annotation.RegisterReflection;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,22 +46,22 @@ public class ChangeEventEmit extends ConfigurableFunction<JsonNode, JsonNode, Em
     }
 
     @Override
-    public Map<String, String> headersToBeAdded(JsonNode input) {
-        Map<String, String> headers = new HashMap<>();
+    public Map<String, Object> headersToBeAdded(JsonNode input) {
+        Map<String, Object> headers = new HashMap<>();
 
         JsonPointer keyPointer = properties.getEventKey();
         if(keyPointer != null) {
             JsonNode keyNode = input.at(keyPointer);
             if(!keyNode.isMissingNode() && !keyNode.isNull()) {
                 if(keyNode.isTextual()) {
-                    headers.put(KafkaHeaders.KEY, keyNode.asText());
+                    headers.put(KafkaHeaders.KEY, keyNode.asText().getBytes(StandardCharsets.UTF_8));
                 } else {
-                    headers.put(KafkaHeaders.KEY, keyNode.toString());
+                    headers.put(KafkaHeaders.KEY, keyNode.toString().getBytes(StandardCharsets.UTF_8));
                 }
             }
         }
         if(!headers.containsKey(KafkaHeaders.KEY)) {
-            headers.put(KafkaHeaders.KEY, UUIDs.base64UUID());
+            headers.put(KafkaHeaders.KEY, UUIDs.base64UUID().getBytes(StandardCharsets.UTF_8));
         }
 
         String topic = properties.getTopic();

@@ -146,7 +146,7 @@ public class HeaderAwareTest {
         }
 
         @Override
-        public Map<String, String> headersToBeAdded(JsonNode output) {
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
             return Map.of("logSingle", "seen by single function");
         }
     }
@@ -160,7 +160,7 @@ public class HeaderAwareTest {
         }
 
         @Override
-        public Map<String, String> headersToBeAdded(JsonNode output) {
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
             return Map.of("logMultiA", "seen by multiout function A");
         }
     }
@@ -174,7 +174,7 @@ public class HeaderAwareTest {
         }
 
         @Override
-        public Map<String, String> headersToBeAdded(JsonNode output) {
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
             return Map.of("logMultiB", "seen by multiout function B");
         }
     }
@@ -195,7 +195,7 @@ public class HeaderAwareTest {
         }
 
         @Override
-        public Map<String, String> headersToBeAdded(JsonNode output) {
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
             return Map.of("logBatch", "seen by batch function");
         }
     }

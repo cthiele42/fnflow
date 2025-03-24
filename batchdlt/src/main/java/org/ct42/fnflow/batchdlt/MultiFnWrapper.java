@@ -22,7 +22,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,7 @@ public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
     public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
         return messageFlux.flatMapSequential(m ->
             Flux.just((Message<JsonNode>[])targets.stream().map(f -> {
-                    Map<String, String> headersToBeAdded = new HashMap<>(0);
+                    Map<String, Object> headersToBeAdded = new HashMap<>(0);
                     if(f instanceof HeaderAware) {
                         headersToBeAdded = ((HeaderAware) f).headersToBeAdded(m.getPayload());
                     }
@@ -54,7 +53,7 @@ public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                 MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
                             .copyHeaders(m.getHeaders());
                     if (f instanceof HeaderAware) {
-                        headersToBeAdded.forEach((k, v) -> builder.setHeader(k, v.getBytes(StandardCharsets.UTF_8)));
+                        headersToBeAdded.forEach(builder::setHeader);
                     }
                     return builder.build();
                 }

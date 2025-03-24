@@ -29,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.test.context.TestPropertySource;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -54,7 +55,7 @@ public class ChangeEventEmitTest {
                     "matches": []
                 }""");
         SimpleFunctionRegistry.FunctionInvocationWrapper wrappedFn = functionCatalog.lookup("input");
-        Map<String, String> headers = null;
+        Map<String, Object> headers = null;
         if(wrappedFn.getTarget() instanceof HeaderAware) {
             headers = ((HeaderAware) wrappedFn.getTarget()).headersToBeAdded(input);
         }
@@ -66,7 +67,7 @@ public class ChangeEventEmitTest {
         then(headers).isNotNull()
                 .contains(Map.entry("spring.cloud.stream.sendto.destination", "source"))
                 .containsKey(KafkaHeaders.KEY);
-        then(headers.get(KafkaHeaders.KEY).length()).isEqualTo(20);
+        then(new String((byte[])headers.get(KafkaHeaders.KEY))).hasSize(20);
     }
 
     @Test
@@ -101,7 +102,7 @@ public class ChangeEventEmitTest {
                     "input": {"foo": "bar"},
                     "matches": [{"id": "0815", "source":{"foo": "baz"}}]
                 }""");
-        Map<String, String> headers = null;
+        Map<String, Object> headers = null;
         SimpleFunctionRegistry.FunctionInvocationWrapper wrappedFn = functionCatalog.lookup("entity");
         if(wrappedFn.getTarget() instanceof HeaderAware) {
             headers = ((HeaderAware) wrappedFn.getTarget()).headersToBeAdded(input);
@@ -113,7 +114,7 @@ public class ChangeEventEmitTest {
                 {"foo":"baz"}""");
         then(headers).isNotNull()
                 .doesNotContainKey("spring.cloud.stream.sendto.destination")
-                .contains(Map.entry(KafkaHeaders.KEY, "0815"));
+                .contains(Map.entry(KafkaHeaders.KEY, "0815".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
@@ -123,7 +124,7 @@ public class ChangeEventEmitTest {
                     "input": {"foo": "bar"},
                     "matches": [{"id": 4711, "source":{"foo": "baz"}}]
                 }""");
-        Map<String, String> headers = null;
+        Map<String, Object> headers = null;
         SimpleFunctionRegistry.FunctionInvocationWrapper wrappedFn = functionCatalog.lookup("entity");
         if(wrappedFn.getTarget() instanceof HeaderAware) {
             headers = ((HeaderAware) wrappedFn.getTarget()).headersToBeAdded(input);
@@ -135,7 +136,7 @@ public class ChangeEventEmitTest {
                 {"foo":"baz"}""");
         then(headers).isNotNull()
                 .doesNotContainKey("spring.cloud.stream.sendto.destination")
-                .contains(Map.entry(KafkaHeaders.KEY, "4711"));
+                .contains(Map.entry(KafkaHeaders.KEY, "4711".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
