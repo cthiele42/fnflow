@@ -42,12 +42,14 @@ public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sink
 
     @Override
     public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
-        return messageFlux.map(m -> {
+        return messageFlux.mapNotNull(m -> {
             Map<String, String> headersToBeAdded = new HashMap<>(0);
             if(target instanceof HeaderAware) {
                 headersToBeAdded = ((HeaderAware) target).headersToBeAdded(m.getPayload());
             }
-            MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(target.apply(m.getPayload()))
+            JsonNode result = target.apply(m.getPayload());
+            if(result == null) return null; // if the function is resulting to null, message is discarded
+            MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
                     .copyHeaders(m.getHeaders());
             if (target instanceof HeaderAware) {
                 headersToBeAdded.forEach((k, v) -> builder.setHeader(k, v.getBytes(StandardCharsets.UTF_8)));

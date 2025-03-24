@@ -108,9 +108,11 @@ public class MultiplyTest {
             errors.add(received);
         }
         then(errors).isEmpty();
-        then(results).hasSize(20);
+        then(results).hasSize(18);
         then(results.getFirst().value()).isEqualTo("{\"text\":\"T0\",\"out\":\"A\"}");
         then(results.get(1).value()).isEqualTo("{\"text\":\"T0\",\"out\":\"B\"}");
+        then(results.get(2).value()).isEqualTo("{\"text\":\"T1\",\"out\":\"B\"}");
+        then(results.get(15).value()).isEqualTo("{\"text\":\"T8\",\"out\":\"A\"}");
     }
 
     @SpringBootApplication
@@ -122,6 +124,7 @@ public class MultiplyTest {
     protected final static class OutA implements Function<JsonNode, JsonNode> {
         @Override
         public JsonNode apply(JsonNode n) {
+            if(n.toString().contains("T1")) return null;
             ((ObjectNode)n).put("out", "A");
             return n;
         }
@@ -131,6 +134,7 @@ public class MultiplyTest {
     protected final static class OutB implements Function<JsonNode, JsonNode> {
         @Override
         public JsonNode apply(JsonNode n) {
+            if(n.toString().contains("T8")) return null;
             ((ObjectNode)n).put("out", "B");
              return n;
         }

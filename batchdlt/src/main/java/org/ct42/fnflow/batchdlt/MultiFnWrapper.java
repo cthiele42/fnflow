@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -48,14 +49,17 @@ public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                     if(f instanceof HeaderAware) {
                         headersToBeAdded = ((HeaderAware) f).headersToBeAdded(m.getPayload());
                     }
-                    MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(f.apply(m.getPayload().deepCopy()))
+                JsonNode result = f.apply(m.getPayload().deepCopy());
+                if(result == null) return null; // if the function is resulting to null, message is discarded
+                MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
                             .copyHeaders(m.getHeaders());
                     if (f instanceof HeaderAware) {
                         headersToBeAdded.forEach((k, v) -> builder.setHeader(k, v.getBytes(StandardCharsets.UTF_8)));
                     }
                     return builder.build();
                 }
-            ).toArray(Message[]::new))).onErrorContinue((throwable, m) -> error.tryEmitNext(
+            ).filter(Objects::nonNull)
+                    .toArray(Message[]::new))).onErrorContinue((throwable, m) -> error.tryEmitNext(
                 MessageBuilder
                     .withPayload(throwable)
                     .copyHeaders(((Message<JsonNode>)m).getHeaders())
