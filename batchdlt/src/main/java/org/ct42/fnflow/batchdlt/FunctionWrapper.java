@@ -22,6 +22,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -39,10 +42,18 @@ public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sink
 
     @Override
     public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
-        return messageFlux.map(m -> MessageBuilder
-                .withPayload(target.apply(m.getPayload()))
-                .copyHeaders(m.getHeaders())
-                .build()).onErrorContinue((throwable, m) -> error.tryEmitNext(
+        return messageFlux.map(m -> {
+            Map<String, String> headersToBeAdded = new HashMap<>(0);
+            if(target instanceof HeaderAware) {
+                headersToBeAdded = ((HeaderAware) target).headersToBeAdded(m.getPayload());
+            }
+            MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(target.apply(m.getPayload()))
+                    .copyHeaders(m.getHeaders());
+            if (target instanceof HeaderAware) {
+                headersToBeAdded.forEach((k, v) -> builder.setHeader(k, v.getBytes(StandardCharsets.UTF_8)));
+            }
+            return builder.build();
+        }).onErrorContinue((throwable, m) -> error.tryEmitNext(
                             MessageBuilder
                                     .withPayload(throwable)
                                     .copyHeaders(((Message<JsonNode>)m).getHeaders())

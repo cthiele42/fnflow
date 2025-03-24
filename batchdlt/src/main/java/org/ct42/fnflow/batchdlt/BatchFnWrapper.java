@@ -22,6 +22,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,10 +56,14 @@ public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                 for(int i = 0; i < results.size(); i++) {
                     BatchElement result = results.get(i);
                     if(result.getOutput() != null) {
-                        Message<JsonNode> msg = MessageBuilder
-                                .withPayload(result.getOutput())
-                                .copyHeaders(b.get(i).getHeaders())
-                                .build();
+                        MessageBuilder builder = MessageBuilder
+                            .withPayload(result.getOutput())
+                            .copyHeaders(b.get(i).getHeaders());
+                        if(target instanceof HeaderAware) {
+                            ((HeaderAware) target).headersToBeAdded(result.getInput())
+                                .forEach((k, v) -> builder.setHeader(k, v.getBytes(StandardCharsets.UTF_8)));
+                        }
+                        Message<JsonNode> msg = builder.build();
                         resultMsgs.add(msg);
                     } else if (result.getError() != null) {
                         error.tryEmitNext(MessageBuilder

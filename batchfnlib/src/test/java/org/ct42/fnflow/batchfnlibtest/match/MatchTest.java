@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlibtest;
+package org.ct42.fnflow.batchfnlibtest.match;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +52,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 @Testcontainers
 @SpringBootTest
 @TestPropertySource(locations = "classpath:/matchtest.properties")
-public class MatchNoMatchTest {
+public class MatchTest {
     @Container
     static final OpensearchContainer<?> container = new OpensearchContainer<>("opensearchproject/opensearch:2.19.0");
 
@@ -71,9 +71,9 @@ public class MatchNoMatchTest {
     @DisplayName("""
             GIVEN a searchtemplate with name 'testtemplate'
             AND an index named 'testindex' with two documents
-            AND an input message with an nonmatching id
+            AND an input message with matching ids
             WHEN the 'Match' function is executed
-            THEN the output will contain an empty 'matches' array
+            THEN the output will contain both matched documents in the 'matches' array
             """)
     public void testMatchFunction() throws Exception {
         //given a search template with name 'testtemplate'
@@ -132,7 +132,7 @@ public class MatchNoMatchTest {
         Function<List<BatchElement>, List<BatchElement>> fn = functionCatalog.lookup("testmatch");
         JsonNode input = objectMapper.readValue("""
                 {
-                  "text": ["IDDoesNotExist"],
+                  "text": ["ID1","ID4"],
                   "object":{
                     "otext": "OTest"
                   }
@@ -141,7 +141,11 @@ public class MatchNoMatchTest {
         List<BatchElement> result = fn.apply(List.of(new BatchElement(input)));
         then(result).hasSize(1);
         then(result.getFirst().getOutput().at("/matches").isArray()).isTrue();
-        then(result.getFirst().getOutput().at("/matches").size()).isEqualTo(0);
+        then(result.getFirst().getOutput().at("/matches/0/id").isArray()).isTrue();
+        then(result.getFirst().getOutput().at("/matches/0/id/0").asText()).isEqualTo("ID1");
+        then(result.getFirst().getOutput().at("/matches/0/id/1").asText()).isEqualTo("ID2");
+        then(result.getFirst().getOutput().at("/matches/0/id/2").asText()).isEqualTo("ID3");
+        then(result.getFirst().getOutput().at("/matches/1/id").asText()).isEqualTo("ID4");
     }
 
     @SpringBootApplication
