@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlib;
+package org.ct42.fnflow.batchdlt;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-import org.springframework.validation.annotation.Validated;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author Claas Thiele
  */
-@Data
-@Validated
-public class MatchProperties {
-    @Pattern(regexp = "^[^_:\"*+\\/\\|?#><A-Z ,-][^:\"*+\\/\\|?#><A-Z ,]{0,126}$")
-    private String index;
-
-    @NotEmpty
-    private String template;
-
-    Map<String, JsonPointer> paramsFromInput = new HashMap<>();
-    Map<String, String> literalParams = new HashMap<>();
+public interface HeaderAware {
+    Map<String, Object> headersToBeAdded(JsonNode input);
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlib;
+package org.ct42.fnflow.batchfnlib.match;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;

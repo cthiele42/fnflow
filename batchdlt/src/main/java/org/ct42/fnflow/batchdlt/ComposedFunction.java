@@ -27,6 +27,7 @@ import reactor.core.publisher.Sinks;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -64,16 +65,28 @@ public class ComposedFunction implements Function<Flux<Message<byte[]>>, Tuple2<
         Flux<Message<JsonNode>> intermediate = new InMsg2Header().apply(messageFlux.doOnComplete(errorSink::tryEmitComplete));
 
         for (String fn : fns) {
-            if(imperativeBeans.contains(fn)) {
-                Function<JsonNode, JsonNode> fnBean = (Function<JsonNode, JsonNode>) ctx.getBean(fn, Function.class);
-                FunctionWrapper wrappedFn = new FunctionWrapper(fnBean);
-                intermediate = wrappedFn.apply(intermediate, errorSink);
-            } else if(batchBeans.contains(fn)) {
-                Function<List<BatchElement>, List<BatchElement>> batchFnBean = (Function<List<BatchElement>, List<BatchElement>>) ctx.getBean(fn, Function.class);
-                BatchFnWrapper wrappedBatchFn = new BatchFnWrapper(batchFnBean, batchSize, batchTimeout);
-                intermediate = wrappedBatchFn.apply(intermediate, errorSink);
-            } else {
-                throw new IllegalStateException("No matching bean found for name " + fn);
+            if( fn.contains("+")) { // multiply
+                String[] mfns = fn.split("\\+");
+                List<Function<JsonNode, JsonNode>> functions = Arrays.stream(mfns).map(mfn -> {
+                    if (!imperativeBeans.contains(mfn)) {
+                        throw new IllegalStateException("No matching imperative bean found for name " + mfn + ", multiplying is supported for imperative functions only");
+                    }
+                    return (Function<JsonNode, JsonNode>) ctx.getBean(mfn, Function.class);
+                }).toList();
+                MultiFnWrapper wrappedFns = new MultiFnWrapper(functions);
+                intermediate = wrappedFns.apply(intermediate, errorSink);
+            } else { // regular
+                if(imperativeBeans.contains(fn)) {
+                    Function<JsonNode, JsonNode> fnBean = (Function<JsonNode, JsonNode>) ctx.getBean(fn, Function.class);
+                    FunctionWrapper wrappedFn = new FunctionWrapper(fnBean);
+                    intermediate = wrappedFn.apply(intermediate, errorSink);
+                } else if(batchBeans.contains(fn)) {
+                    Function<List<BatchElement>, List<BatchElement>> batchFnBean = (Function<List<BatchElement>, List<BatchElement>>) ctx.getBean(fn, Function.class);
+                    BatchFnWrapper wrappedBatchFn = new BatchFnWrapper(batchFnBean, batchSize, batchTimeout);
+                    intermediate = wrappedBatchFn.apply(intermediate, errorSink);
+                } else {
+                    throw new IllegalStateException("No matching bean found for name " + fn);
+                }
             }
         }
         return Tuples.of(
