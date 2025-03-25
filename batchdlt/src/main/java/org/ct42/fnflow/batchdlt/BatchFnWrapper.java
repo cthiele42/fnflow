@@ -58,8 +58,8 @@ public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                         MessageBuilder builder = MessageBuilder
                             .withPayload(result.getOutput())
                             .copyHeaders(b.get(i).getHeaders());
-                        if(target instanceof HeaderAware) {
-                            ((HeaderAware) target).headersToBeAdded(result.getInput())
+                        if(target instanceof HeaderAware headerAware) {
+                            headerAware.headersToBeAdded(result.getInput())
                                 .forEach(builder::setHeader);
                         }
                         Message<JsonNode> msg = builder.build();

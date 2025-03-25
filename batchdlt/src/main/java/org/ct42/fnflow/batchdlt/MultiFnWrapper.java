@@ -45,16 +45,14 @@ public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
         return messageFlux.flatMapSequential(m ->
             Flux.just((Message<JsonNode>[])targets.stream().map(f -> {
                     Map<String, Object> headersToBeAdded = new HashMap<>(0);
-                    if(f instanceof HeaderAware) {
-                        headersToBeAdded = ((HeaderAware) f).headersToBeAdded(m.getPayload());
+                    if(f instanceof HeaderAware headerAware) {
+                        headersToBeAdded = headerAware.headersToBeAdded(m.getPayload());
                     }
                 JsonNode result = f.apply(m.getPayload().deepCopy());
                 if(result == null) return null; // if the function is resulting to null, message is discarded
                 MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
                             .copyHeaders(m.getHeaders());
-                    if (f instanceof HeaderAware) {
-                        headersToBeAdded.forEach(builder::setHeader);
-                    }
+                    headersToBeAdded.forEach(builder::setHeader);
                     return builder.build();
                 }
             ).filter(Objects::nonNull)
