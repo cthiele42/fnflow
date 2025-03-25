@@ -36,6 +36,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'io.fabric8:kubernetes-client:7.1.0'
+	implementation 'io.github.classgraph:classgraph:4.8.179'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -46,4 +47,20 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named("bootBuildImage") {
+	imageName.set("ct42/fnflow-manager:${version}")
+	docker {
+		publishRegistry {
+			username = "$usr"
+			password = "$pwd"
+		}
+	}
+}
+
+bootRun {
+	jvmArgs '-agentlib:native-image-agent=config-output-dir=build/native/agent-output/run,config-write-period-secs=10,config-write-initial-delay-secs=5' ,'-Dspring.aot.enabled=true'
+	args '--processorcfg.os-uris=http://opensearch-cluster-master.default.svc:9200',
+			'--processorcfg.kafka-brokers=kafka.default.svc:9092'
 }

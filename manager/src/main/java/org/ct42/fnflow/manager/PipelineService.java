@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Service
 @RequiredArgsConstructor
@@ -57,6 +58,18 @@ public class PipelineService {
         String definition = Arrays.stream(cfg.getPipeline())
                 .map(PipelineConfigDTO.FunctionCfg::getName).collect(Collectors.joining("|"));
         args.add("--org.ct42.fnflow.function.definition=" + definition);
+        args.add("--spring.cloud.stream.kafka.default.producer.compression-type=lz4");
+        args.add("--spring.cloud.stream.kafka.default.producer.configuration.batch.size=131072");
+        args.add("--spring.cloud.stream.kafka.default.producer.configuration.linger.ms=50");
+        args.add("--spring.cloud.stream.default.group=" + cfg.getConsumerGroups());
+        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=" + cfg.getSourceTopic());
+        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=" + cfg.getEntityTopic());
+        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=" + cfg.getErrorTopic());
+        args.add("--spring.cloud.stream.kafka.binder.autoAlterTopics=true");
+        args.add("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms="
+                + convertHoursToMilliseconds(cfg.getErrRetentionHours()));
+
+
 
         //TODO construct args for kafka batch and compression settings and group and destinations
 
@@ -99,5 +112,9 @@ public class PipelineService {
                         .endTemplate()
                         .endSpec().build())
                 .create();
+    }
+
+    private Long convertHoursToMilliseconds(int hours) {
+        return hours * 60L * 60L * 1000L;
     }
 }

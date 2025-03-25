@@ -16,13 +16,17 @@
 
 package org.ct42.fnflow.manager;
 
+import org.ct42.fnflow.manager.aot.Fabric8RuntimeHints;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ImportRuntimeHints;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @SpringBootApplication
+@ImportRuntimeHints(Fabric8RuntimeHints.class)
 public class ManagerApplication {
 
 	public static void main(String[] args) {

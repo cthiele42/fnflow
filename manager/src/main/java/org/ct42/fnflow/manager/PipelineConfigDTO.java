@@ -23,12 +23,15 @@ import java.util.Map;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Data
 public class PipelineConfigDTO {
     private String version;
+    private String consumerGroups;
     private String sourceTopic;
     private String entityTopic;
+    private String errorTopic;
     private int errRetentionHours = 336; //default 14 days
     private int outCompactionLagHours = 744; //default 31 days
     private FunctionCfg[] pipeline;

@@ -20,6 +20,15 @@ Given("an index {string} with mapping:", (name, body) => {
     Cypress.env('ENTITY_INDEX', name)
 })
 
+Given("a pipeline processing app with name {string} and with this configs:", (name, body) => {
+    cy.request({
+        method: 'POST',
+        url: 'http://localhost:32581/' + name,
+        failOnStatusCode: false,
+        body: JSON.parse(body)
+    })
+})
+
 Given("documents from {string} were indexed to {string}", (fixture, index) => {
     cy.fixture(fixture).then((file) => {
         const docs = Object.assign(file);

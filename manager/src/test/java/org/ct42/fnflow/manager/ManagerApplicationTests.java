@@ -35,6 +35,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Testcontainers
 @SpringBootTest(properties = {
@@ -68,8 +69,10 @@ class ManagerApplicationTests {
 	void testCreatePod() {
 		PipelineConfigDTO dto = new PipelineConfigDTO();
 		dto.setVersion("0.0.1");
+		dto.setConsumerGroups("consumerGroup");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
+		dto.setErrorTopic("errorTopic");
 
 		PipelineConfigDTO.FunctionCfg valiCfg = new PipelineConfigDTO.FunctionCfg();
 		valiCfg.setFunction("hasValueValidator");

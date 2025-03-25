@@ -17,18 +17,21 @@
 package org.ct42.fnflow.manager;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @RestController(value = "/pipelines")
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(classes = {PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class})
 public class PipelineController {
     private final PipelineService pipelineService;
 
-    @PostMapping(value="{name}")
+    @PostMapping(value="/{name}")
     public ResponseEntity<Void> createPipeline(@PathVariable String name, @RequestBody PipelineConfigDTO cfg) {
         pipelineService.createPipeline(name, cfg);
         return ResponseEntity.noContent().build();

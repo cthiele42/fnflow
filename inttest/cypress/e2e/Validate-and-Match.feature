@@ -21,6 +21,40 @@ Feature: Validate and match input data
       }
     }
     """
+    And a pipeline processing app with name 'sample-pipeline' and with this configs:
+    """
+    {
+     "version": "0.0.5",
+     "consumerGroups": "cunsomer-group",
+     "sourceTopic": "input-topic",
+     "entityTopic": "output-topic",
+     "errorTopic": "error-topic",
+     "errRetentionHours": 1,
+     "pipeline": [
+         {
+             "name": "idExist",
+             "function": "hasValueValidator",
+             "parameters": {
+                 "elementPath": "/id"
+             }
+         },
+         {
+             "name": "idMatch",
+             "function": "Match",
+             "parameters": {
+                 "index": "testindex",
+                 "template": "testtemplate",
+                 "paramsFromInput": {
+                "ids": "/id"
+                 },
+                 "literalParams": {
+                    "field": "id"
+                 }
+             }
+         }
+     ]
+    }
+    """
     And documents from 'entities/two-docs.json' were indexed to 'testindex'
     When messages from 'input/six-valid-four-invalid.json' were sent to the topic 'input-topic'
     Then a number of 6 messages are landing in the topic 'output-topic'
