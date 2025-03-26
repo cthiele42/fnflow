@@ -11,6 +11,7 @@ The exposed adresses are:
 - Opensearch Dashboards: [http://locahost:5601](http://locahost:5601)
 - AKHQ: [http://locahost:32551](http://locahost:32551)
 - KafkaService: [http://localhost:32580](http://localhost:32580)
+- Manager: [http://localhost:32581](http://localhost:32581)
 
 The deployment is made with [helmfile](https://github.com/helmfile/helmfile).  
 Following will be deployed:
@@ -20,6 +21,7 @@ Following will be deployed:
 - Opensearch Dashboards
 - fnflow-json-processors-kafka application
 - fnflow-kafkaservice
+- fnflow-manager
 
 The functions can be configured in the [values.yaml](local/values.yaml)
 
