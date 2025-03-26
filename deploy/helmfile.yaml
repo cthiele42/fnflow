@@ -83,27 +83,6 @@ releases:
           type: NodePort
           httpNodePort: 32551
 
-  - name: fnflowprocessors
-    namespace: default
-    chart: charts/fnflow-json-processors-kafka
-    version: {{ .Values.fnflowprocessors.chartVersion }}
-    needs:
-      - default/kafka
-      - default/opensearch
-    values:
-      - image:
-          tag: {{ .Values.fnflowprocessors.appVersion }}
-        opensearch:
-          uris: http://opensearch-cluster-master.default.svc:9200
-        kafka:
-          brokers: kafka.default.svc:9092
-        function:
-          definition: {{ .Values.fnflowprocessors.functionDefinition }}
-        cfgfns:
-          {{- toYaml .Values.fnflowprocessors.cfgfns | nindent 10 }}
-        topicConfig:
-          {{- toYaml .Values.fnflowprocessors.topicConfig | nindent 10 }}
-
   - name: kafkaservice
     namespace: default
     chart: charts/fnflow-kafkaservice
@@ -121,3 +100,21 @@ releases:
         service:
           type: NodePort
           nodePort: 32580
+
+  - name: manager
+    namespace: default
+    chart: charts/fnflow-manager
+    version: {{ .Values.manager.chartVersion }}
+    needs:
+      - default/kafka
+      - default/opensearch
+    values:
+      - image:
+          tag: {{ .Values.manager.appVersion }}
+        opensearch:
+          uris: http://opensearch-cluster-master.default.svc:9200
+        kafka:
+          brokers: kafka.default.svc:9092
+        service:
+          type: NodePort
+          nodePort: 32581
