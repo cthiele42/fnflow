@@ -1,8 +1,8 @@
 image:
-  repository: docker.io/ct42/fnflow-json-processors-kafka
+  repository: docker.io/ct42/fnflow-manager
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.0.5"
+  tag: "0.0.1"
 
 nameOverride: ""
 fullnameOverride: ""
@@ -43,11 +43,13 @@ tolerations: []
 
 affinity: {}
 
-opensearch:
-  uris: null
-spring:
-  cloud:
-    stream:
-      kafka:
-        binder:
-          brokers: null
+serviceAccount:
+  name: pipeline-sa
+
+role:
+  name: deployment-creator
+
+roleBinding:
+  name: deployment-creator-binding
+
+namespace: default

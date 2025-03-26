@@ -10,29 +10,6 @@ kafka:
 akhq:
   chartVersion: 0.25.1
 
-fnflowprocessors:
-    chartVersion: 0.0.1
-    appVersion: 0.0.5
-    functionDefinition: idExist|idMatch
-    cfgfns:
-      hasValueValidator:
-        idExist:
-          elementPath: /id
-      Match:
-        idMatch:
-          index: testindex
-          template: testtemplate
-          paramsFromInput:
-            ids: /id
-          literalParams:
-            field: id
-    topicConfig:
-      group: pipeline-name
-      input: input-topic
-      output: output-topic
-      error: error-topic
-      errorRetention: 10001
-
 kafkaservice:
   chartVersion: 0.0.1
   appVersion: 0.0.6
@@ -43,3 +20,7 @@ kafkaservice:
         compression-type: lz4
         properties:
           linger.ms: 50
+
+manager:
+  chartVersion: 0.0.1
+  appVersion: 0.0.1
