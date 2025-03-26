@@ -28,7 +28,6 @@ import java.util.Map;
 @Data
 public class PipelineConfigDTO {
     private String version;
-    private String consumerGroups;
     private String sourceTopic;
     private String entityTopic;
     private String errorTopic;

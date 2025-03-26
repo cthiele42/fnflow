@@ -61,7 +61,7 @@ public class PipelineService {
         args.add("--spring.cloud.stream.kafka.default.producer.compression-type=lz4");
         args.add("--spring.cloud.stream.kafka.default.producer.configuration.batch.size=131072");
         args.add("--spring.cloud.stream.kafka.default.producer.configuration.linger.ms=50");
-        args.add("--spring.cloud.stream.default.group=" + cfg.getConsumerGroups());
+        args.add("--spring.cloud.stream.default.group=" + name);
         args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=" + cfg.getSourceTopic());
         args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=" + cfg.getEntityTopic());
         args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=" + cfg.getErrorTopic());

@@ -69,7 +69,6 @@ class ManagerApplicationTests {
 	void testCreatePod() {
 		PipelineConfigDTO dto = new PipelineConfigDTO();
 		dto.setVersion("0.0.1");
-		dto.setConsumerGroups("consumerGroup");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");

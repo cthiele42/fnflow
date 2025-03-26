@@ -25,7 +25,6 @@ Feature: Validate and match input data
     """
     {
      "version": "0.0.5",
-     "consumerGroups": "cunsomer-group",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic",
      "errorTopic": "error-topic",

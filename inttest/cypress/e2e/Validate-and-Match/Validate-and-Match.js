@@ -23,7 +23,7 @@ Given("an index {string} with mapping:", (name, body) => {
 Given("a pipeline processing app with name {string} and with this configs:", (name, body) => {
     cy.request({
         method: 'POST',
-        url: 'http://localhost:32581/' + name,
+        url: 'http://localhost:32581/pipelines/' + name,
         failOnStatusCode: false,
         body: JSON.parse(body)
     })

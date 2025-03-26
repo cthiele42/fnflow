@@ -25,7 +25,8 @@ import org.springframework.web.bind.annotation.*;
  * @author Claas Thiele
  * @author Sajjad Safaeian
  */
-@RestController(value = "/pipelines")
+@RestController
+@RequestMapping(value = "/pipelines")
 @RequiredArgsConstructor
 @RegisterReflectionForBinding(classes = {PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class})
 public class PipelineController {
