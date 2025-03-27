@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.fnlibtest.merger;
+package org.ct42.fnflow.fnlibtest.utils;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ct42.fnflow.fnlib.merger.TreeByPointerBuilder;
+import org.ct42.fnflow.fnlib.utils.TreeByPointerBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;

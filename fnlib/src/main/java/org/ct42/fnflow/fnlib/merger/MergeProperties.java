@@ -16,6 +16,7 @@
 
 package org.ct42.fnflow.fnlib.merger;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import lombok.Data;
 
 /**
@@ -24,4 +25,10 @@ import lombok.Data;
 @Data
 public class MergeProperties {
     private Mapping[] mappings;
+
+    @Data
+    public static class Mapping {
+        private JsonPointer from;
+        private JsonPointer to;
+    }
 }
