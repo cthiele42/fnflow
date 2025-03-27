@@ -96,5 +96,11 @@ class ManagerApplicationTests {
 				.withLabel("app.kubernetes.io/instance", "pipeline-name")
 				.list();
 		then(podList.getItems()).hasSize(1);
+		then(podList.getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
+
+		dto.setSourceTopic("sourceTopicChanged");
+		pipelineService.createPipeline("pipeline-name", dto);
+//		then(podList.getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopicChanged");
+
 	}
 }

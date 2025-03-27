@@ -39,6 +39,7 @@ public class PipelineService {
     private static final String IMAGE="docker.io/ct42/fnflow-json-processors-kafka";
     private static final String NAME="fnflow-json-processors-kafka";
     private static final String NAMESPACE="default";
+    private static final String PROCESSOR_PREFIX="proc-";
 
     private final KubernetesClient k8sClient;
     private final ManagerProperties cfgProps;
@@ -81,7 +82,7 @@ public class PipelineService {
 
         k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .resource(new DeploymentBuilder().withNewMetadata()
-                            .withName(NAME)
+                            .withName(PROCESSOR_PREFIX + name)
                             .withNamespace(NAMESPACE)
                             .withLabels(selectorLabels)
                         .endMetadata()
@@ -111,7 +112,7 @@ public class PipelineService {
                             .endSpec()
                         .endTemplate()
                         .endSpec().build())
-                .create();
+                .forceConflicts().serverSideApply();
     }
 
     private Long convertHoursToMilliseconds(int hours) {
