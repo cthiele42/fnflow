@@ -64,3 +64,57 @@ OS: Ubuntu 24.04
 native-image (AOT) needs some love to get it working:
 - JAVA_HOME envvar must be set for gradle runs. In IDEA, set JAVA_HOME in the execution configuration to the path of the project SDK
 - install the gcc build env and some libs needed: `sudo apt-get install build-essential zlib1g-dev`
+
+## Dependency Graph
+```plantuml
+@startuml
+package configurablefunctions [
+     <<libjar>>
+     
+    PackageUrl: pkg:maven/org.ct42.fnflow/configurablefunctions
+]
+
+package fnlib [
+    <<libjar>>
+    
+    PackageUrl: pkg:maven/org.ct42.fnflow/fnlib
+]
+
+package batchdlt [
+    <<libjar>> 
+    
+    PackageUrl: pkg:maven/org.ct42.fnflow/batchdlt
+]
+
+package batchfnlib [
+    <<libjar>>
+    
+    PackageUrl: pkg:maven/org.ct42.fnflow/batchfnlib
+]
+
+package fnflow_json_processors_kafka [
+    <<SpringBoot native image>>
+    
+    Docker Pull Command: docker pull ct42/fnflow-json-processors-kafka
+]
+
+package fnflow_kafkaservice [
+    <<SpringBoot native image>>
+    
+    Docker Pull Command: docker pull ct42/fnflow-kafkaservice
+]
+
+package fnflow_manager [
+    <<SpringBoot native image>>
+    
+    Docker Pull Command: docker pull ct42/fnflow-manager
+]
+
+fnlib --> configurablefunctions : dependson
+batchfnlib --> configurablefunctions : dependson
+batchfnlib --> batchdlt : dependson
+
+fnflow_json_processors_kafka --> fnlib : dependson
+fnflow_json_processors_kafka --> batchfnlib : dependson
+@enduml
+```
