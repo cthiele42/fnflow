@@ -24,9 +24,25 @@ Given("a pipeline processing app with name {string} and with this configs:", (na
     cy.request({
         method: 'POST',
         url: 'http://localhost:32581/pipelines/' + name,
-        failOnStatusCode: false,
+        failOnStatusCode: true,
         body: JSON.parse(body)
     })
+    Cypress.env('PIPELINE_NAME', name)
+
+    recurse(
+        () => cy.request({
+            method: 'GET',
+            url: 'http://localhost:32581/pipelines/' + name + '/status',
+            failOnStatusCode: false
+        }),
+        (response) => response.body.status === 'COMPLETED',
+        {
+            log: true,
+            limit: 120,
+            timeout: 60000,
+            delay: 500
+        }
+    )
 })
 
 Given("documents from {string} were indexed to {string}", (fixture, index) => {
@@ -89,8 +105,24 @@ Then("in topic {string} for input ID1, ID2 and ID4 there will be matches", (topi
     })
 })
 
+Then("a topic with name {string} and messageCount {int} exists", (topic, msgCount) => {
+    cy.request({
+        method: 'GET',
+        url: 'http://localhost:32580/' + topic,
+        failOnStatusCode: true
+    }).then((response) => {
+        expect(response.body.messageCount).to.be.equal(0);
+    })
+})
+
 //cleanup
 after(()=>{
+    //delete pipeline
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:32581/pipelines/' + Cypress.env('PIPELINE_NAME'),
+    })
+
     //delete entity index
     cy.request({
         method: 'DELETE',
@@ -101,6 +133,10 @@ after(()=>{
     cy.request({
         method: 'DELETE',
         url: 'http://localhost:32580/input-topic'
+    })
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:32580/output-topic-wrong'
     })
     cy.request({
         method: 'DELETE',

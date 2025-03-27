@@ -17,16 +17,16 @@
 package org.ct42.fnflow.manager;
 
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
+import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.manager.config.ManagerProperties;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +44,7 @@ public class PipelineService {
     private final KubernetesClient k8sClient;
     private final ManagerProperties cfgProps;
 
-    public void createPipeline(String name, PipelineConfigDTO cfg) {
+    public void createOrUpdatePipeline(String name, PipelineConfigDTO cfg) {
         List<String> args = new ArrayList<>();
         Arrays.stream(cfg.getPipeline()).forEach(f -> {
             String prefix = "--cfgfns." + f.getFunction() + "." + f.getName();
@@ -113,6 +113,53 @@ public class PipelineService {
                         .endTemplate()
                         .endSpec().build())
                 .forceConflicts().serverSideApply();
+    }
+
+    public DeploymentStatusDTO getPipelineStatus(String name) {
+        Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
+                .withName(PROCESSOR_PREFIX + name).get();
+        DeploymentStatusDTO status = new DeploymentStatusDTO();
+        DeploymentStatus deploymentStatus = deployment.getStatus();
+        Integer specReplicas = deployment.getSpec().getReplicas();
+
+        if(deploymentStatus.getObservedGeneration() != null) {
+            Integer updatedReplicas = deploymentStatus.getUpdatedReplicas();
+            Integer availableReplicas = deploymentStatus.getAvailableReplicas();
+            Integer replicas = deploymentStatus.getReplicas();
+
+            Optional<DeploymentCondition> progressing = deploymentStatus.getConditions().stream().filter(c -> c.getType().equals("Progressing")).findFirst();
+            if(progressing.isPresent()) {
+                if(progressing.get().getReason().equals("ProgressDeadlineExceeded")) {
+                    status.setStatus(DeploymentStatusDTO.Status.FAILED);
+                    status.setMessage(progressing.get().getMessage());
+                    return status;
+                }
+            }
+            if(specReplicas != null && Optional.ofNullable(updatedReplicas).orElse(0) < specReplicas) {
+                status.setStatus(DeploymentStatusDTO.Status.PROGRESSING);
+                status.setMessage(String.format("Waiting for rollout to finish: %d out of %d new replicas have been updated...", updatedReplicas, specReplicas));
+                return status;
+            }
+            if(Optional.ofNullable(replicas).orElse(0) > Optional.ofNullable(updatedReplicas).orElse(0)) {
+                status.setStatus(DeploymentStatusDTO.Status.PROGRESSING);
+                status.setMessage(String.format("Waiting for rollout to finish: %d old replicas are pending termination...", replicas - updatedReplicas));
+                return status;
+            }
+            if(availableReplicas != null && availableReplicas < Optional.ofNullable(updatedReplicas).orElse(0)) {
+                status.setStatus(DeploymentStatusDTO.Status.PROGRESSING);
+                status.setMessage(String.format("Waiting for rollout to finish: %d of %d updated replicas are available...", availableReplicas, updatedReplicas));
+                return status;
+            }
+            status.setStatus(DeploymentStatusDTO.Status.COMPLETED);
+            status.setMessage("Successfully rolled out");
+            return status;
+        }
+        return status;
+    }
+
+    public void deletePipeline(String name) {
+        k8sClient.apps().deployments().inNamespace(NAMESPACE)
+                .withName(PROCESSOR_PREFIX + name).delete();
     }
 
     private Long convertHoursToMilliseconds(int hours) {
