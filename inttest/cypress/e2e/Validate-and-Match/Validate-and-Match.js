@@ -83,7 +83,10 @@ Then("in topic {string} for input ID1, ID2 and ID4 there will be matches", (topi
         expect(response.body.messages).to.be.an('array').that.is.not.empty;
         response.body.messages.forEach((m) => {
             if(["ID1", "ID2", "ID4"].includes(m.value.input.id[0])) {
-                expect(m.value.matches, 'for input.id ' + m.value.input.id[0] + ' unexpectingly matches is empty').to.be.an('array').that.is.not.empty;
+                expect(m.value.matches[0], 'for input.id ' + m.value.input.id[0] + ' unexpectingly matches[0] is empty').to.be.an('object').that.is.not.empty;
+            }
+            if(["ID5", "ID7", "ID8"].includes(m.value.input.id[0])) {
+                expect(m.value.matches[0], 'for input.id ' + m.value.input.id[0] + ' unexpectingly matches[0] is not empty').to.be.an('object').that.is.empty;
             }
         })
     })
