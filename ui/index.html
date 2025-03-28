@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Load Blockly core -->
+        <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+        <!-- Load the default blocks -->
+        <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+        <!-- Load a message file -->
+        <script src="https://unpkg.com/blockly/msg/en.js"></script>
+        <script>
+            function init() {
+                // Create the definition.
+                const definitions = Blockly.defineBlocksWithJsonArray([
+                    {
+                        "type": "hasValue",
+                        "tooltip": "hasValue validator\n validating the element on the given path has a value",
+                        "helpUrl": "",
+                        "message0": "hasValue\n name %1 elementPath %2",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "name",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "elementPath",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "function",
+                        "nextStatement": "function",
+                        "colour": 330,
+                        "inputsInline": false
+                    },
+                    {
+                        "type": "processor",
+                        "tooltip": "A FnFlow processor",
+                        "helpUrl": "",
+                        "message0": "processor\n version %1 inputTopic %2 outputTopic %3 errorTopic %4 errRetentionHours %5\n pipeline %6",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "version",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "inputTopic",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "outputTopic",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "errorTopic",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "errRetentionHours",
+                                "align": "RIGHT",
+                                "check": "Number"
+                            },
+                            {
+                                "type": "input_statement",
+                                "name": "pipeline",
+                                "align": "RIGHT",
+                                "check": "function"
+                            }
+                        ],
+                        "colour": 210,
+                        "inputsInline": false
+                    },
+                    {
+                        "type": "tParamFromInput",
+                        "tooltip": "Template parameter from input",
+                        "helpUrl": "",
+                        "message0": "from input  name %1 elementPath %2",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "paramName",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "elementPath",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "templateParam",
+                        "nextStatement": "templateParam",
+                        "colour": 60,
+                        "inputsInline": true
+                    },
+                    {
+                        "type": "tParamLiteral",
+                        "tooltip": "Template parameter",
+                        "helpUrl": "",
+                        "message0": "literal  name %1 value %2",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "paramName",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "value",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "templateParam",
+                        "nextStatement": "templateParam",
+                        "colour": 60,
+                        "inputsInline": true
+                    },
+                    {
+                        "type": "mergeMapping",
+                        "tooltip": "a mapping from source element to target element for a merger",
+                        "helpUrl": "",
+                        "message0": "from %1 to %2",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "from",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "to",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "mergeMapping",
+                        "nextStatement": "mergeMapping",
+                        "colour": 15,
+                        "inputsInline": true
+                    },
+                    {
+                        "type": "Match",
+                        "tooltip": "Match on entities using a searchtemplate",
+                        "helpUrl": "",
+                        "message0": "match\n  name %1 index %2 template %3\n parameters %4",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "name",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "index",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "template",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_statement",
+                                "name": "parameters",
+                                "align": "RIGHT",
+                                "check": "templateParam"
+                            }
+                        ],
+                        "previousStatement": "function",
+                        "nextStatement": "function",
+                        "colour": 60,
+                        "inputsInline": false
+                    },
+                    {
+                        "type": "pad",
+                        "tooltip": "fill a string left or right up to a certain length",
+                        "helpUrl": "",
+                        "message0": "pad %1\n name %2 elementPath %3 up to length %4 fill character %5",
+                        "args0": [
+                            {
+                                "type": "field_dropdown",
+                                "name": "dir",
+                                "options": [
+                                    [
+                                        "LEFT",
+                                        "left"
+                                    ],
+                                    [
+                                        "RIGHT",
+                                        "right"
+                                    ]
+                                ]
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "name",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "elementPath",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "length",
+                                "align": "RIGHT",
+                                "check": "Number"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "fillchar",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "function",
+                        "nextStatement": "function",
+                        "colour": 285,
+                        "inputsInline": false
+                    },
+                    {
+                        "type": "trim",
+                        "tooltip": "trim a string left, right or both sides",
+                        "helpUrl": "",
+                        "message0": "trim %1\n name %2 elementPath %3",
+                        "args0": [
+                            {
+                                "type": "field_dropdown",
+                                "name": "dir",
+                                "options": [
+                                    [
+                                        "LEFT",
+                                        "left"
+                                    ],
+                                    [
+                                        "RIGHT",
+                                        "right"
+                                    ],
+                                    [
+                                    "BOTH",
+                                        "both"
+                                    ]
+                                ]
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "name",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_value",
+                                "name": "elementPath",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "function",
+                        "nextStatement": "function",
+                        "colour": 285,
+                        "inputsInline": false
+                    },
+                    {
+                        "type": "reduceToOne",
+                        "tooltip": "reduce match results to one result",
+                        "helpUrl": "",
+                        "message0": "reduce to one result\n name %1",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "name",
+                                "align": "RIGHT",
+                                "check": "String"
+                            }
+                        ],
+                        "previousStatement": "function",
+                        "nextStatement": "function",
+                        "colour": 330,
+                        "inputsInline": false
+                    },
+                    {
+                        "type": "mergeCreate",
+                        "tooltip": "merge if target element does not exist",
+                        "helpUrl": "",
+                        "message0": "merge mode create\n name %1\n mappings %2",
+                        "args0": [
+                            {
+                                "type": "input_value",
+                                "name": "name",
+                                "align": "RIGHT",
+                                "check": "String"
+                            },
+                            {
+                                "type": "input_statement",
+                                "name": "mappings",
+                                "align": "RIGHT",
+                                "check": "mergeMapping"
+                            }
+                        ],
+                        "previousStatement": "function",
+                        "nextStatement": "function",
+                        "colour": 15,
+                        "inputsInline": false
+                    }
+                ]);
+
+                const toolbox = {
+                    kind: 'flyoutToolbox',
+                    contents: [
+                        {
+                            kind: 'block',
+                            type: 'text'
+                        },
+                        {
+                            kind: 'block',
+                            type: 'math_number'
+                        },
+                        {
+                            kind: 'block',
+                            type: 'tParamFromInput',
+                            inputs: {
+                                paramName: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "param"
+                                        }
+                                    }
+                                },
+                                elementPath: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "/prop"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'tParamLiteral',
+                            inputs: {
+                                paramName: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "param"
+                                        }
+                                    }
+                                },
+                                value: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "value"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'mergeMapping',
+                            inputs: {
+                                from: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "/attributes/ID"
+                                        }
+                                    }
+                                },
+                                to: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "/id"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'processor',
+                            inputs: {
+                                version: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "0.0.1"
+                                        }
+                                    }
+                                },
+                                inputTopic: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "input"
+                                        }
+                                    }
+                                },
+                                outputTopic: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "output"
+                                        }
+                                    }
+                                },
+                                errorTopic: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "error"
+                                        }
+                                    }
+                                },
+                                errRetentionHours: {
+                                    shadow: {
+                                        type: "math_number",
+                                        fields: {
+                                            NUM: 336
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'hasValue',
+                            inputs: {
+                                name: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "idExist"
+                                        }
+                                    }
+                                },
+                                elementPath: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "/id"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'pad',
+                            inputs: {
+                                name: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "padEan"
+                                        }
+                                    }
+                                },
+                                elementPath: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "/ean"
+                                        }
+                                    }
+                                },
+                                length: {
+                                    shadow: {
+                                        type: "math_number",
+                                        fields: {
+                                            NUM: 8
+                                        }
+                                    }
+                                },
+                                fillchar: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "0"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'trim',
+                            inputs: {
+                                name: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "trimEan"
+                                        }
+                                    }
+                                },
+                                elementPath: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "/ean"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'Match',
+                            inputs: {
+                                name: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "exact"
+                                        }
+                                    }
+                                },
+                                index: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "entities"
+                                        }
+                                    }
+                                },
+                                template: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "exactMatch"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'reduceToOne',
+                            inputs: {
+                                name: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "reduce2one"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            kind: 'block',
+                            type: 'mergeCreate',
+                            inputs: {
+                                name: {
+                                    shadow: {
+                                        type: "text",
+                                        fields: {
+                                            TEXT: "mergeCreate"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                const workspace = Blockly.inject('blocklyDiv', {
+                    toolbox: toolbox,
+                    collapse: true,
+                    scrollbars: true
+                });
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <div id="blocklyDiv" style="height: 1200px; width: 1600px;"></div>
+    </body>
+</html>
