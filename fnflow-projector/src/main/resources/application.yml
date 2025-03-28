@@ -1,0 +1,3 @@
+spring:
+  application.name: fnflow-projector
+  cloud.function.definition: project
