@@ -68,3 +68,19 @@ GET /pipelines/{name}
 ## Get all pipelines
 
 GET /pipelines
+
+
+# FnFlow UI Experiment
+Here we try to implement a UI for clicking together a processor configuration. It is based on [Blockly](https://developers.google.com/blockly).
+
+## Custom Blocks
+The static [web page](src/main/resources/static/index.html) is providing a Blockly workspace with custom blocks for processor configuration. Following an example configuration created in this workspace:
+![img.png](proc-config.png)
+With this experimental implementation, we take some compromises:
+- the dataflow general layout is vertical (data flowing from top to bottom) instead of the usual horizontal layout (data flowing from left to right).
+- property lists are rendered as Blockly statements instaed as of list of Inputs. This is far easier to implement but breaks the programming model of Blockly.
+- only limited validation is implemented
+
+## Code Generation
+A custom code generator will be implemented creating the request body for the `POST manager/pipelines/{name}` endpoint.
+It is based on: https://github.com/google/blockly-samples/blob/master/codelabs/custom_generator/custom_generator.md

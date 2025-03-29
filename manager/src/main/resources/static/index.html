@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Load Blockly core -->
+        <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+        <!-- Load the default blocks -->
+        <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+        <!-- Load a message file -->
+        <script src="https://unpkg.com/blockly/msg/en.js"></script>
+        <script src="blockdefs.js"></script>
+        <script src="toolbox.js"></script>
+        <script src="generator.js"></script>
+        <script>
+            function init() {
+                // Create the definition.
+                const definitions = blockdefs();
+                const toolbox = createToolbox();
+
+                const generator = createGenerator();
+
+                const workspace = Blockly.inject('blocklyDiv', {
+                    toolbox: toolbox,
+                    collapse: true,
+                    scrollbars: true
+                });
+
+                const supportedEvents = new Set([
+                    Blockly.Events.BLOCK_CHANGE,
+                    Blockly.Events.BLOCK_CREATE,
+                    Blockly.Events.BLOCK_DELETE,
+                    Blockly.Events.BLOCK_MOVE,
+                ]);
+
+                function updateCode(event) {
+                    if (workspace.isDragging()) return; // Don't update while changes are happening.
+                    if (!supportedEvents.has(event.type)) return;
+                    document.getElementById('codeDiv').value = generator.workspaceToCode(workspace);
+                }
+
+                workspace.addChangeListener(updateCode);
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <div id="blocklyDiv" style="height: 1200px; width: 1600px;"></div>
+        <br>
+        <h3>Processor Configuration</h3>
+        <textarea id="codeDiv" style="height: 300px; width: 1600px; overflow-y:scroll; border: 1px solid lightgrey;"></textarea>
+    </body>
+</html>
