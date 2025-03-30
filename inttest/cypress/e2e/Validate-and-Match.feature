@@ -58,7 +58,7 @@ Feature: Validate and match input data
     And a pipeline processing app with name 'sample-pipeline' and with this configs:
     """
     {
-     "version": "0.0.5",
+     "version": "0.0.6",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic",
      "errorTopic": "error-topic",

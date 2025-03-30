@@ -26,23 +26,26 @@ Given("a pipeline processing app with name {string} and with this configs:", (na
         url: 'http://localhost:32581/pipelines/' + name,
         failOnStatusCode: true,
         body: JSON.parse(body)
-    })
-    Cypress.env('PIPELINE_NAME', name)
+    }).then(() => {
+        return recurse(
+            () => cy.request({
+                method: 'GET',
+                url: 'http://localhost:32581/pipelines/' + name + '/status',
+                failOnStatusCode: false
+            }),
+            (response) => response.body.status === 'COMPLETED',
+            {
+                log: true,
+                limit: 120,
+                timeout: 60000,
+                delay: 500
+            }
+        )
+    }).then(() => {
+          return cy.wait(2000);
+    });
 
-    recurse(
-        () => cy.request({
-            method: 'GET',
-            url: 'http://localhost:32581/pipelines/' + name + '/status',
-            failOnStatusCode: false
-        }),
-        (response) => response.body.status === 'COMPLETED',
-        {
-            log: true,
-            limit: 120,
-            timeout: 60000,
-            delay: 500
-        }
-    )
+    Cypress.env('PIPELINE_NAME', name)
 })
 
 Given("documents from {string} were indexed to {string}", (fixture, index) => {
@@ -74,13 +77,18 @@ When("messages from {string} were sent to the topic {string}", (fixture, topic) 
 })
 
 Then("a number of {int} messages are landing in the topic {string}", (expected, topic) => {
-    recurse(
+    return recurse(
         () => cy.request({
             method: 'GET',
             url: 'http://localhost:32580/' + topic,
             failOnStatusCode: false
         }),
-        (response) => response.body.messageCount === expected,
+        (response) => {
+            if (response.status !== 200 && response.status !== 204) {
+                return false;
+            }
+            return response.body.messageCount === expected;
+        },
         {
             log: true,
             limit: 120,
@@ -130,23 +138,17 @@ after(()=>{
     cy.request({
         method: 'DELETE',
         url: 'http://localhost:9200/' + Cypress.env('ENTITY_INDEX')
-    })
+    });
 
     //delete all topics
-    cy.request({
-        method: 'DELETE',
-        url: 'http://localhost:32580/input-topic'
-    })
-    cy.request({
-        method: 'DELETE',
-        url: 'http://localhost:32580/output-topic-wrong'
-    })
-    cy.request({
-        method: 'DELETE',
-        url: 'http://localhost:32580/output-topic'
-    })
-    cy.request({
-        method: 'DELETE',
-        url: 'http://localhost:32580/error-topic'
-    })
+    deleteTopics(['input-topic', 'output-topic-wrong', 'output-topic', 'error-topic'])
 })
+
+const deleteTopics = (topics) => {
+    topics.forEach((name) => {
+        cy.request({
+            method: 'DELETE',
+            url: 'http://localhost:32580/' + name
+        })
+    });
+}
