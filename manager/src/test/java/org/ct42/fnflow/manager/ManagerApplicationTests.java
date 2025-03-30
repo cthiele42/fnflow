@@ -29,9 +29,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Duration;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Claas Thiele
@@ -89,12 +93,73 @@ class ManagerApplicationTests {
 
 		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg});
 
-		pipelineService.createPipeline("pipeline-name", dto);
+		pipelineService.createOrUpdatePipeline("pipeline-name", dto);
 
 		PodList podList = kubernetesClient.pods()
 				.inNamespace("default")
 				.withLabel("app.kubernetes.io/instance", "pipeline-name")
 				.list();
 		then(podList.getItems()).hasSize(1);
+		then(podList.getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
+
+		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(pipelineService.getPipelineStatus("pipeline-name").getStatus()).isEqualTo(DeploymentStatusDTO.Status.COMPLETED));
+
+		dto.setSourceTopic("sourceTopicChanged");
+		pipelineService.createOrUpdatePipeline("pipeline-name", dto);
+		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(pipelineService.getPipelineStatus("pipeline-name").getStatus()).isEqualTo(DeploymentStatusDTO.Status.COMPLETED));
+
+		await().untilAsserted(() -> assertThat(kubernetesClient.pods()
+				.inNamespace("default")
+				.withLabel("app.kubernetes.io/instance", "pipeline-name")
+				.list().getItems().stream().filter(p -> p.getStatus().getPhase().equals("Running")).collect(Collectors.toList())).hasSize(1));
+
+		then(kubernetesClient.pods()
+				.inNamespace("default")
+				.withLabel("app.kubernetes.io/instance", "pipeline-name")
+				.list().getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopicChanged");
+
+	}
+
+	@Test
+	void testDeletePod() {
+		PipelineConfigDTO dto = new PipelineConfigDTO();
+		dto.setVersion("0.0.1");
+		dto.setSourceTopic("sourceTopic");
+		dto.setEntityTopic("entityTopic");
+		dto.setErrorTopic("errorTopic");
+
+		PipelineConfigDTO.FunctionCfg valiCfg = new PipelineConfigDTO.FunctionCfg();
+		valiCfg.setFunction("hasValueValidator");
+		valiCfg.setName("idExist");
+		valiCfg.setParameters(Map.of("elementPath", "/id"));
+
+		PipelineConfigDTO.FunctionCfg matchCfg = new PipelineConfigDTO.FunctionCfg();
+		matchCfg.setFunction("Match");
+		matchCfg.setName("idMatch");
+		matchCfg.setParameters(Map.of(
+				"index", "testindex",
+				"template", "testtemplate",
+				"paramsFromInput", Map.of("ids", "/id"),
+				"literalParams", Map.of("field", "id")));
+
+		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg});
+
+		pipelineService.createOrUpdatePipeline("pipeline-name", dto);
+
+		PodList podList = kubernetesClient.pods()
+				.inNamespace("default")
+				.withLabel("app.kubernetes.io/instance", "pipeline-name")
+				.list();
+		then(podList.getItems()).hasSize(1);
+		then(podList.getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
+
+		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(pipelineService.getPipelineStatus("pipeline-name").getStatus()).isEqualTo(DeploymentStatusDTO.Status.COMPLETED));
+
+		pipelineService.deletePipeline("pipeline-name");
+
+		await().untilAsserted(() -> assertThat(kubernetesClient.pods()
+				.inNamespace("default")
+				.withLabel("app.kubernetes.io/instance", "pipeline-name")
+				.list().getItems()).isEmpty());
 	}
 }
