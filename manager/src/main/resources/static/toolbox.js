@@ -78,52 +78,6 @@ function createToolbox() {
             },
             {
                 kind: 'block',
-                type: 'processor',
-                inputs: {
-                    version: {
-                        shadow: {
-                            type: "text",
-                            fields: {
-                                TEXT: "0.0.1"
-                            }
-                        }
-                    },
-                    inputTopic: {
-                        shadow: {
-                            type: "text",
-                            fields: {
-                                TEXT: "input"
-                            }
-                        }
-                    },
-                    outputTopic: {
-                        shadow: {
-                            type: "text",
-                            fields: {
-                                TEXT: "output"
-                            }
-                        }
-                    },
-                    errorTopic: {
-                        shadow: {
-                            type: "text",
-                            fields: {
-                                TEXT: "error"
-                            }
-                        }
-                    },
-                    errRetentionHours: {
-                        shadow: {
-                            type: "math_number",
-                            fields: {
-                                NUM: 336
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                kind: 'block',
                 type: 'hasValue',
                 inputs: {
                     name: {

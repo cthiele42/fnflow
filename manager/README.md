@@ -84,3 +84,21 @@ With this experimental implementation, we take some compromises:
 ## Code Generation
 A custom code generator will be implemented creating the request body for the `POST manager/pipelines/{name}` endpoint.
 It is based on: https://github.com/google/blockly-samples/blob/master/codelabs/custom_generator/custom_generator.md
+
+## Loading Workspace 
+Blocks have to take an id, it is created by Blockly this way: `Blockly.utils.genUid()`.
+
+How to make the serialized workspace visible:
+```js
+                function save() {
+                    const state = Blockly.serialization.workspaces.save(workspace);
+                    document.getElementById('saved').value = JSON.stringify(state, null, 2);
+                }
+                document.getElementById('save').addEventListener('click', save, false);
+```
+```html
+        <div>
+            <input type="button" id="save" value="Save"/><br>
+            <textarea id="saved" style="height: 300px; width: 1600px; overflow-y:scroll; border: 1px solid lightgrey;"></textarea>
+        </div>
+```

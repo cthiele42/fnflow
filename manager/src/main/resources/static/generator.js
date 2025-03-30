@@ -12,8 +12,8 @@ function createGenerator() {
 
     gen.forBlock['processor'] = function(block, generator) {
         let code = '"version": ' + generator.valueToCode(block, 'version', 0) + ',\n';
-        code += '"inputTopic": ' + generator.valueToCode(block, 'inputTopic', 0) + ',\n';
-        code += '"outputTopic": ' + generator.valueToCode(block, 'outputTopic', 0) + ',\n';
+        code += '"sourceTopic": ' + generator.valueToCode(block, 'inputTopic', 0) + ',\n';
+        code += '"entityTopic": ' + generator.valueToCode(block, 'outputTopic', 0) + ',\n';
         code += '"errorTopic": ' + generator.valueToCode(block, 'errorTopic', 0) + ',\n';
         code += '"errRetentionHours": ' + generator.valueToCode(block, 'errRetentionHours', 0) + ',\n';
 
