@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.4'
+version = '0.0.5-SNAPSHOT'
 
 idea {
 	module {
