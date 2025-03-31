@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.6'
+version = '0.0.2'
 
 java {
 	toolchain {
@@ -30,39 +30,19 @@ configurations {
 
 repositories {
 	mavenCentral()
-	mavenLocal()
-}
-
-ext {
-	set('springCloudVersion', "2024.0.0")
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.cloud:spring-cloud-stream'
-	implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
-	implementation 'org.opensearch.client:opensearch-java:2.15.0'
-	implementation ('org.opensearch.client:spring-data-opensearch-starter:1.6.1') {
-		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
-		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
-	}
-	implementation 'org.ct42.fnflow:fnlib:0.0.4'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.3-SNAPSHOT'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.fabric8:kubernetes-client:7.1.0'
+	implementation 'io.github.classgraph:classgraph:4.8.179'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
-	testImplementation 'org.testcontainers:kafka'
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+	testImplementation "org.testcontainers:k3s:1.20.6"
 }
 
 tasks.named('test') {
@@ -70,11 +50,17 @@ tasks.named('test') {
 }
 
 tasks.named("bootBuildImage") {
-	imageName.set("ct42/fnflow-json-processors-kafka:${version}")
+	imageName.set("ct42/fnflow-manager:${version}")
 	docker {
 		publishRegistry {
 			username = "$usr"
 			password = "$pwd"
 		}
 	}
+}
+
+bootRun {
+	jvmArgs '-agentlib:native-image-agent=config-output-dir=build/native/agent-output/run,config-write-period-secs=10,config-write-initial-delay-secs=5' ,'-Dspring.aot.enabled=true'
+	args '--processorcfg.os-uris=http://opensearch-cluster-master.default.svc:9200',
+			'--processorcfg.kafka-brokers=kafka.default.svc:9092'
 }
