@@ -29,6 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
@@ -68,7 +69,7 @@ class ManagerApplicationTests {
 	@Test
 	void testCreatePod() {
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.1");
+		dto.setVersion("0.0.7");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
@@ -87,7 +88,17 @@ class ManagerApplicationTests {
 				"paramsFromInput", Map.of("ids", "/id"),
 				"literalParams", Map.of("field", "id")));
 
-		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg});
+		PipelineConfigDTO.FunctionCfg mergeCreate = new PipelineConfigDTO.FunctionCfg();
+		mergeCreate.setFunction("MergeCreate");
+		mergeCreate.setName("merge");
+		mergeCreate.setParameters(Map.of(
+				"mappings", List.of(
+					Map.of("from","/name", "to", "/name"),
+					Map.of("from", "/name", "to", "/product/fullName")
+				)
+		));
+
+		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg, mergeCreate});
 
 		pipelineService.createPipeline("pipeline-name", dto);
 
@@ -96,5 +107,11 @@ class ManagerApplicationTests {
 				.withLabel("app.kubernetes.io/instance", "pipeline-name")
 				.list();
 		then(podList.getItems()).hasSize(1);
+
+		then(podList.getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains(
+				"--cfgfns.MergeCreate.merge.mappings.0.from=/name",
+				"--cfgfns.MergeCreate.merge.mappings.0.to=/name",
+				"--cfgfns.MergeCreate.merge.mappings.1.from=/name",
+				"--cfgfns.MergeCreate.merge.mappings.1.to=/product/fullName");
 	}
 }
