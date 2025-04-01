@@ -112,11 +112,7 @@ public class BatchDltTest {
                 """
                 {"text":"BLEN2: MO2: MO: T0"}""",
                 """
-                {"text":"BLEN2: MO2: MO: T1"}""",
-                """
-                {"text":"BLEN2: MO2: MO: T4"}""",
-                """
-                {"text":"BLEN2: MO2: MO: T9"}"""
+                {"text":"BLEN1: MO2: MO: T9"}"""
         );
         then(errors).hasSize(6);
         then(errors).extracting(ConsumerRecord::value).contains(
@@ -147,6 +143,7 @@ public class BatchDltTest {
         @Override
         public JsonNode apply(JsonNode n) {
             String s = n.get("text").textValue();
+            if(s.contains("T1")) return null;
             if (s.contains("T3") || s.contains("T7")) throw new RuntimeException("ERR");
             ((ObjectNode)n).put("text", "MO: " + s);
             return n;
@@ -175,11 +172,15 @@ public class BatchDltTest {
             b.forEach(e -> {
                 JsonNode inputRoot = e.getInput();
                 String s = inputRoot.get("text").textValue();
-                if (s.contains("T2") || s.contains("T6")) {
-                    e.processWithError(new IllegalStateException("ERRB"));
+                if(s.contains("T4")) {
+                    e.processWithOutput(null);
                 } else {
-                    ((ObjectNode)inputRoot).put("text", "BLEN" + b.size() + ": " + s);
-                e.processWithOutput(inputRoot);
+                    if (s.contains("T2") || s.contains("T6")) {
+                        e.processWithError(new IllegalStateException("ERRB"));
+                    } else {
+                        ((ObjectNode) inputRoot).put("text", "BLEN" + b.size() + ": " + s);
+                        e.processWithOutput(inputRoot);
+                    }
                 }
             });
             return b;

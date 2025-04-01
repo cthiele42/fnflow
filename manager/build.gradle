@@ -1,0 +1,66 @@
+/*
+NOTE: The plugin set has to be the same in all submodules,
+otherwise nativeCompile and other native* tasks will fail
+See: https://github.com/graalvm/native-build-tools/issues/572 and https://github.com/gradle/gradle/issues/17559
+ */
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.graalvm.buildtools.native' version '0.10.4'
+	id 'idea'
+	id 'maven-publish'
+	id 'org.jreleaser' version '1.17.0'
+}
+
+group = 'org.ct42.fnflow'
+version = '0.0.2'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.fabric8:kubernetes-client:7.1.0'
+	implementation 'io.github.classgraph:classgraph:4.8.179'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation "org.testcontainers:k3s:1.20.6"
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.named("bootBuildImage") {
+	imageName.set("ct42/fnflow-manager:${version}")
+	docker {
+		publishRegistry {
+			username = "$usr"
+			password = "$pwd"
+		}
+	}
+}
+
+bootRun {
+	jvmArgs '-agentlib:native-image-agent=config-output-dir=build/native/agent-output/run,config-write-period-secs=10,config-write-initial-delay-secs=5' ,'-Dspring.aot.enabled=true'
+	args '--processorcfg.os-uris=http://opensearch-cluster-master.default.svc:9200',
+			'--processorcfg.kafka-brokers=kafka.default.svc:9092'
+}

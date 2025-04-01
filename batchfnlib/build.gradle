@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.2'
+version = '0.0.4'
 
 idea {
     module {
@@ -50,6 +50,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 ext {
@@ -58,10 +59,12 @@ ext {
 
 dependencies {
     implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
-    implementation 'org.ct42.fnflow:batchdlt:0.0.4'
+    implementation 'org.ct42.fnflow:batchdlt:0.0.5'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.cloud:spring-cloud-function-context'
     implementation 'org.opensearch.client:opensearch-java:2.15.0'
+    implementation 'org.opensearch:opensearch-common:2.19.1'
+    implementation 'org.springframework.kafka:spring-kafka'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

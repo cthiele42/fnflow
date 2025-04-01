@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.5'
+version = '0.0.7'
 
 java {
 	toolchain {
@@ -30,6 +30,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 }
 
 ext {
@@ -45,8 +46,8 @@ dependencies {
 		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
 		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
 	}
-	implementation 'org.ct42.fnflow:fnlib:0.0.3'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.2'
+	implementation 'org.ct42.fnflow:fnlib:0.0.4'
+	implementation 'org.ct42.fnflow:batchfnlib:0.0.4'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
