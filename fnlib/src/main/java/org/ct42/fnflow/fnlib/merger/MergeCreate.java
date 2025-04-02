@@ -23,6 +23,7 @@ import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.ct42.fnflow.fnlib.utils.TreeByPointerBuilder;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.annotation.RegisterReflection;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -31,7 +32,8 @@ import java.util.Arrays;
  * @author Claas Thiele
  */
 @Component("MergeCreate")
-@RegisterReflection(classes = JsonPointer.class, memberCategories = MemberCategory.INVOKE_PUBLIC_METHODS)
+@RegisterReflection(classes = {JsonPointer.class}, memberCategories = MemberCategory.INVOKE_PUBLIC_METHODS)
+@RegisterReflectionForBinding(classes = MergeProperties.Mapping[].class)
 public class MergeCreate extends ConfigurableFunction<JsonNode, JsonNode, MergeProperties> {
     @Override
     public JsonNode apply(JsonNode input) {

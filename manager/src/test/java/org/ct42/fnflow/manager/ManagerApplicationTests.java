@@ -111,10 +111,10 @@ class ManagerApplicationTests {
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-name", 1);
 		thenPodWithInstanceNameArgumentsContains("pipeline-name", "--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
 		thenPodWithInstanceNameArgumentsContains("pipeline-name",
-				"--cfgfns.MergeCreate.merge.mappings.0.from=/name",
-				"--cfgfns.MergeCreate.merge.mappings.0.to=/name",
-				"--cfgfns.MergeCreate.merge.mappings.1.from=/name",
-				"--cfgfns.MergeCreate.merge.mappings.1.to=/product/fullName");
+				"--cfgfns.MergeCreate.merge.mappings[0].from=/name",
+				"--cfgfns.MergeCreate.merge.mappings[0].to=/name",
+				"--cfgfns.MergeCreate.merge.mappings[1].from=/name",
+				"--cfgfns.MergeCreate.merge.mappings[1].to=/product/fullName");
 		thenPipelineDeploymentIsCompleted("pipeline-name");
 
 		//WHEN
