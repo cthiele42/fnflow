@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchdlttest.batchdlt;
+package org.ct42.fnflow.batchdlttest.headeraware;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.ct42.fnflow.batchdlt.BatchElement;
+import org.ct42.fnflow.batchdlt.HeaderAware;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +45,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,10 +64,9 @@ import static org.assertj.core.api.BDDAssertions.then;
 @TestPropertySource(properties = {
         "spring.cloud.function.definition=fnFlowComposedFnBean",
         "spring.cloud.stream.default.group=test",
-        "org.ct42.fnflow.function.definition=jbifun|jbifun2|jbatchfun",
-        "org.ct42.fnflow.default.batch.size=2"
+        "org.ct42.fnflow.function.definition=single|batch|outA+outB"
 })
-public class BatchDltTest {
+public class HeaderAwareTest {
     public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
     public static final String OUT_TOPIC = "fnFlowComposedFnBean-out-0";
     public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
@@ -86,8 +89,8 @@ public class BatchDltTest {
     }
 
     @Test
-    public void testBatchDltCompose() throws Exception{
-        for (int i = 0; i < 10; i++) {
+    void testMultiplyingMessages() throws Exception {
+        for (int i = 0; i < 3; i++) {
             template.sendDefault("{\"text\":\"T" + i + "\"}");
         }
         List<ConsumerRecord<String, String>> results = new ArrayList<>();
@@ -108,29 +111,25 @@ public class BatchDltTest {
             }
             errors.add(received);
         }
-        then(results).extracting(ConsumerRecord::value).containsExactly(
-                """
-                {"text":"BLEN2: MO2: MO: T0"}""",
-                """
-                {"text":"BLEN1: MO2: MO: T9"}"""
-        );
-        then(errors).hasSize(6);
-        then(errors).extracting(ConsumerRecord::value).contains(
-                """
-                {"text":"T3"}""",
-                """
-                {"text":"T5"}""",
-                """
-                {"text":"T7"}""",
-                """
-                {"text":"T8"}"""
-        );
-        then(errors).extracting(ConsumerRecord::value).contains(
-                """
-                {"text":"T2"}""",
-                """
-                {"text":"T6"}"""
-        );
+        then(errors).isEmpty();
+        then(results).hasSize(6);
+
+        Header[] headersA = new Header[]{
+                new RecordHeader("logSingle", "seen by single function".getBytes(StandardCharsets.UTF_8)),
+                new RecordHeader("logMultiA", "seen by multiout function A".getBytes(StandardCharsets.UTF_8)),
+                new RecordHeader("logBatch", "seen by batch function".getBytes(StandardCharsets.UTF_8))
+        };
+        Header[] headersB = new Header[]{
+                new RecordHeader("logSingle", "seen by single function".getBytes(StandardCharsets.UTF_8)),
+                new RecordHeader("logMultiB", "seen by multiout function B".getBytes(StandardCharsets.UTF_8)),
+                new RecordHeader("logBatch", "seen by batch function".getBytes(StandardCharsets.UTF_8))
+        };
+        then(results.get(0).headers().toArray()).contains(headersA);
+        then(results.get(1).headers().toArray()).contains(headersB);
+        then(results.get(2).headers().toArray()).contains(headersA);
+        then(results.get(3).headers().toArray()).contains(headersB);
+        then(results.get(4).headers().toArray()).contains(headersA);
+        then(results.get(5).headers().toArray()).contains(headersB);
     }
 
     @SpringBootApplication
@@ -138,31 +137,50 @@ public class BatchDltTest {
     protected static class TestConfiguration {
     }
 
-    @Component("jbifun")
-    protected final static class BiFunLogic implements Function<JsonNode, JsonNode> {
+    @Component("single")
+    protected final static class Single implements Function<JsonNode, JsonNode>, HeaderAware {
         @Override
         public JsonNode apply(JsonNode n) {
-            String s = n.get("text").textValue();
-            if(s.contains("T1")) return null;
-            if (s.contains("T3") || s.contains("T7")) throw new RuntimeException("ERR");
-            ((ObjectNode)n).put("text", "MO: " + s);
+            ((ObjectNode)n).put("logSingle", "seen by single function");
             return n;
+        }
+
+        @Override
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
+            return Map.of("logSingle", "seen by single function");
         }
     }
 
-    @Component("jbifun2")
-    protected final static class BiFunLogic2 implements Function<JsonNode, JsonNode> {
+    @Component("outA")
+    protected final static class OutA implements Function<JsonNode, JsonNode>, HeaderAware {
         @Override
         public JsonNode apply(JsonNode n) {
-            String s = n.get("text").textValue();
-            if (s.contains("T5") || s.contains("T8")) throw new RuntimeException("ERR2");
-            ((ObjectNode)n).put("text", "MO2: " + s);
+            ((ObjectNode)n).put("out", "A");
             return n;
+        }
+
+        @Override
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
+            return Map.of("logMultiA", "seen by multiout function A");
         }
     }
 
-    @Component("jbatchfun")
-    protected final static class BatchFun implements Function<List<BatchElement>, List<BatchElement>> {
+    @Component("outB")
+    protected final static class OutB implements Function<JsonNode, JsonNode>, HeaderAware {
+        @Override
+        public JsonNode apply(JsonNode n) {
+            ((ObjectNode)n).put("out", "B");
+             return n;
+        }
+
+        @Override
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
+            return Map.of("logMultiB", "seen by multiout function B");
+        }
+    }
+
+    @Component("batch")
+    protected final static class Batch implements Function<List<BatchElement>, List<BatchElement>>, HeaderAware {
         /**
          * @param b the batch; will be not empty
          * @return the batch with processed values
@@ -170,20 +188,15 @@ public class BatchDltTest {
         @Override
         public List<BatchElement> apply(List<BatchElement> b) {
             b.forEach(e -> {
-                JsonNode inputRoot = e.getInput();
-                String s = inputRoot.get("text").textValue();
-                if(s.contains("T4")) {
-                    e.processWithOutput(null);
-                } else {
-                    if (s.contains("T2") || s.contains("T6")) {
-                        e.processWithError(new IllegalStateException("ERRB"));
-                    } else {
-                        ((ObjectNode) inputRoot).put("text", "BLEN" + b.size() + ": " + s);
-                        e.processWithOutput(inputRoot);
-                    }
-                }
+                ((ObjectNode)e.getInput()).put("logBatch", "seen by batch function");
+                e.processWithOutput(e.getInput());
             });
             return b;
+        }
+
+        @Override
+        public Map<String, Object> headersToBeAdded(JsonNode output) {
+            return Map.of("logBatch", "seen by batch function");
         }
     }
 
