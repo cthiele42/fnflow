@@ -26,6 +26,7 @@ import java.util.List;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Data
 public class MergeProperties {

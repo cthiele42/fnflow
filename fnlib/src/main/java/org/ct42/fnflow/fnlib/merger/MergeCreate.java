@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Component("MergeCreate")
 @RegisterReflectionForBinding(classes = {MergeProperties.class, MergeProperties.Mapping.class})
