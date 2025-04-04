@@ -32,6 +32,9 @@ public class MergeProperties {
     @NotEmpty
     private List<Mapping> mappings = new ArrayList<>();
 
+    /**
+     * We add explicit type conversion in setters as native-image is not able to do it otherwise.
+     */
     @Getter
     public static class Mapping {
         private JsonPointer from;
