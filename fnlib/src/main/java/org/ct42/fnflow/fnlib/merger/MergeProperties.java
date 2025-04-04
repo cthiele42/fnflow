@@ -17,18 +17,32 @@
 package org.ct42.fnflow.fnlib.merger;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Claas Thiele
  */
 @Data
 public class MergeProperties {
-    private Mapping[] mappings;
+    @NotEmpty
+    private List<Mapping> mappings = new ArrayList<>();
 
-    @Data
+    @Getter
     public static class Mapping {
         private JsonPointer from;
         private JsonPointer to;
+
+        public void setFrom(String from) {
+            this.from = JsonPointer.compile(from);
+        }
+
+        public void setTo(String to) {
+            this.to = JsonPointer.compile(to);
+        }
     }
 }

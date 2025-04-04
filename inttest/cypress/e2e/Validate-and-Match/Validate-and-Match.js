@@ -129,10 +129,10 @@ Then("a topic with name {string} and messageCount {int} exists", (topic, msgCoun
 //cleanup
 after(()=>{
     //delete pipeline
-    // cy.request({
-    //     method: 'DELETE',
-    //     url: 'http://localhost:32581/pipelines/' + Cypress.env('PIPELINE_NAME'),
-    // })
+    cy.request({
+        method: 'DELETE',
+        url: 'http://localhost:32581/pipelines/' + Cypress.env('PIPELINE_NAME'),
+    })
 
     //delete entity index
     cy.request({
@@ -141,7 +141,7 @@ after(()=>{
     });
 
     //delete all topics
-//    deleteTopics(['input-topic', 'output-topic-wrong', 'output-topic', 'error-topic'])
+    deleteTopics(['input-topic', 'output-topic-wrong', 'output-topic', 'error-topic'])
 })
 
 const deleteTopics = (topics) => {
