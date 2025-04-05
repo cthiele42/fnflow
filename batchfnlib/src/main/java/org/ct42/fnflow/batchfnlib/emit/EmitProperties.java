@@ -14,39 +14,19 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.fnlib.merger;
+package org.ct42.fnflow.batchfnlib.emit;
 
 import com.fasterxml.jackson.core.JsonPointer;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Claas Thiele
- * @author Sajjad Safaeian
  */
 @Data
-public class MergeProperties {
-    @NotEmpty
-    private List<Mapping> mappings = new ArrayList<>();
-
-    /**
-     * We add explicit type conversion in setters as native-image is not able to do it otherwise.
-     */
-    @Getter
-    public static class Mapping {
-        private JsonPointer from;
-        private JsonPointer to;
-
-        public void setFrom(String from) {
-            this.from = JsonPointer.compile(from);
-        }
-
-        public void setTo(String to) {
-            this.to = JsonPointer.compile(to);
-        }
-    }
+public class EmitProperties {
+    @NotNull
+    private JsonPointer eventContent;
+    private JsonPointer eventKey;
+    private String topic;
 }

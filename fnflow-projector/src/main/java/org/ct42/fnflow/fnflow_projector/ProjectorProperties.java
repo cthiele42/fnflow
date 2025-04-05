@@ -14,39 +14,25 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.fnlib.merger;
+package org.ct42.fnflow.fnflow_projector;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * @author Claas Thiele
- * @author Sajjad Safaeian
  */
+@Component
+@ConfigurationProperties(prefix = "fnflow.projector")
 @Data
-public class MergeProperties {
+@Validated
+public class ProjectorProperties {
     @NotEmpty
-    private List<Mapping> mappings = new ArrayList<>();
+    private String index;
 
-    /**
-     * We add explicit type conversion in setters as native-image is not able to do it otherwise.
-     */
-    @Getter
-    public static class Mapping {
-        private JsonPointer from;
-        private JsonPointer to;
-
-        public void setFrom(String from) {
-            this.from = JsonPointer.compile(from);
-        }
-
-        public void setTo(String to) {
-            this.to = JsonPointer.compile(to);
-        }
-    }
+    int batchSize = 500;
+    long batchTimeoutMs = 500L;
 }

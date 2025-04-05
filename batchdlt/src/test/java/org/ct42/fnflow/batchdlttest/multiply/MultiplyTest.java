@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchdlttest.batchdlt;
+package org.ct42.fnflow.batchdlttest.multiply;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.ct42.fnflow.batchdlt.BatchElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +49,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+
 import static org.assertj.core.api.BDDAssertions.then;
 
 /**
@@ -60,10 +60,9 @@ import static org.assertj.core.api.BDDAssertions.then;
 @TestPropertySource(properties = {
         "spring.cloud.function.definition=fnFlowComposedFnBean",
         "spring.cloud.stream.default.group=test",
-        "org.ct42.fnflow.function.definition=jbifun|jbifun2|jbatchfun",
-        "org.ct42.fnflow.default.batch.size=2"
+        "org.ct42.fnflow.function.definition=outA+outB"
 })
-public class BatchDltTest {
+public class MultiplyTest {
     public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
     public static final String OUT_TOPIC = "fnFlowComposedFnBean-out-0";
     public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
@@ -86,7 +85,7 @@ public class BatchDltTest {
     }
 
     @Test
-    public void testBatchDltCompose() throws Exception{
+    void testMultiplyingMessages() throws Exception {
         for (int i = 0; i < 10; i++) {
             template.sendDefault("{\"text\":\"T" + i + "\"}");
         }
@@ -108,29 +107,12 @@ public class BatchDltTest {
             }
             errors.add(received);
         }
-        then(results).extracting(ConsumerRecord::value).containsExactly(
-                """
-                {"text":"BLEN2: MO2: MO: T0"}""",
-                """
-                {"text":"BLEN1: MO2: MO: T9"}"""
-        );
-        then(errors).hasSize(6);
-        then(errors).extracting(ConsumerRecord::value).contains(
-                """
-                {"text":"T3"}""",
-                """
-                {"text":"T5"}""",
-                """
-                {"text":"T7"}""",
-                """
-                {"text":"T8"}"""
-        );
-        then(errors).extracting(ConsumerRecord::value).contains(
-                """
-                {"text":"T2"}""",
-                """
-                {"text":"T6"}"""
-        );
+        then(errors).isEmpty();
+        then(results).hasSize(18);
+        then(results.getFirst().value()).isEqualTo("{\"text\":\"T0\",\"out\":\"A\"}");
+        then(results.get(1).value()).isEqualTo("{\"text\":\"T0\",\"out\":\"B\"}");
+        then(results.get(2).value()).isEqualTo("{\"text\":\"T1\",\"out\":\"B\"}");
+        then(results.get(15).value()).isEqualTo("{\"text\":\"T8\",\"out\":\"A\"}");
     }
 
     @SpringBootApplication
@@ -138,52 +120,23 @@ public class BatchDltTest {
     protected static class TestConfiguration {
     }
 
-    @Component("jbifun")
-    protected final static class BiFunLogic implements Function<JsonNode, JsonNode> {
+    @Component("outA")
+    protected final static class OutA implements Function<JsonNode, JsonNode> {
         @Override
         public JsonNode apply(JsonNode n) {
-            String s = n.get("text").textValue();
-            if(s.contains("T1")) return null;
-            if (s.contains("T3") || s.contains("T7")) throw new RuntimeException("ERR");
-            ((ObjectNode)n).put("text", "MO: " + s);
+            if(n.toString().contains("T1")) return null;
+            ((ObjectNode)n).put("out", "A");
             return n;
         }
     }
 
-    @Component("jbifun2")
-    protected final static class BiFunLogic2 implements Function<JsonNode, JsonNode> {
+    @Component("outB")
+    protected final static class OutB implements Function<JsonNode, JsonNode> {
         @Override
         public JsonNode apply(JsonNode n) {
-            String s = n.get("text").textValue();
-            if (s.contains("T5") || s.contains("T8")) throw new RuntimeException("ERR2");
-            ((ObjectNode)n).put("text", "MO2: " + s);
-            return n;
-        }
-    }
-
-    @Component("jbatchfun")
-    protected final static class BatchFun implements Function<List<BatchElement>, List<BatchElement>> {
-        /**
-         * @param b the batch; will be not empty
-         * @return the batch with processed values
-         */
-        @Override
-        public List<BatchElement> apply(List<BatchElement> b) {
-            b.forEach(e -> {
-                JsonNode inputRoot = e.getInput();
-                String s = inputRoot.get("text").textValue();
-                if(s.contains("T4")) {
-                    e.processWithOutput(null);
-                } else {
-                    if (s.contains("T2") || s.contains("T6")) {
-                        e.processWithError(new IllegalStateException("ERRB"));
-                    } else {
-                        ((ObjectNode) inputRoot).put("text", "BLEN" + b.size() + ": " + s);
-                        e.processWithOutput(inputRoot);
-                    }
-                }
-            });
-            return b;
+            if(n.toString().contains("T8")) return null;
+            ((ObjectNode)n).put("out", "B");
+             return n;
         }
     }
 

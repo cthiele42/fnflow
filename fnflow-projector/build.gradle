@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.9'
+version = '0.0.1'
 
 java {
 	toolchain {
@@ -30,7 +30,6 @@ configurations {
 
 repositories {
 	mavenCentral()
-	mavenLocal()
 }
 
 ext {
@@ -46,15 +45,14 @@ dependencies {
 		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
 		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
 	}
-	implementation 'org.ct42.fnflow:fnlib:0.0.6'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.4'
+	implementation 'org.springframework.kafka:spring-kafka'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.testcontainers:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
 	testImplementation 'org.testcontainers:kafka'
 }
@@ -70,7 +68,7 @@ tasks.named('test') {
 }
 
 tasks.named("bootBuildImage") {
-	imageName.set("ct42/fnflow-json-processors-kafka:${version}")
+	imageName.set("ct42/fnflow-projector:${version}")
 	docker {
 		publishRegistry {
 			username = "$usr"

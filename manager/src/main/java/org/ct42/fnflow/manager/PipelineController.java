@@ -28,13 +28,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(value = "/pipelines")
 @RequiredArgsConstructor
-@RegisterReflectionForBinding(classes = {PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class})
+@RegisterReflectionForBinding(classes = {PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class, DeploymentStatusDTO.class})
 public class PipelineController {
     private final PipelineService pipelineService;
 
     @PostMapping(value="/{name}")
     public ResponseEntity<Void> createPipeline(@PathVariable String name, @RequestBody PipelineConfigDTO cfg) {
-        pipelineService.createPipeline(name, cfg);
+        pipelineService.createOrUpdatePipeline(name, cfg);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value="/{name}/status")
+    public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) {
+        return pipelineService.getPipelineStatus(name);
+    }
+
+    @DeleteMapping(value="/{name}")
+    public ResponseEntity<Void> deletePipeline(@PathVariable String name) {
+        pipelineService.deletePipeline(name);
         return ResponseEntity.noContent().build();
     }
 }
