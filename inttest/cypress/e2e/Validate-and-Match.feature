@@ -24,7 +24,7 @@ Feature: Validate and match input data
     And a pipeline processing app with name 'sample-pipeline' and with this configs:
     """
     {
-     "version": "0.0.9",
+     "version": "0.0.10-SNAPSHOT",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic-wrong",
      "errorTopic": "error-topic",
@@ -58,7 +58,7 @@ Feature: Validate and match input data
     And a pipeline processing app with name 'sample-pipeline' and with this configs:
     """
     {
-     "version": "0.0.9",
+     "version": "0.0.10-SNAPSHOT",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic",
      "errorTopic": "error-topic",
@@ -116,6 +116,6 @@ Feature: Validate and match input data
     """
     And documents from 'entities/two-docs.json' were indexed to 'testindex'
     When messages from 'input/six-valid-four-invalid.json' were sent to the topic 'input-topic'
-    Then a number of 3 messages are landing in the topic 'entity-topic'
+    Then a number of 6 messages are landing in the topic 'entity-topic'
     And a number of 4 messages are landing in the topic 'error-topic'
     And in topic 'entity-topic' all messages are having a key

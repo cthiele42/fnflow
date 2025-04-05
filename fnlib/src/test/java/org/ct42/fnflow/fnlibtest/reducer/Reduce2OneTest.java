@@ -85,7 +85,7 @@ public class Reduce2OneTest {
                 }""");
 
         then(function.apply(input).toString()).isEqualTo("""
-                {"input":{"id":"ID1"},"matches":[{}]}""");
+                {"input":{"id":"ID1"},"matches":[{"source":{}}]}""");
     }
 
     @Test

@@ -38,7 +38,9 @@ public class Reduce2One extends ConfigurableFunction<JsonNode, JsonNode, NullPro
         if(matches.size() == 1) { // match
             //leave everything as it is
         } else if(matches.isEmpty()) { //no match
-            ((ArrayNode)matches).add(JsonNodeFactory.instance.objectNode());
+            ObjectNode emptyEntity = JsonNodeFactory.instance.objectNode();
+            emptyEntity.set("source", JsonNodeFactory.instance.objectNode());
+            ((ArrayNode)matches).add(emptyEntity);
         } else { // ambiguous match
             ((ObjectNode)input).replace("input", JsonNodeFactory.instance.nullNode());
             ((ObjectNode)input).replace("matches", JsonNodeFactory.instance.arrayNode());
