@@ -73,7 +73,7 @@ class ManagerApplicationTests {
 	void testCreatePod() {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.7");
+		dto.setVersion("0.0.9");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
@@ -131,7 +131,7 @@ class ManagerApplicationTests {
 	void testDeletePod() {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.1");
+		dto.setVersion("0.0.9");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
