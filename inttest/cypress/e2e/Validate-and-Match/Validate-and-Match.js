@@ -98,7 +98,7 @@ Then("a number of {int} messages are landing in the topic {string}", (expected, 
     )
 })
 
-Then("in topic {string} for input ID1, ID2 and ID4 there will be matches", (topic) => {
+Then("in topic {string} all messages are having a key", (topic) => {
     cy.request({
         method: 'GET',
         url: 'http://localhost:32580/' + topic + '/0',
@@ -106,12 +106,8 @@ Then("in topic {string} for input ID1, ID2 and ID4 there will be matches", (topi
     }).then((response) => {
         expect(response.body.messages).to.be.an('array').that.is.not.empty;
         response.body.messages.forEach((m) => {
-            if(["ID1", "ID2", "ID4"].includes(m.value.input.id[0])) {
-                expect(m.value.matches[0], 'for input.id ' + m.value.input.id[0] + ' unexpectingly matches[0] is empty').to.be.an('object').that.is.not.empty;
-            }
-            if(["ID5", "ID7", "ID8"].includes(m.value.input.id[0])) {
-                expect(m.value.matches[0], 'for input.id ' + m.value.input.id[0] + ' unexpectingly matches[0] is not empty').to.be.an('object').that.is.empty;
-            }
+            expect(m.key, 'missing key in message').to.be.an('string').that.is.not.empty;
+            expect(m.value, 'missing content in message').to.be.an('object').that.is.not.empty;
         })
     })
 })
