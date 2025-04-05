@@ -16,7 +16,6 @@
 
 package org.ct42.fnflow.batchdlt;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -28,14 +27,13 @@ import java.util.function.Function;
  *
  * @author Claas Thiele
  */
-@Slf4j
 public class ErrorConvert2ByteArray implements Function<Flux<Message<Throwable>>, Flux<Message<byte[]>>> {
     @Override
     public Flux<Message<byte[]>> apply(Flux<Message<Throwable>> f) {
         return f.map(m -> {
             MessageHeaders headers = m.getHeaders();
             byte[] inPayload = (byte[])headers.get(InMsg2Header.IN_PAYLOAD_HEADER);
-            log.error("Error in function execution ", m.getPayload());
+
             return MessageBuilder
                     .withPayload(inPayload)
                     .copyHeaders(headers)
