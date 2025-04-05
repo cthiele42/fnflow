@@ -35,12 +35,12 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 @SpringBootTest(
         properties = {
-                "cfgfns.MergeCreate.createmerge.mappings.0.from=/id",
-                "cfgfns.MergeCreate.createmerge.mappings.0.to=/identifier/id",
-                "cfgfns.MergeCreate.createmerge.mappings.1.from=/id",
-                "cfgfns.MergeCreate.createmerge.mappings.1.to=/ID",
-                "cfgfns.MergeCreate.createmerge.mappings.2.from=/doesNotExist",
-                "cfgfns.MergeCreate.createmerge.mappings.2.to=/foo"
+                "cfgfns.MergeCreate.createmerge.mappings[0].from=/id",
+                "cfgfns.MergeCreate.createmerge.mappings[0].to=/identifier/id",
+                "cfgfns.MergeCreate.createmerge.mappings[1].from=/id",
+                "cfgfns.MergeCreate.createmerge.mappings[1].to=/ID",
+                "cfgfns.MergeCreate.createmerge.mappings[2].from=/doesNotExist",
+                "cfgfns.MergeCreate.createmerge.mappings[2].to=/foo"
         }
 )
 public class MergeCreateTest {

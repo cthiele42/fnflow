@@ -24,7 +24,7 @@ Feature: Validate and match input data
     And a pipeline processing app with name 'sample-pipeline' and with this configs:
     """
     {
-     "version": "0.0.8",
+     "version": "0.0.9",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic-wrong",
      "errorTopic": "error-topic",
@@ -58,7 +58,7 @@ Feature: Validate and match input data
     And a pipeline processing app with name 'sample-pipeline' and with this configs:
     """
     {
-     "version": "0.0.8",
+     "version": "0.0.9",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic",
      "errorTopic": "error-topic",
@@ -78,7 +78,7 @@ Feature: Validate and match input data
                  "index": "testindex",
                  "template": "testtemplate",
                  "paramsFromInput": {
-                "ids": "/id"
+                    "ids": "/id"
                  },
                  "literalParams": {
                     "field": "id"
@@ -90,6 +90,16 @@ Feature: Validate and match input data
             "function": "Reduce2One",
             "parameters": {
                 "dummy": ""
+            }
+         },
+         {
+            "name": "merge",
+            "function": "MergeCreate",
+            "parameters": {
+              "mappings": [
+                {"from": "/name", "to": "/name"},
+                {"from": "/name", "to": "/product/fullName"}
+              ]
             }
          },
          {

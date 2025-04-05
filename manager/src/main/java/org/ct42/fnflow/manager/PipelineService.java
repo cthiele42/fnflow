@@ -51,6 +51,16 @@ public class PipelineService {
             f.getParameters().forEach((k, v) -> {
                 if(v instanceof Map) { //for now, we support one nested map only
                     ((Map<?, ?>) v).forEach((k2, v2) -> args.add(prefix + "." + k + "." + k2 + "=" + v2));
+                } else if(v instanceof List) {
+                    for(int i=0; i<((List<?>) v).size(); i++) {
+                        String elemPrefix = prefix + "." + k + "[" + i + "]";
+                        Object elem = ((List<?>) v).get(i);
+                        if(elem instanceof Map) { // we support Map here only (MapCreate mappings config)
+                            ((Map<?, ?>) elem).forEach((k2, v2) -> args.add(elemPrefix + "." + k2 + "=" + v2));
+                        } else {
+                            args.add(elemPrefix + "=" + elem);
+                        }
+                    }
                 } else {
                     args.add(prefix + "." + k + "=" + v);
                 }

@@ -108,6 +108,8 @@ Then("in topic {string} all messages are having a key", (topic) => {
         response.body.messages.forEach((m) => {
             expect(m.key, 'missing key in message').to.be.an('string').that.is.not.empty;
             expect(m.value, 'missing content in message').to.be.an('object').that.is.not.empty;
+            expect(m.value.name, 'missing merged content in result entity').to.be.an('string').that.is.not.empty;
+            expect(m.value.product.fullName, 'missing merged content in result entity').to.be.an('string').that.is.not.empty;
         })
     })
 })
