@@ -166,6 +166,62 @@ class ManagerApplicationTests {
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-tobedeleted", 0);
 	}
 
+	@Test
+	void testGetDeployment() {
+		//GIVEN
+		PipelineConfigDTO dto = new PipelineConfigDTO();
+		dto.setVersion("0.0.9");
+		dto.setSourceTopic("sourceTopic");
+		dto.setEntityTopic("entityTopic");
+		dto.setErrorTopic("errorTopic");
+
+		PipelineConfigDTO.FunctionCfg valiCfg = new PipelineConfigDTO.FunctionCfg();
+		valiCfg.setFunction("hasValueValidator");
+		valiCfg.setName("idExist");
+		valiCfg.setParameters(Map.of("elementPath", "/id"));
+
+		PipelineConfigDTO.FunctionCfg matchCfg = new PipelineConfigDTO.FunctionCfg();
+		matchCfg.setFunction("Match");
+		matchCfg.setName("idMatch");
+		matchCfg.setParameters(Map.of(
+				"index", "testindex",
+				"template", "testtemplate",
+				"paramsFromInput", Map.of("ids", "/id"),
+				"literalParams", Map.of("field", "id")));
+
+		PipelineConfigDTO.FunctionCfg mergeCfg = new PipelineConfigDTO.FunctionCfg();
+		mergeCfg.setFunction("MergeCreate");
+		mergeCfg.setName("createmerge");
+		mergeCfg.setParameters(Map.of(
+			"mappings", List.of(
+					Map.of(
+							"from", "/id",
+						"to", "/identifier/id"
+					),
+					Map.of(
+							"from", "/id",
+							"to", "/ID"
+					),
+					Map.of(
+							"from", "/doesNotExist",
+							"to", "/foo"
+					)
+				)
+		));
+
+		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg, mergeCfg});
+
+		pipelineService.createOrUpdatePipeline("pipeline-toberead", dto);
+
+		thenCountOfPodRunningAndWithInstanceLabel("pipeline-toberead", 1);
+		thenPodWithInstanceNameArgumentsContains("pipeline-toberead", "--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
+		thenPipelineDeploymentIsCompleted("pipeline-toberead");
+
+		//WHEN
+		PipelineConfigDTO config = pipelineService.getPipelineConfig("pipeline-toberead");
+		then(config).isEqualTo(dto);
+	}
+
 	private void thenCountOfPodRunningAndWithInstanceLabel(String instanceName, int count) {
 		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(kubernetesClient.pods()
 				.inNamespace("default")
