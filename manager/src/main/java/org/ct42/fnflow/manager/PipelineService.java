@@ -126,9 +126,16 @@ public class PipelineService {
                 .forceConflicts().serverSideApply();
     }
 
+    /**
+     *
+     * @param name of the pipeline the status should be taken for
+     * @return the status or <ode>null</ode> if a deployment for the given name does not exist
+     */
     public DeploymentStatusDTO getPipelineStatus(String name) {
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(PROCESSOR_PREFIX + name).get();
+        if(deployment == null) return  null;
+
         DeploymentStatusDTO status = new DeploymentStatusDTO();
         DeploymentStatus deploymentStatus = deployment.getStatus();
         Integer specReplicas = deployment.getSpec().getReplicas();
@@ -180,13 +187,15 @@ public class PipelineService {
      * - deployments with more than one container
      * - property array notation without []
      *
-     * @param name
-     * @return the config of the pipeline with given name
+     * @param name of the pipeline the configuration should be taken for
+     * @return the config of the pipeline with given name or <code>null</code> if the deployment with given name does not exist
      */
     public PipelineConfigDTO getPipelineConfig(String name) {
-        Container container = k8sClient.apps().deployments().inNamespace(NAMESPACE)
-                .withName(PROCESSOR_PREFIX + name).get()
-                .getSpec().getTemplate().getSpec().getContainers().getFirst();
+        Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
+                .withName(PROCESSOR_PREFIX + name).get();
+        if(deployment == null) return null;
+
+        Container container = deployment.getSpec().getTemplate().getSpec().getContainers().getFirst();
 
         PipelineConfigDTO config = new PipelineConfigDTO();
 

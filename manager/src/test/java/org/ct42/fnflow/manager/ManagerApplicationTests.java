@@ -222,6 +222,11 @@ class ManagerApplicationTests {
 		then(config).isEqualTo(dto);
 	}
 
+	@Test
+	void testGetDeploymentThatDoesNotExist() {
+		then(pipelineService.getPipelineConfig("this-does-not-exist")).isNull();
+	}
+
 	private void thenCountOfPodRunningAndWithInstanceLabel(String instanceName, int count) {
 		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(kubernetesClient.pods()
 				.inNamespace("default")

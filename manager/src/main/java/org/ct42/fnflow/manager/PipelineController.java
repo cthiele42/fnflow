@@ -39,8 +39,17 @@ public class PipelineController {
     }
 
     @GetMapping(value="/{name}/status")
-    public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) {
-        return pipelineService.getPipelineStatus(name);
+    public ResponseEntity<DeploymentStatusDTO> getPipelineStatus(@PathVariable String name) {
+        DeploymentStatusDTO status = pipelineService.getPipelineStatus(name);
+        if (status == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(status);
+    }
+
+    @GetMapping(value="/{name}")
+    public ResponseEntity<PipelineConfigDTO> getPipelineConfig(@PathVariable String name) {
+        PipelineConfigDTO config = pipelineService.getPipelineConfig(name);
+        if (config == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(config);
     }
 
     @DeleteMapping(value="/{name}")
