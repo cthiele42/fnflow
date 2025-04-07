@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="blockly/blockly_compressed.js"></script>
+        <script src="blockly/blocks_compressed.js"></script>
+        <script src="blockly/blockly_msg_en.js"></script>
+        <script src="blockdefs.js"></script>
+        <script src="toolbox.js"></script>
+        <script src="generator.js"></script>
+
+        <script>
+            class FixedEdgesMetricsManager extends Blockly.MetricsManager {
+                constructor(workspace) {
+                    super(workspace);
+                }
+
+                hasFixedEdges() {
+                    return true;
+                }
+
+                getComputedFixedEdges_(cachedViewMetrics = undefined) {
+                    const hScrollEnabled = this.workspace_.isMovableHorizontally();
+                    const vScrollEnabled = this.workspace_.isMovableVertically();
+
+                    const viewMetrics = cachedViewMetrics || this.getViewMetrics(false);
+
+                    const edges = {
+                        top: 0,
+                        bottom: undefined,
+                        left: 0,
+                        right: undefined,
+                    };
+                    if (!vScrollEnabled) {
+                        edges.bottom = edges.top + viewMetrics.height;                    }
+                    if (!hScrollEnabled) {
+                        edges.right = edges.left + viewMetrics.width;                    }
+                    return edges;
+                }
+            }
+
+            function init() {
+                // Create the definition.
+                const definitions = blockdefs();
+                const toolbox = createToolbox();
+
+                const generator = createGenerator();
+
+                const workspace = Blockly.inject('blocklyDiv', {
+                    toolbox: toolbox,
+                    collapse: true,
+                    scrollbars: true,
+                    comments: true,
+                    plugins: {
+                        metricsManager: FixedEdgesMetricsManager,
+                    }
+                });
+
+                const processorBlock = {
+                    "blocks": {
+                        "languageVersion": 0,
+                        "blocks": [
+                            {
+                                "type": "processor",
+                                "id": "Q%Pg:_nxYCCCsX^yG}%t",
+                                "x": 10,
+                                "y": 10,
+                                "deletable": false,
+                                "movable": false,
+                                "inputs": {
+                                    "version": {
+                                        "shadow": {
+                                            "type": "text",
+                                            "id": "KRP:3OR5V-^E9DW1z}Sx",
+                                            "fields": {
+                                                "TEXT": "0.0.9"
+                                            }
+                                        }
+                                    },
+                                    "inputTopic": {
+                                        "shadow": {
+                                            "type": "text",
+                                            "id": "jZ([0ev~wf:5?jgG;vHx",
+                                            "fields": {
+                                                "TEXT": "input"
+                                            }
+                                        }
+                                    },
+                                    "outputTopic": {
+                                        "shadow": {
+                                            "type": "text",
+                                            "id": "Z)Qntf5Z=DImj46`ZIC:",
+                                            "fields": {
+                                                "TEXT": "output"
+                                            }
+                                        }
+                                    },
+                                    "errorTopic": {
+                                        "shadow": {
+                                            "type": "text",
+                                            "id": "PB!.dWJo+E8zXK.p,S/?",
+                                            "fields": {
+                                                "TEXT": "error"
+                                            }
+                                        }
+                                    },
+                                    "errRetentionHours": {
+                                        "shadow": {
+                                            "type": "math_number",
+                                            "id": "IHFbBU![X6u@?2`n8+xz",
+                                            "fields": {
+                                                "NUM": 336
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                };
+                Blockly.serialization.workspaces.load(processorBlock, workspace);
+
+                const supportedEvents = new Set([
+                    Blockly.Events.BLOCK_CHANGE,
+                    Blockly.Events.BLOCK_CREATE,
+                    Blockly.Events.BLOCK_DELETE,
+                    Blockly.Events.BLOCK_MOVE,
+                ]);
+
+                function updateCode(event) {
+                    if (workspace.isDragging()) return; // Don't update while changes are happening.
+                    if (!supportedEvents.has(event.type)) return;
+                    document.getElementById('codeDiv').value = generator.workspaceToCode(workspace);
+                }
+
+
+                workspace.addChangeListener(Blockly.Events.disableOrphans);
+                workspace.addChangeListener(updateCode);
+
+                function deploy() {
+                    const body = document.getElementById('codeDiv').value;
+                    const name = document.getElementById('procName').value;
+
+                    fetch('/pipelines/' + name, {
+                        method: "POST",
+                        body: body,
+                        headers: {
+                            "Content-type": "application/json; charset=UTF-8"
+                        }
+                    });
+                }
+                document.getElementById('deploy').addEventListener('click', deploy, false);
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <div id="blocklyDiv" style="height: 1200px; width: 1600px;"></div>
+        <br>
+        <h3>Processor Configuration</h3>
+        <input id="deploy" type="button" value="Create or update processor with name"/><input id="procName"/></br>
+        <textarea id="codeDiv" style="height: 300px; width: 1600px; overflow-y:scroll; border: 1px solid lightgrey;"></textarea>
+    </body>
+</html>
