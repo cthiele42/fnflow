@@ -76,6 +76,7 @@ Here we try to implement a UI for clicking together a processor configuration. I
 ## Custom Blocks
 The static [web page](src/main/resources/static/index.html) is providing a Blockly workspace with custom blocks for processor configuration. Following an example configuration created in this workspace:
 ![img.png](proc-config.png)
+
 With this experimental implementation, we take some compromises:
 - the dataflow general layout is vertical (data flowing from top to bottom) instead of the usual horizontal layout (data flowing from left to right).
 - property lists are rendered as Blockly statements instaed as of list of Inputs. This is far easier to implement but breaks the programming model of Blockly.
@@ -90,15 +91,15 @@ Blocks have to take an id, it is created by Blockly this way: `Blockly.utils.gen
 
 How to make the serialized workspace visible:
 ```js
-                function save() {
-                    const state = Blockly.serialization.workspaces.save(workspace);
-                    document.getElementById('saved').value = JSON.stringify(state, null, 2);
-                }
-                document.getElementById('save').addEventListener('click', save, false);
+function save() {
+    const state = Blockly.serialization.workspaces.save(workspace);
+    document.getElementById('saved').value = JSON.stringify(state, null, 2);
+}
+document.getElementById('save').addEventListener('click', save, false);
 ```
 ```html
-        <div>
-            <input type="button" id="save" value="Save"/><br>
-            <textarea id="saved" style="height: 300px; width: 1600px; overflow-y:scroll; border: 1px solid lightgrey;"></textarea>
-        </div>
+<div>
+    <input type="button" id="save" value="Save"/><br>
+    <textarea id="saved" style="height: 300px; width: 1600px; overflow-y:scroll; border: 1px solid lightgrey;"></textarea>
+</div>
 ```
