@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Service
 @RequiredArgsConstructor
@@ -105,6 +106,7 @@ public class KafkaService {
             });
 
         } catch (ExecutionException | InterruptedException e) {
+            checkErrorMessageForTopicExistence(e, name);
             throw new IllegalStateException("Getting topic info failed", e);
         }
 
@@ -115,11 +117,14 @@ public class KafkaService {
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
             adminClient.deleteTopics(List.of(topic)).all().get();
         } catch (ExecutionException | InterruptedException e) {
+            checkErrorMessageForTopicExistence(e, topic);
             throw new IllegalStateException("Deleting topic failed", e);
         }
     }
 
     public ReadBatchDTO read(String topic, int partition, String from, String to) {
+        getTopicInfo(topic);
+
         long fromOffset = 0;
         long toOffset = Long.MAX_VALUE;
         TopicPartition topicPartition = new TopicPartition(topic, partition);
@@ -135,7 +140,7 @@ public class KafkaService {
                 fromOffset = Long.parseLong(from);
             }
 
-        if (to == null) { // no value given
+            if (to == null) { // no value given
                 toOffset = Long.MAX_VALUE;
             } else if (to.startsWith("ts")) { // timestamp
                 toOffset = getTsOffset(to, topicPartition, adminClient) - 1;
@@ -217,6 +222,12 @@ public class KafkaService {
             consumer.seek(topicPartition, from);
             ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
             return records.records(topicPartition);
+        }
+    }
+
+    private void checkErrorMessageForTopicExistence(Exception e, String topic) {
+        if(e.getMessage().contains("UnknownTopicOrPartitionException: This server does not host this topic-partition.")) {
+            throw new TopicDoesNotExistException(topic);
         }
     }
 }
