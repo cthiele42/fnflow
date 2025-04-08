@@ -20,11 +20,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -41,6 +43,7 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Service
 @RequiredArgsConstructor
@@ -63,7 +66,7 @@ public class KafkaService {
         }
     }
 
-    public TopicInfoDTO getTopicInfo(String name) {
+    public TopicInfoDTO getTopicInfo(String name) throws TopicDoesNotExistException {
         kafkaTemplate.setConsumerFactory(defaultKafkaConsumerFactory);
         TopicInfoDTO topicInfo = new TopicInfoDTO();
 
@@ -105,26 +108,30 @@ public class KafkaService {
             });
 
         } catch (ExecutionException | InterruptedException e) {
+            checkErrorMessageForTopicExistence(e, name);
             throw new IllegalStateException("Getting topic info failed", e);
         }
 
         return topicInfo;
     }
 
-    public void deleteTopic(String topic) {
+    public void deleteTopic(String topic) throws TopicDoesNotExistException {
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
             adminClient.deleteTopics(List.of(topic)).all().get();
         } catch (ExecutionException | InterruptedException e) {
+            checkErrorMessageForTopicExistence(e, topic);
             throw new IllegalStateException("Deleting topic failed", e);
         }
     }
 
-    public ReadBatchDTO read(String topic, int partition, String from, String to) {
+    public ReadBatchDTO read(String topic, int partition, String from, String to) throws TopicDoesNotExistException {
         long fromOffset = 0;
         long toOffset = Long.MAX_VALUE;
         TopicPartition topicPartition = new TopicPartition(topic, partition);
 
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
+            checkTopicExistence(topic, adminClient);
+
             if (from == null) { // no value given
                 fromOffset = 0;
             } else if (from.startsWith("ts")) { // timestamp
@@ -135,7 +142,7 @@ public class KafkaService {
                 fromOffset = Long.parseLong(from);
             }
 
-        if (to == null) { // no value given
+            if (to == null) { // no value given
                 toOffset = Long.MAX_VALUE;
             } else if (to.startsWith("ts")) { // timestamp
                 toOffset = getTsOffset(to, topicPartition, adminClient) - 1;
@@ -217,6 +224,20 @@ public class KafkaService {
             consumer.seek(topicPartition, from);
             ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
             return records.records(topicPartition);
+        }
+    }
+
+    private void checkErrorMessageForTopicExistence(Exception e, String topic) throws TopicDoesNotExistException {
+        if(ExceptionUtils.indexOfThrowable(e, UnknownTopicOrPartitionException.class) != -1) {
+            throw new TopicDoesNotExistException(topic);
+        }
+    }
+
+    private void checkTopicExistence(String topic, AdminClient adminClient) throws TopicDoesNotExistException {
+        try {
+            adminClient.describeTopics(List.of(topic)).topicNameValues().get(topic).get();
+        } catch (InterruptedException | ExecutionException e) {
+            checkErrorMessageForTopicExistence(e, topic);
         }
     }
 }

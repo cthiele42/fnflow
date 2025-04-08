@@ -47,29 +47,29 @@ public class Controller {
     }
 
     @GetMapping("/{topic}")
-    public TopicInfoDTO getTopicInfo(@PathVariable String topic) {
+    public TopicInfoDTO getTopicInfo(@PathVariable String topic) throws TopicDoesNotExistException {
         return kafkaService.getTopicInfo(topic);
     }
 
     @DeleteMapping("/{topic}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> delete(@PathVariable String topic) {
+    public ResponseEntity<Void> delete(@PathVariable String topic) throws TopicDoesNotExistException {
         kafkaService.deleteTopic(topic);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{topic}/{partition}")
-    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition) {
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition) throws TopicDoesNotExistException {
         return kafkaService.read(topic, partition, null, null);
     }
 
     @GetMapping("/{topic}/{partition}/{from}")
-    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from) {
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from) throws TopicDoesNotExistException {
         return kafkaService.read(topic, partition, from, null);
     }
 
     @GetMapping("/{topic}/{partition}/{from}/{to}")
-    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from, @PathVariable String to) {
+    public ReadBatchDTO read(@PathVariable String topic, @PathVariable int partition, @PathVariable String from, @PathVariable String to) throws TopicDoesNotExistException {
         return kafkaService.read(topic, partition, from, to);
     }
 }

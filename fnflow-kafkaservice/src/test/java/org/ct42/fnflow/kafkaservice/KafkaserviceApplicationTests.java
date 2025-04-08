@@ -52,6 +52,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers
@@ -187,7 +188,7 @@ class KafkaserviceApplicationTests {
 		 then(delResponse.getStatusCode().isSameCodeAs(HttpStatusCode.valueOf(204))).isTrue();
 
 		 infoResponse = restTemplate.getForEntity("/" + TOPIC_TOBE_DELETED, TopicInfoDTO.class);
-		 then(infoResponse.getStatusCode().is5xxServerError()).isTrue();
+		 then(infoResponse.getStatusCode().is4xxClientError()).isTrue();
 	}
 
 	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
