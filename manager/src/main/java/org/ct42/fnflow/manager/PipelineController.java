@@ -35,7 +35,7 @@ public class PipelineController {
     @PostMapping(value="/{name}")
     public ResponseEntity<Void> createPipeline(@PathVariable String name, @RequestBody PipelineConfigDTO cfg) {
         pipelineService.createOrUpdatePipeline(name, cfg);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(value="/{name}/status")
