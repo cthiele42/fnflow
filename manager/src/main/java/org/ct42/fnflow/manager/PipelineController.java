@@ -39,17 +39,13 @@ public class PipelineController {
     }
 
     @GetMapping(value="/{name}/status")
-    public ResponseEntity<DeploymentStatusDTO> getPipelineStatus(@PathVariable String name) {
-        DeploymentStatusDTO status = pipelineService.getPipelineStatus(name);
-        if (status == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(status);
+    public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) throws DeploymentDoesNotExistException {
+        return pipelineService.getPipelineStatus(name);
     }
 
     @GetMapping(value="/{name}")
-    public ResponseEntity<PipelineConfigDTO> getPipelineConfig(@PathVariable String name) {
-        PipelineConfigDTO config = pipelineService.getPipelineConfig(name);
-        if (config == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(config);
+    public PipelineConfigDTO getPipelineConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
+        return pipelineService.getPipelineConfig(name);
     }
 
     @DeleteMapping(value="/{name}")

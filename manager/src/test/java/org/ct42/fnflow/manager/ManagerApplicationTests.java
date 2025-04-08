@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import static org.awaitility.Awaitility.await;
 
 /**
@@ -167,7 +168,7 @@ class ManagerApplicationTests {
 	}
 
 	@Test
-	void testGetDeployment() {
+	void testGetDeployment() throws DeploymentDoesNotExistException {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
 		dto.setVersion("0.0.9");
@@ -224,7 +225,7 @@ class ManagerApplicationTests {
 
 	@Test
 	void testGetDeploymentThatDoesNotExist() {
-		then(pipelineService.getPipelineConfig("this-does-not-exist")).isNull();
+		thenThrownBy(() -> pipelineService.getPipelineConfig("this-does-not-exist")).isInstanceOf(DeploymentDoesNotExistException.class);
 	}
 
 	private void thenCountOfPodRunningAndWithInstanceLabel(String instanceName, int count) {
