@@ -197,7 +197,7 @@ class KafkaserviceReadTests {
 		JsonNode message = response.getBody();
         then(message).isNotNull();
 
-		JsonPointer p = JsonPointer.compile("/message");
+		JsonPointer p = JsonPointer.compile("/detail");
 		then(message.at(p).asText()).isEqualTo("The topic: not-exist-topic does not exist.");
 	}
 

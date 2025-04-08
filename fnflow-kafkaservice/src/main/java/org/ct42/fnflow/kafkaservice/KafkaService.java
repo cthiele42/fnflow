@@ -20,11 +20,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -64,7 +66,7 @@ public class KafkaService {
         }
     }
 
-    public TopicInfoDTO getTopicInfo(String name) {
+    public TopicInfoDTO getTopicInfo(String name) throws TopicDoesNotExistException {
         kafkaTemplate.setConsumerFactory(defaultKafkaConsumerFactory);
         TopicInfoDTO topicInfo = new TopicInfoDTO();
 
@@ -113,7 +115,7 @@ public class KafkaService {
         return topicInfo;
     }
 
-    public void deleteTopic(String topic) {
+    public void deleteTopic(String topic) throws TopicDoesNotExistException {
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
             adminClient.deleteTopics(List.of(topic)).all().get();
         } catch (ExecutionException | InterruptedException e) {
@@ -122,14 +124,14 @@ public class KafkaService {
         }
     }
 
-    public ReadBatchDTO read(String topic, int partition, String from, String to) {
-        getTopicInfo(topic);
-
+    public ReadBatchDTO read(String topic, int partition, String from, String to) throws TopicDoesNotExistException {
         long fromOffset = 0;
         long toOffset = Long.MAX_VALUE;
         TopicPartition topicPartition = new TopicPartition(topic, partition);
 
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
+            checkTopicExistence(topic, adminClient);
+
             if (from == null) { // no value given
                 fromOffset = 0;
             } else if (from.startsWith("ts")) { // timestamp
@@ -225,9 +227,17 @@ public class KafkaService {
         }
     }
 
-    private void checkErrorMessageForTopicExistence(Exception e, String topic) {
-        if(e.getMessage().contains("UnknownTopicOrPartitionException: This server does not host this topic-partition.")) {
+    private void checkErrorMessageForTopicExistence(Exception e, String topic) throws TopicDoesNotExistException {
+        if(ExceptionUtils.indexOfThrowable(e, UnknownTopicOrPartitionException.class) != -1) {
             throw new TopicDoesNotExistException(topic);
+        }
+    }
+
+    private void checkTopicExistence(String topic, AdminClient adminClient) throws TopicDoesNotExistException {
+        try {
+            adminClient.describeTopics(List.of(topic)).topicNameValues().get(topic).get();
+        } catch (InterruptedException | ExecutionException e) {
+            checkErrorMessageForTopicExistence(e, topic);
         }
     }
 }

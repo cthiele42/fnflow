@@ -16,12 +16,18 @@
 
 package org.ct42.fnflow.kafkaservice;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
+
+import java.net.URI;
 
 /**
  * @author Sajjad Safaeian
@@ -30,16 +36,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class ExceptionHandlerController {
 
     @ExceptionHandler(TopicDoesNotExistException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(TopicDoesNotExistException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+    public ProblemDetail handleBaseException(TopicDoesNotExistException e, WebRequest request) {
+        ProblemDetail problemDetail
+                = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-    }
+        if (request instanceof ServletWebRequest servletWebRequest) {
+            HttpServletRequest httpRequest = servletWebRequest.getRequest();
+            String requestURI = httpRequest.getRequestURI();
+            problemDetail.setInstance(URI.create(requestURI));
+        } else {
+            problemDetail.setInstance(URI.create("unknown-instance"));
+        }
 
-    @Data
-    @AllArgsConstructor
-    public static class ErrorResponse {
-        private String message;
+        return problemDetail;
     }
 
 }

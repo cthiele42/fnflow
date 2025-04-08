@@ -19,7 +19,7 @@ package org.ct42.fnflow.kafkaservice;
 /**
  * @author Sajjad Safaeian
  */
-public class TopicDoesNotExistException extends RuntimeException {
+public class TopicDoesNotExistException extends Exception {
     public TopicDoesNotExistException(String topic) {
         super("The topic: " + topic + " does not exist.");
     }
