@@ -44,7 +44,7 @@ Feature: Validate and match input data
                  "index": "testindex",
                  "template": "testtemplate",
                  "paramsFromInput": {
-                "ids": "/id"
+                    "ids": "/id"
                  },
                  "literalParams": {
                     "field": "id"
