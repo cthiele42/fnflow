@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.4'
+version = '0.0.5-SNAPSHOT'
 
 idea {
     module {
@@ -59,7 +59,7 @@ ext {
 
 dependencies {
     implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
-    implementation 'org.ct42.fnflow:batchdlt:0.0.5'
+    implementation 'org.ct42.fnflow:batchdlt:0.0.6-SNAPSHOT'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.cloud:spring-cloud-function-context'
     implementation 'org.opensearch.client:opensearch-java:2.15.0'

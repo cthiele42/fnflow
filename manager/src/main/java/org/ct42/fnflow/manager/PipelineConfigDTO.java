@@ -16,10 +16,20 @@
 
 package org.ct42.fnflow.manager;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
 
 /**
  * @author Claas Thiele
@@ -33,7 +43,7 @@ public class PipelineConfigDTO {
     private String errorTopic;
     private int errRetentionHours = 336; //default 14 days
     private int outCompactionLagHours = 744; //default 31 days
-    private FunctionCfg[] pipeline;
+    private List<Function> pipeline;
 
     @Data
     public static class FunctionCfg {
@@ -41,4 +51,37 @@ public class PipelineConfigDTO {
         private String function;
         private Map<String, Object> parameters = new HashMap<>();
     }
+
+    @JsonDeserialize(using = FunctionDeserializer.class)
+    public interface Function {}
+
+    @Data
+    @AllArgsConstructor
+    public static class SingleFunction implements Function {
+        private FunctionCfg function;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class MultipleFunctions implements Function {
+        private List<FunctionCfg> functions;
+    }
+
+    public static class FunctionDeserializer extends JsonDeserializer<Function> {
+        @Override
+        public Function deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            if (p.getCurrentToken() == JsonToken.START_OBJECT) {
+                FunctionCfg function = p.readValueAs(FunctionCfg.class);
+                return new SingleFunction(function);
+            } else if (p.getCurrentToken() == JsonToken.START_ARRAY) {
+                List<FunctionCfg> functions =
+                        ctxt.readValue(p, defaultInstance().constructCollectionType(List.class, FunctionCfg.class));
+
+                return new MultipleFunctions(functions);
+            }
+
+            return null;
+        }
+    }
+
 }

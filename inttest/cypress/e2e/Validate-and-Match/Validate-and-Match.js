@@ -139,7 +139,7 @@ after(()=>{
     });
 
     //delete all topics
-    deleteTopics(['input-topic', 'output-topic-wrong', 'output-topic', 'error-topic', 'entity-topic'])
+    deleteTopics(['input-topic', 'output-topic-wrong', 'output-topic', 'error-topic', 'source-topic'])
 })
 
 const deleteTopics = (topics) => {
