@@ -19,7 +19,9 @@ package org.ct42.fnflow.fnflow_json_processors_kafka;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Sajjad Safaeian
+ * @author Claas Thiele
  */
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers
@@ -90,10 +93,9 @@ public class EmitterWithNoEmitterCombinationTest {
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
     private KafkaTemplate<String, String> template;
-    private final BlockingQueue<ConsumerRecord<byte[], String>> inRecords = new LinkedBlockingQueue<>();
 
     @BeforeEach
-    void setup() throws Exception {
+    void setup() {
         setupProducer();
         setupConsumer(outputRecords, OUTPUT_TOPIC);
         setupConsumer(errorRecords, ERROR_TOPIC);
@@ -102,6 +104,28 @@ public class EmitterWithNoEmitterCombinationTest {
     }
 
     @Test
+    @DisplayName("""
+            GIVEN following pipeline configuration:
+                "cfgfns.hasValueValidator.idExist.elementPath=/id",
+                "cfgfns.ChangeEventEmit.validateEmitter.eventContent=",
+                "cfgfns.ChangeEventEmit.validateEmitter.topic=validate-topic",
+                "cfgfns.trimNormalizer.idTrim.elementPath=/id",
+                "cfgfns.trimNormalizer.idTrim.mode=BOTH",
+                "cfgfns.trimNormalizer.nameTrim.elementPath=/name",
+                "cfgfns.trimNormalizer.nameTrim.mode=BOTH",
+                "cfgfns.ChangeEventEmit.trimEmitter.eventContent=",
+                "cfgfns.ChangeEventEmit.trimEmitter.topic=trim-topic",
+                "org.ct42.fnflow.function.definition=idExist+validateEmitter|idTrim+trimEmitter|nameTrim"
+            AND following input events
+                1={"id":[], "name":"name0"}
+                2={"id":["  ID1  "], "name":"  name1  "}
+                3={"id":["ID2"], "name":"name2"}
+            WHEN the events are metted to the input of the pipeline
+            THEN event 1 is landing in the error topic
+            AND  event 1 and 3 are landing int the output topic
+            AND  event 1,2,3 are landing in the validate topic
+            AND  event 1, two times event 2 and two time event 3 are landing in the trim topic
+            """)
     void emitterWithNoEmitterCombinationTest() throws Exception {
         template.sendDefault("""
                 {"id":[], "name":"name0"}""");
@@ -110,39 +134,42 @@ public class EmitterWithNoEmitterCombinationTest {
         template.sendDefault("""
                 {"id":["ID2"], "name":"name2"}""");
 
+        List<ConsumerRecord<byte[], String>> outputEvents = getConsumerRecords(outputRecords, 2000);
+        List<ConsumerRecord<byte[], String>> trimEvents = getConsumerRecords(trimRecords, 200);
+        List<ConsumerRecord<byte[], String>> validateEvents = getConsumerRecords(validateRecords, 200);
+        List<ConsumerRecord<byte[], String>> errorEvents = getConsumerRecords(errorRecords, 200);
+
+        then(errorEvents).extracting("value").containsExactly(
+                "{\"id\":[], \"name\":\"name0\"}"); //error topic will receive unchanged input, therefore there is the space before "name":
+
+        then(outputEvents).extracting("value").containsExactly(
+                "{\"id\":[\"ID1\"],\"name\":\"name1\"}",
+                "{\"id\":[\"ID2\"],\"name\":\"name2\"}");
+
+        then(validateEvents).extracting("value").containsExactly(
+                "{\"id\":[],\"name\":\"name0\"}",
+                "{\"id\":[\"ID1\"],\"name\":\"name1\"}",
+                "{\"id\":[\"ID2\"],\"name\":\"name2\"}");
+
+        then(trimEvents).extracting("value").containsExactlyInAnyOrder(
+                "{\"id\":[],\"name\":\"name0\"}",
+                "{\"id\":[\"  ID1  \"],\"name\":\"name1\"}",
+                "{\"id\":[\"ID2\"],\"name\":\"name2\"}",
+                "{\"id\":[\"  ID1  \"],\"name\":\"name1\"}",
+                "{\"id\":[\"ID2\"],\"name\":\"name2\"}");
+    }
+
+    private @NotNull List<ConsumerRecord<byte[], String>> getConsumerRecords(BlockingQueue<ConsumerRecord<byte[], String>> outputRecords, int timeout) throws InterruptedException {
         List<ConsumerRecord<byte[], String>> outputEvents = new ArrayList<>();
         while (true) {
             ConsumerRecord<byte[], String> received =
-                    outputRecords.poll(2000, TimeUnit.MILLISECONDS);
+                    outputRecords.poll(timeout, TimeUnit.MILLISECONDS);
             if (received == null) {
                 break;
             }
             outputEvents.add(received);
         }
-
-        List<ConsumerRecord<byte[], String>> trimEvents = new ArrayList<>();
-        while (true) {
-            ConsumerRecord<byte[], String> received =
-                    trimRecords.poll(200, TimeUnit.MILLISECONDS);
-            if (received == null) {
-                break;
-            }
-            trimEvents.add(received);
-        }
-
-        List<ConsumerRecord<byte[], String>> validateEvents = new ArrayList<>();
-        while (true) {
-            ConsumerRecord<byte[], String> received =
-                    validateRecords.poll(200, TimeUnit.MILLISECONDS);
-            if (received == null) {
-                break;
-            }
-            validateEvents.add(received);
-        }
-
-        then(outputEvents).hasSize(2);
-        then(trimEvents).hasSize(5);
-        then(validateEvents).hasSize(3);
+        return outputEvents;
     }
 
     private void setupProducer() {
