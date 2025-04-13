@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.11-SNAPSHOT'
+version = '0.0.11'
 
 java {
 	toolchain {
@@ -47,7 +47,7 @@ dependencies {
 		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
 	}
 	implementation 'org.ct42.fnflow:fnlib:0.0.7'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.5-SNAPSHOT'
+	implementation 'org.ct42.fnflow:batchfnlib:0.0.5'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
