@@ -16,15 +16,21 @@
 
 package org.ct42.fnflow.kafkaservice;
 
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.util.MultiValueMap;
@@ -36,11 +42,13 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers
@@ -178,5 +186,27 @@ class KafkaserviceReadTests {
 		long lastOffset = messages[209].getOffset();
 		then(firstOffset).isEqualTo(300);
 		then(lastOffset).isEqualTo(509);
+	}
+
+	@ParameterizedTest
+	@MethodSource("prepareTopicNotExistSamples")
+	void topicIsNotExistTest(String url, HttpMethod httpMethod) {
+		ResponseEntity<JsonNode> response = restTemplate.exchange(url, httpMethod, null, JsonNode.class);
+		then(response.getStatusCode().is4xxClientError()).isTrue();
+
+		JsonNode message = response.getBody();
+        then(message).isNotNull();
+
+		JsonPointer p = JsonPointer.compile("/detail");
+		then(message.at(p).asText()).isEqualTo("The topic: not-exist-topic does not exist.");
+	}
+
+	private static Stream<Arguments> prepareTopicNotExistSamples() {
+		return Stream.of(
+				Arguments.of("/not-exist-topic", HttpMethod.GET),
+				Arguments.of("/not-exist-topic/0", HttpMethod.GET),
+				Arguments.of("/not-exist-topic/0/0", HttpMethod.GET),
+				Arguments.of("/not-exist-topic", HttpMethod.DELETE)
+		);
 	}
 }

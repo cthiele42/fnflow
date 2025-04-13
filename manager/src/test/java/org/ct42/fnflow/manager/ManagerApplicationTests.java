@@ -79,10 +79,20 @@ class ManagerApplicationTests {
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
 
-		PipelineConfigDTO.FunctionCfg valiCfg = new PipelineConfigDTO.FunctionCfg();
-		valiCfg.setFunction("hasValueValidator");
-		valiCfg.setName("idExist");
-		valiCfg.setParameters(Map.of("elementPath", "/id"));
+		PipelineConfigDTO.FunctionCfg validCfg = new PipelineConfigDTO.FunctionCfg();
+		validCfg.setFunction("hasValueValidator");
+		validCfg.setName("idExist");
+		validCfg.setParameters(Map.of("elementPath", "/id"));
+
+		PipelineConfigDTO.FunctionCfg emitCfg = new PipelineConfigDTO.FunctionCfg();
+		emitCfg.setFunction("ChangeEventEmit");
+		emitCfg.setName("validateEmitter");
+		emitCfg.setParameters(Map.of(
+				"eventContent", "/",
+				"topic", "validate-topic"
+		));
+		PipelineConfigDTO.MultipleFunctions functions =
+				new PipelineConfigDTO.MultipleFunctions(List.of(validCfg, emitCfg));
 
 		PipelineConfigDTO.FunctionCfg matchCfg = new PipelineConfigDTO.FunctionCfg();
 		matchCfg.setFunction("Match");
@@ -92,6 +102,7 @@ class ManagerApplicationTests {
 				"template", "testtemplate",
 				"paramsFromInput", Map.of("ids", "/id"),
 				"literalParams", Map.of("field", "id")));
+		PipelineConfigDTO.SingleFunction match = new PipelineConfigDTO.SingleFunction(matchCfg);
 
 		PipelineConfigDTO.FunctionCfg mergeCreate = new PipelineConfigDTO.FunctionCfg();
 		mergeCreate.setFunction("MergeCreate");
@@ -102,8 +113,9 @@ class ManagerApplicationTests {
 					Map.of("from", "/name", "to", "/product/fullName")
 				)
 		));
+		PipelineConfigDTO.SingleFunction merge = new PipelineConfigDTO.SingleFunction(mergeCreate);
 
-		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg, mergeCreate});
+		dto.setPipeline(List.of(functions, match, merge));
 
 		//WHEN
 		pipelineService.createOrUpdatePipeline("pipeline-name", dto);
@@ -137,10 +149,11 @@ class ManagerApplicationTests {
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
 
-		PipelineConfigDTO.FunctionCfg valiCfg = new PipelineConfigDTO.FunctionCfg();
-		valiCfg.setFunction("hasValueValidator");
-		valiCfg.setName("idExist");
-		valiCfg.setParameters(Map.of("elementPath", "/id"));
+		PipelineConfigDTO.FunctionCfg validCfg = new PipelineConfigDTO.FunctionCfg();
+		validCfg.setFunction("hasValueValidator");
+		validCfg.setName("idExist");
+		validCfg.setParameters(Map.of("elementPath", "/id"));
+		PipelineConfigDTO.SingleFunction valid = new PipelineConfigDTO.SingleFunction(validCfg);
 
 		PipelineConfigDTO.FunctionCfg matchCfg = new PipelineConfigDTO.FunctionCfg();
 		matchCfg.setFunction("Match");
@@ -150,8 +163,9 @@ class ManagerApplicationTests {
 				"template", "testtemplate",
 				"paramsFromInput", Map.of("ids", "/id"),
 				"literalParams", Map.of("field", "id")));
+		PipelineConfigDTO.SingleFunction match = new PipelineConfigDTO.SingleFunction(matchCfg);
 
-		dto.setPipeline(new PipelineConfigDTO.FunctionCfg[]{valiCfg, matchCfg});
+		dto.setPipeline(List.of(valid, match));
 
 		pipelineService.createOrUpdatePipeline("pipeline-tobedeleted", dto);
 
