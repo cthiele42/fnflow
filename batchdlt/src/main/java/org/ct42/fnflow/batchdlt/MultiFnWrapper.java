@@ -31,6 +31,7 @@ import java.util.function.Function;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<Throwable>>, Flux<Message<JsonNode>>> {
     private final List<Function<JsonNode, JsonNode>> targets;
@@ -43,23 +44,31 @@ public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
     @SuppressWarnings("unchecked")
     public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
         return messageFlux.flatMapSequential(m ->
-            Flux.just((Message<JsonNode>[])targets.stream().map(f -> {
-                    Map<String, Object> headersToBeAdded = new HashMap<>(0);
-                    if(f instanceof HeaderAware headerAware) {
+            Flux.fromIterable(targets).concatMap(f -> {
+                try {
+                    Map<String, Object> headersToBeAdded = new HashMap<>();
+                    if (f instanceof HeaderAware headerAware) {
                         headersToBeAdded = headerAware.headersToBeAdded(m.getPayload());
                     }
-                JsonNode result = f.apply(m.getPayload().deepCopy());
-                if(result == null) return null; // if the function is resulting to null, message is discarded
-                MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
+                    JsonNode result = f.apply(m.getPayload().deepCopy());
+                    if (result == null) {
+                        return Flux.empty();
+                    }
+                    MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
                             .copyHeaders(m.getHeaders());
                     headersToBeAdded.forEach(builder::setHeader);
-                    return builder.build();
+                    return Flux.just(builder.build());
+                } catch (Throwable t) {
+                    error.tryEmitNext(
+                        MessageBuilder
+                            .withPayload(t)
+                            .copyHeaders(m.getHeaders())
+                            .build()
+                    );
+
+                    return Flux.empty();
                 }
-            ).filter(Objects::nonNull)
-                    .toArray(Message[]::new))).onErrorContinue((throwable, m) -> error.tryEmitNext(
-                MessageBuilder
-                    .withPayload(throwable)
-                    .copyHeaders(((Message<JsonNode>)m).getHeaders())
-                    .build()));
+            })
+        );
     }
 }

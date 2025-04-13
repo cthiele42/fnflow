@@ -54,6 +54,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @SpringBootTest
 @EmbeddedKafka(bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers", partitions = 1)
@@ -107,12 +108,13 @@ public class MultiplyTest {
             }
             errors.add(received);
         }
-        then(errors).isEmpty();
-        then(results).hasSize(18);
+        then(errors).hasSize(1);
+        then(errors.getFirst().value()).isEqualTo("{\"text\":\"T0\"}");
+        then(results).hasSize(17);
         then(results.getFirst().value()).isEqualTo("{\"text\":\"T0\",\"out\":\"A\"}");
-        then(results.get(1).value()).isEqualTo("{\"text\":\"T0\",\"out\":\"B\"}");
-        then(results.get(2).value()).isEqualTo("{\"text\":\"T1\",\"out\":\"B\"}");
-        then(results.get(15).value()).isEqualTo("{\"text\":\"T8\",\"out\":\"A\"}");
+        then(results.get(1).value()).isEqualTo("{\"text\":\"T1\",\"out\":\"B\"}");
+        then(results.get(2).value()).isEqualTo("{\"text\":\"T2\",\"out\":\"A\"}");
+        then(results.get(14).value()).isEqualTo("{\"text\":\"T8\",\"out\":\"A\"}");
     }
 
     @SpringBootApplication
@@ -135,6 +137,10 @@ public class MultiplyTest {
         @Override
         public JsonNode apply(JsonNode n) {
             if(n.toString().contains("T8")) return null;
+
+            if(n.toString().contains("T0"))
+                throw new RuntimeException("Sample Exception");
+
             ((ObjectNode)n).put("out", "B");
              return n;
         }
