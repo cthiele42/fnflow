@@ -46,28 +46,27 @@ public class PipelineService {
 
     public void createOrUpdatePipeline(String name, PipelineConfigDTO cfg) {
         List<String> args = new ArrayList<>();
-        Arrays.stream(cfg.getPipeline()).forEach(f -> {
-            String prefix = "--cfgfns." + f.getFunction() + "." + f.getName();
-            f.getParameters().forEach((k, v) -> {
-                if(v instanceof Map) { //for now, we support one nested map only
-                    ((Map<?, ?>) v).forEach((k2, v2) -> args.add(prefix + "." + k + "." + k2 + "=" + v2));
-                } else if(v instanceof List) {
-                    for(int i=0; i<((List<?>) v).size(); i++) {
-                        String elemPrefix = prefix + "." + k + "[" + i + "]";
-                        Object elem = ((List<?>) v).get(i);
-                        if(elem instanceof Map) { // we support Map here only (MapCreate mappings config)
-                            ((Map<?, ?>) elem).forEach((k2, v2) -> args.add(elemPrefix + "." + k2 + "=" + v2));
-                        } else {
-                            args.add(elemPrefix + "=" + elem);
-                        }
-                    }
-                } else {
-                    args.add(prefix + "." + k + "=" + v);
-                }
-            });
+        cfg.getPipeline().forEach(f -> {
+            if(f instanceof PipelineConfigDTO.SingleFunction singleFunction) {
+                prepareFunctionArgs(singleFunction.getFunction(), args);
+            } else if(f instanceof PipelineConfigDTO.MultipleFunctions multipleFunctions) {
+                multipleFunctions.getFunctions().forEach(functionCfg -> prepareFunctionArgs(functionCfg, args));
+            }
         });
-        String definition = Arrays.stream(cfg.getPipeline())
-                .map(PipelineConfigDTO.FunctionCfg::getName).collect(Collectors.joining("|"));
+
+        String definition =
+                cfg.getPipeline().stream()
+                .map(function -> {
+                    return switch (function) {
+                        case PipelineConfigDTO.SingleFunction singleFunction ->
+                                singleFunction.getFunction().getName();
+                        case PipelineConfigDTO.MultipleFunctions multipleFunctions ->
+                                multipleFunctions.getFunctions().stream()
+                                        .map(PipelineConfigDTO.FunctionCfg::getName)
+                                        .collect(Collectors.joining("+"));
+                        default -> throw new IllegalStateException("Unexpected value: " + function);
+                    };
+                }).collect(Collectors.joining("|"));
         args.add("--org.ct42.fnflow.function.definition=" + definition);
         args.add("--spring.cloud.stream.kafka.default.producer.compression-type=lz4");
         args.add("--spring.cloud.stream.kafka.default.producer.configuration.batch.size=131072");
@@ -79,7 +78,6 @@ public class PipelineService {
         args.add("--spring.cloud.stream.kafka.binder.autoAlterTopics=true");
         args.add("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms="
                 + convertHoursToMilliseconds(cfg.getErrRetentionHours()));
-
 
 
         //TODO construct args for kafka batch and compression settings and group and destinations
@@ -174,5 +172,26 @@ public class PipelineService {
 
     private Long convertHoursToMilliseconds(int hours) {
         return hours * 60L * 60L * 1000L;
+    }
+
+    private void prepareFunctionArgs(PipelineConfigDTO.FunctionCfg functionCfg, List<String> args) {
+        String prefix = "--cfgfns." + functionCfg.getFunction() + "." + functionCfg.getName();
+        functionCfg.getParameters().forEach((k, v) -> {
+            if(v instanceof Map) { //for now, we support one nested map only
+                ((Map<?, ?>) v).forEach((k2, v2) -> args.add(prefix + "." + k + "." + k2 + "=" + v2));
+            } else if(v instanceof List) {
+                for(int i=0; i<((List<?>) v).size(); i++) {
+                    String elemPrefix = prefix + "." + k + "[" + i + "]";
+                    Object elem = ((List<?>) v).get(i);
+                    if(elem instanceof Map) { // we support Map here only (MapCreate mappings config)
+                        ((Map<?, ?>) elem).forEach((k2, v2) -> args.add(elemPrefix + "." + k2 + "=" + v2));
+                    } else {
+                        args.add(elemPrefix + "=" + elem);
+                    }
+                }
+            } else {
+                args.add(prefix + "." + k + "=" + v);
+            }
+        });
     }
 }
