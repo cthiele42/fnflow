@@ -222,66 +222,82 @@ public class PipelineService {
 
         String fnDefStr = fnDef.get();
         if(fnDefStr != null) {
-            String[] fnNames = fnDefStr.split("\\|");
-            PipelineConfigDTO.FunctionCfg[] fnCfgs = new PipelineConfigDTO.FunctionCfg[fnNames.length];
-            for(int i = 0; i < fnNames.length; i++) {
-                fnCfgs[i] = new PipelineConfigDTO.FunctionCfg();
-                fnCfgs[i].setName(fnNames[i]);
-                int finalI = i;
-                pipelineCfg.stream().filter(n -> n.matches("^[^.]+\\." + fnNames[finalI] + "\\..*$")).forEach(c -> {
-                    String[] tokens = c.split("\\.", 3);
-                    fnCfgs[finalI].setFunction(tokens[0]);
+            String[] fnPipes = fnDefStr.split("\\|");
+            List<PipelineConfigDTO.Function> functions = new ArrayList<>();
+            for (String fnPipe : fnPipes) {
+                String[] fnNames = fnPipe.split("\\+");
+                List<PipelineConfigDTO.FunctionCfg> functionCfgs = new ArrayList<>();
+                for (int j = 0; j < fnNames.length; j++) {
+                    PipelineConfigDTO.FunctionCfg functionCfg = new PipelineConfigDTO.FunctionCfg();
+                    functionCfg.setName(fnNames[j]);
+                    int finalJ = j;
+                    pipelineCfg.stream().filter(n -> n.matches("^[^.]+\\." + fnNames[finalJ] + "\\..*$")).forEach(c -> {
+                        String[] tokens = c.split("\\.", 3);
+                        functionCfg.setFunction(tokens[0]);
 
-                    String param = tokens[2];
-                    String paramName = param.substring(0, param.lastIndexOf("="));
-                    String paramValue = param.substring(param.lastIndexOf("=") + 1);
-                    if(!paramName.contains(".") && !paramName.endsWith("]")) { // simple String value
-                        fnCfgs[finalI].getParameters().put(paramName, paramValue);
-                    } else if(!paramName.contains(".") && paramName.endsWith("]")) { // array of String
-                        String arrayName = paramName.substring(0, paramName.lastIndexOf("["));
-                        int index = Integer.parseInt(paramName.substring(0, paramName.length() - 1).substring(paramName.lastIndexOf("[") + 1));
-                        fnCfgs[finalI].getParameters().putIfAbsent(arrayName, new ArrayList<String>());
-                        Object maybeList = fnCfgs[finalI].getParameters().get(arrayName);
-                        if(maybeList instanceof List arrayList) {
-                            if((arrayList.size() - 1) < index ) {
-                                for(int a = 0; a < (index + 1 - arrayList.size()); a++) {
-                                    arrayList.add(null);
+                        String param = tokens[2];
+                        String paramName = param.substring(0, param.lastIndexOf("="));
+                        String paramValue = param.substring(param.lastIndexOf("=") + 1);
+                        if (!paramName.contains(".") && !paramName.endsWith("]")) { // simple String value
+                            functionCfg.getParameters().put(paramName, paramValue);
+                        } else if (!paramName.contains(".") && paramName.endsWith("]")) { // array of String
+                            String arrayName = paramName.substring(0, paramName.lastIndexOf("["));
+                            int index = Integer.parseInt(paramName.substring(0, paramName.length() - 1).substring(paramName.lastIndexOf("[") + 1));
+                            functionCfg.getParameters().putIfAbsent(arrayName, new ArrayList<String>());
+                            Object maybeList = functionCfg.getParameters().get(arrayName);
+                            if (maybeList instanceof List arrayList) {
+                                if ((arrayList.size() - 1) < index) {
+                                    for (int a = 0; a < (index + 1 - arrayList.size()); a++) {
+                                        arrayList.add(null);
+                                    }
                                 }
-                            }
-                            arrayList.set(index, paramValue);
-                        } else throw new IllegalStateException("Mixing list with single value for function " + fnCfgs[finalI].getName() + " and parameter " + paramName + " in function " + arrayName);
-                    } else if(paramName.contains("].")) {
-                        String arrayName = paramName.substring(0, paramName.lastIndexOf("["));
-                        int index = Integer.parseInt(paramName.substring(0, paramName.lastIndexOf("].")).substring(paramName.lastIndexOf("[") + 1));
-                        fnCfgs[finalI].getParameters().putIfAbsent(arrayName, new ArrayList<String>());
-                        Object maybeList = fnCfgs[finalI].getParameters().get(arrayName);
-                        if(maybeList instanceof List arrayList) {
-                            if((arrayList.size() - 1) < index ) {
-                                for(int a = 0; a < (index + 1 - arrayList.size()); a++) {
-                                    arrayList.add(null);
+                                arrayList.set(index, paramValue);
+                            } else
+                                throw new IllegalStateException("Mixing list with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + arrayName);
+                        } else if (paramName.contains("].")) {
+                            String arrayName = paramName.substring(0, paramName.lastIndexOf("["));
+                            int index = Integer.parseInt(paramName.substring(0, paramName.lastIndexOf("].")).substring(paramName.lastIndexOf("[") + 1));
+                            functionCfg.getParameters().putIfAbsent(arrayName, new ArrayList<String>());
+                            Object maybeList = functionCfg.getParameters().get(arrayName);
+                            if (maybeList instanceof List arrayList) {
+                                if ((arrayList.size() - 1) < index) {
+                                    for (int a = 0; a < (index + 1 - arrayList.size()); a++) {
+                                        arrayList.add(null);
+                                    }
                                 }
-                            }
-                            if(arrayList.get(index) == null) {
-                                arrayList.set(index, new HashMap<String, String>());
-                            }
-                            Object maybeMap = arrayList.get(index);
-                            if(maybeMap instanceof Map map) {
-                                String keyName = paramName.substring(paramName.lastIndexOf("].") + 2);
+                                if (arrayList.get(index) == null) {
+                                    arrayList.set(index, new HashMap<String, String>());
+                                }
+                                Object maybeMap = arrayList.get(index);
+                                if (maybeMap instanceof Map map) {
+                                    String keyName = paramName.substring(paramName.lastIndexOf("].") + 2);
+                                    map.put(keyName, paramValue);
+                                } else
+                                    throw new IllegalStateException("Mixing map with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + arrayName);
+                            } else
+                                throw new IllegalStateException("Mixing list with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + arrayName);
+                        } else if (paramName.contains(".")) { // Map, for now we support one nested Map only
+                            String mapName = paramName.substring(0, paramName.lastIndexOf("."));
+                            String keyName = paramName.substring(paramName.lastIndexOf(".") + 1);
+                            functionCfg.getParameters().putIfAbsent(mapName, new HashMap<String, String>());
+                            Object maybeMap = functionCfg.getParameters().get(mapName);
+                            if (maybeMap instanceof Map map) {
                                 map.put(keyName, paramValue);
-                            } else throw new IllegalStateException("Mixing map with single value for function " + fnCfgs[finalI].getName() + " and parameter " + paramName + " in function " + arrayName);
-                        } else throw new IllegalStateException("Mixing list with single value for function " + fnCfgs[finalI].getName() + " and parameter " + paramName + " in function " + arrayName);
-                    } else if(paramName.contains(".")) { // Map, for now we support one nested Map only
-                        String mapName = paramName.substring(0, paramName.lastIndexOf("."));
-                        String keyName = paramName.substring(paramName.lastIndexOf(".") + 1);
-                        fnCfgs[finalI].getParameters().putIfAbsent(mapName, new HashMap<String, String>());
-                        Object maybeMap = fnCfgs[finalI].getParameters().get(mapName);
-                        if(maybeMap instanceof Map map) {
-                            map.put(keyName, paramValue);
-                        } else throw new IllegalStateException("Mixing map with single value for function " + fnCfgs[finalI].getName() + " and parameter " + paramName + " in function " + mapName);
-                    }
-                });
+                            } else
+                                throw new IllegalStateException("Mixing map with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + mapName);
+                        }
+                    });
+
+                    functionCfgs.add(functionCfg);
+                }
+
+                if (functionCfgs.size() == 1) {
+                    functions.add(new PipelineConfigDTO.SingleFunction(functionCfgs.getFirst()));
+                } else {
+                    functions.add(new PipelineConfigDTO.MultipleFunctions(functionCfgs));
+                }
             }
-            config.setPipeline(fnCfgs);
+            config.setPipeline(functions);
         }
 
         return config;

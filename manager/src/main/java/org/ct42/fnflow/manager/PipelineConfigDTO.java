@@ -16,11 +16,15 @@
 
 package org.ct42.fnflow.manager;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -53,6 +57,7 @@ public class PipelineConfigDTO {
     }
 
     @JsonDeserialize(using = FunctionDeserializer.class)
+    @JsonSerialize(using = FunctionSerializer.class)
     public interface Function {}
 
     @Data
@@ -81,6 +86,20 @@ public class PipelineConfigDTO {
             }
 
             return null;
+        }
+    }
+
+    public static class FunctionSerializer extends JsonSerializer<Function> {
+        @Override
+        public void serialize(Function value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            switch (value) {
+                case SingleFunction singleFunction ->
+                        gen.writeObject(singleFunction.getFunction());
+                case MultipleFunctions multipleFunctions ->
+                        gen.writeObject(multipleFunctions.getFunctions());
+                default ->
+                        gen.writeNull();
+            }
         }
     }
 
