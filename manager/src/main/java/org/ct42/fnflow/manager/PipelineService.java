@@ -27,6 +27,7 @@ import org.ct42.fnflow.manager.config.ManagerProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -123,9 +124,16 @@ public class PipelineService {
                 .forceConflicts().serverSideApply();
     }
 
-    public DeploymentStatusDTO getPipelineStatus(String name) {
+    /**
+     *
+     * @param name of the pipeline the status should be taken for
+     * @return the status or <ode>null</ode> if a deployment for the given name does not exist
+     */
+    public DeploymentStatusDTO getPipelineStatus(String name) throws DeploymentDoesNotExistException {
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(PROCESSOR_PREFIX + name).get();
+        if(deployment == null) throw new DeploymentDoesNotExistException(name);
+
         DeploymentStatusDTO status = new DeploymentStatusDTO();
         DeploymentStatus deploymentStatus = deployment.getStatus();
         Integer specReplicas = deployment.getSpec().getReplicas();
@@ -168,6 +176,131 @@ public class PipelineService {
     public void deletePipeline(String name) {
         k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(PROCESSOR_PREFIX + name).delete();
+    }
+
+    /**
+     * Translates the kubernetes deployment object into a fnflow pipeline configuration.
+     * Several missconfiguration situations are not handled well:
+     * - orphaned functions (a function configured but not part of the function definition; such functions well be left out
+     * - deployments with more than one container
+     * - property array notation without []
+     *
+     * @param name of the pipeline the configuration should be taken for
+     * @return the config of the pipeline with given name or <code>null</code> if the deployment with given name does not exist
+     */
+    public PipelineConfigDTO getPipelineConfig(String name) throws DeploymentDoesNotExistException {
+        Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
+                .withName(PROCESSOR_PREFIX + name).get();
+        if(deployment == null) throw new DeploymentDoesNotExistException(name);
+
+        Container container = deployment.getSpec().getTemplate().getSpec().getContainers().getFirst();
+
+        PipelineConfigDTO config = new PipelineConfigDTO();
+
+        String image = container.getImage();
+        config.setVersion(image.substring(image.lastIndexOf(":") + 1));
+
+        AtomicReference<String> fnDef = new AtomicReference<>();
+        List<String> pipelineCfg = new ArrayList<>();
+
+        container.getArgs().forEach(arg -> {
+           if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=")) {
+               config.setSourceTopic(arg.substring(arg.lastIndexOf("=") + 1));
+           } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=")) {
+                config.setEntityTopic(arg.substring(arg.lastIndexOf("=") + 1));
+           } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=")) {
+               config.setErrorTopic(arg.substring(arg.lastIndexOf("=") + 1));
+           } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms=")) {
+               long milliseconds = Long.parseLong(arg.substring(arg.lastIndexOf("=") + 1));
+               config.setErrRetentionHours((int)(milliseconds / 3600000));
+           } else if(arg.startsWith("--org.ct42.fnflow.function.definition=")) {
+               fnDef.set(arg.substring(arg.lastIndexOf("=") + 1));
+           } else if(arg.startsWith("--cfgfns.")) {
+               pipelineCfg.add(arg.substring(9));
+           }
+        });
+
+        String fnDefStr = fnDef.get();
+        if(fnDefStr != null) {
+            String[] fnPipes = fnDefStr.split("\\|");
+            List<PipelineConfigDTO.Function> functions = new ArrayList<>();
+            for (String fnPipe : fnPipes) {
+                String[] fnNames = fnPipe.split("\\+");
+                List<PipelineConfigDTO.FunctionCfg> functionCfgs = new ArrayList<>();
+                for (int j = 0; j < fnNames.length; j++) {
+                    PipelineConfigDTO.FunctionCfg functionCfg = new PipelineConfigDTO.FunctionCfg();
+                    functionCfg.setName(fnNames[j]);
+                    int finalJ = j;
+                    pipelineCfg.stream().filter(n -> n.matches("^[^.]+\\." + fnNames[finalJ] + "\\..*$")).forEach(c -> {
+                        String[] tokens = c.split("\\.", 3);
+                        functionCfg.setFunction(tokens[0]);
+
+                        String param = tokens[2];
+                        String paramName = param.substring(0, param.lastIndexOf("="));
+                        String paramValue = param.substring(param.lastIndexOf("=") + 1);
+                        if (!paramName.contains(".") && !paramName.endsWith("]")) { // simple String value
+                            functionCfg.getParameters().put(paramName, paramValue);
+                        } else if (!paramName.contains(".") && paramName.endsWith("]")) { // array of String
+                            String arrayName = paramName.substring(0, paramName.lastIndexOf("["));
+                            int index = Integer.parseInt(paramName.substring(0, paramName.length() - 1).substring(paramName.lastIndexOf("[") + 1));
+                            functionCfg.getParameters().putIfAbsent(arrayName, new ArrayList<String>());
+                            Object maybeList = functionCfg.getParameters().get(arrayName);
+                            if (maybeList instanceof List arrayList) {
+                                if ((arrayList.size() - 1) < index) {
+                                    for (int a = 0; a < (index + 1 - arrayList.size()); a++) {
+                                        arrayList.add(null);
+                                    }
+                                }
+                                arrayList.set(index, paramValue);
+                            } else
+                                throw new IllegalStateException("Mixing list with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + arrayName);
+                        } else if (paramName.contains("].")) {
+                            String arrayName = paramName.substring(0, paramName.lastIndexOf("["));
+                            int index = Integer.parseInt(paramName.substring(0, paramName.lastIndexOf("].")).substring(paramName.lastIndexOf("[") + 1));
+                            functionCfg.getParameters().putIfAbsent(arrayName, new ArrayList<String>());
+                            Object maybeList = functionCfg.getParameters().get(arrayName);
+                            if (maybeList instanceof List arrayList) {
+                                if ((arrayList.size() - 1) < index) {
+                                    for (int a = 0; a < (index + 1 - arrayList.size()); a++) {
+                                        arrayList.add(null);
+                                    }
+                                }
+                                if (arrayList.get(index) == null) {
+                                    arrayList.set(index, new HashMap<String, String>());
+                                }
+                                Object maybeMap = arrayList.get(index);
+                                if (maybeMap instanceof Map map) {
+                                    String keyName = paramName.substring(paramName.lastIndexOf("].") + 2);
+                                    map.put(keyName, paramValue);
+                                } else
+                                    throw new IllegalStateException("Mixing map with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + arrayName);
+                            } else
+                                throw new IllegalStateException("Mixing list with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + arrayName);
+                        } else if (paramName.contains(".")) { // Map, for now we support one nested Map only
+                            String mapName = paramName.substring(0, paramName.lastIndexOf("."));
+                            String keyName = paramName.substring(paramName.lastIndexOf(".") + 1);
+                            functionCfg.getParameters().putIfAbsent(mapName, new HashMap<String, String>());
+                            Object maybeMap = functionCfg.getParameters().get(mapName);
+                            if (maybeMap instanceof Map map) {
+                                map.put(keyName, paramValue);
+                            } else
+                                throw new IllegalStateException("Mixing map with single value for function " + functionCfg.getName() + " and parameter " + paramName + " in function " + mapName);
+                        }
+                    });
+
+                    functionCfgs.add(functionCfg);
+                }
+
+                if (functionCfgs.size() == 1) {
+                    functions.add(new PipelineConfigDTO.SingleFunction(functionCfgs.getFirst()));
+                } else {
+                    functions.add(new PipelineConfigDTO.MultipleFunctions(functionCfgs));
+                }
+            }
+            config.setPipeline(functions);
+        }
+
+        return config;
     }
 
     private Long convertHoursToMilliseconds(int hours) {

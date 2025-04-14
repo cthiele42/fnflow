@@ -39,8 +39,13 @@ public class PipelineController {
     }
 
     @GetMapping(value="/{name}/status")
-    public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) {
+    public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) throws DeploymentDoesNotExistException {
         return pipelineService.getPipelineStatus(name);
+    }
+
+    @GetMapping(value="/{name}")
+    public PipelineConfigDTO getPipelineConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
+        return pipelineService.getPipelineConfig(name);
     }
 
     @DeleteMapping(value="/{name}")

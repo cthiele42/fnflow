@@ -7,6 +7,7 @@
         <script src="blockdefs.js"></script>
         <script src="toolbox.js"></script>
         <script src="generator.js"></script>
+        <script src="loader.js"></script>
 
         <script>
             class FixedEdgesMetricsManager extends Blockly.MetricsManager {
@@ -149,14 +150,67 @@
                     });
                 }
                 document.getElementById('deploy').addEventListener('click', deploy, false);
+
+
+                function load() {
+                    const name = document.getElementById('procName').value;
+                    loadFromDeploymentToWorkspace(name, workspace)
+                }
+                document.getElementById('load').addEventListener('click', load, false);
+
+                function deletePipeline() {
+                    const name = document.getElementById('procName').value;
+                    fetch('/pipelines/' + name, {method: "DELETE"}).then(res => {
+                        if (!res.ok) {
+                            if(res.status === 404) alert("Pipeline with name " + name + " does not exist")
+                            else alert("Something unexpected happened")
+                        }
+                    }).catch(error => {
+                        console.log(error)
+                    });
+                }
+                document.getElementById('delete').addEventListener('click', deletePipeline, false);
+
+                setInterval(function setStatus() {
+                    const name = document.getElementById('procName').value;
+                    if(name !== '') {
+                        fetch('/pipelines/' + name + '/status').then(res => res.json())
+                            .then(data => {
+                                switch (data.status) {
+                                    case "UNKNOWN":
+                                        document.getElementById('status').textContnt = data.status;
+                                        document.getElementById('status').style.background = '#d3d3d3';
+                                        break;
+                                    case "COMPLETED":
+                                        document.getElementById('status').textContent = 'RUNNING';
+                                        document.getElementById('status').style.background = '#afa';
+                                        break;
+                                    case "PROGRESSING":
+                                        document.getElementById('status').textContent = 'STARTING';
+                                        document.getElementById('status').style.background = '#ffa';
+                                        break;
+                                    case "FAILED":
+                                        document.getElementById('status').textContent = data.status;
+                                        document.getElementById('status').style.background = '#faa';
+                                        break;
+                                    default:
+                                        document.getElementById('status').textContent = 'UNKNOWN';
+                                        document.getElementById('status').style.background = '#d3d3d3';
+                                        break;
+                                }
+                            })
+                        }
+                }, 5000);
             }
         </script>
     </head>
     <body onload="init()">
+        <div style="margin-bottom: 5px;">
+            Pipeline <input id="procName"/> <span id="status" style="background-color: LightGray; padding-top: 1px; padding-bottom: 2px; padding-left: 4px; padding-right: 4px; display: inline-block; width: 7em; text-align: center;">UNKNOWN</span> <input id="deploy" type="button" value="Create/Update"/> <input id="load" type="button" value="Load"/> <input id="delete" type="button" value="Delete"/>
+        </div>
         <div id="blocklyDiv" style="height: 1200px; width: 1600px;"></div>
         <br>
         <h3>Processor Configuration</h3>
-        <input id="deploy" type="button" value="Create or update processor with name"/><input id="procName"/></br>
         <textarea id="codeDiv" style="height: 300px; width: 1600px; overflow-y:scroll; border: 1px solid lightgrey;"></textarea>
     </body>
 </html>

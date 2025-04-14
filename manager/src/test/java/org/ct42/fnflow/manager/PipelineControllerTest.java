@@ -25,9 +25,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -100,5 +107,70 @@ public class PipelineControllerTest {
                     .content(PIPELINE_CONFIG)
         )
         .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    void getPipelineTest() throws Exception {
+        PipelineConfigDTO dto = new PipelineConfigDTO();
+        dto.setVersion("0.0.9");
+        dto.setSourceTopic("sourceTopic");
+        dto.setEntityTopic("entityTopic");
+        dto.setErrorTopic("errorTopic");
+
+        PipelineConfigDTO.FunctionCfg validCfg = new PipelineConfigDTO.FunctionCfg();
+        validCfg.setFunction("hasValueValidator");
+        validCfg.setName("idExist");
+        validCfg.setParameters(Map.of("elementPath", "/id"));
+
+        PipelineConfigDTO.FunctionCfg emitCfg = new PipelineConfigDTO.FunctionCfg();
+        emitCfg.setFunction("ChangeEventEmit");
+        emitCfg.setName("validateEmitter");
+        emitCfg.setParameters(Map.of(
+                "eventContent", "/",
+                "topic", "validate-topic"
+        ));
+        PipelineConfigDTO.MultipleFunctions functions =
+                new PipelineConfigDTO.MultipleFunctions(List.of(validCfg, emitCfg));
+
+
+        PipelineConfigDTO.FunctionCfg matchCfg = new PipelineConfigDTO.FunctionCfg();
+        matchCfg.setFunction("Match");
+        matchCfg.setName("idMatch");
+        matchCfg.setParameters(Map.of(
+                "index", "testindex",
+                "template", "testtemplate",
+                "paramsFromInput", Map.of("ids", "/id"),
+                "literalParams", Map.of("field", "id")));
+        PipelineConfigDTO.SingleFunction match = new PipelineConfigDTO.SingleFunction(matchCfg);
+
+        PipelineConfigDTO.FunctionCfg mergeCfg = new PipelineConfigDTO.FunctionCfg();
+        mergeCfg.setFunction("MergeCreate");
+        mergeCfg.setName("createmerge");
+        mergeCfg.setParameters(Map.of(
+                "mappings", List.of(
+                        Map.of(
+                                "from", "/id",
+                                "to", "/identifier/id"
+                        ),
+                        Map.of(
+                                "from", "/id",
+                                "to", "/ID"
+                        ),
+                        Map.of(
+                                "from", "/doesNotExist",
+                                "to", "/foo"
+                        )
+                )
+        ));
+        PipelineConfigDTO.SingleFunction merge = new PipelineConfigDTO.SingleFunction(mergeCfg);
+
+        dto.setPipeline(List.of(functions, match, merge));
+
+        when(pipelineService.getPipelineConfig(any())).thenReturn(dto);
+
+        mockMvc.perform(get("/pipelines/{name}", "sample-name"))
+        .andExpect(status().is2xxSuccessful())
+        .andExpect(jsonPath("$.version", is("0.0.9")))
+        .andExpect(jsonPath("$.pipeline[0][0].name", is("idExist")));
     }
 }
