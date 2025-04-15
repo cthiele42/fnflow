@@ -215,6 +215,28 @@ function createToolbox() {
                         }
                     }
                 }
+            },
+            {
+                kind: 'block',
+                type: 'emitter',
+                inputs: {
+                    name: {
+                        shadow: {
+                            type: "text",
+                            fields: {
+                                TEXT: "inputEmitter"
+                            }
+                        }
+                    },
+                    eventContent: {
+                        shadow: {
+                            type: "text",
+                            fields: {
+                                TEXT: "/input"
+                            }
+                        }
+                    }
+                }
             }
         ]
     };

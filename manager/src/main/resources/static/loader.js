@@ -73,7 +73,8 @@ function loadFromDeploymentToWorkspace(name, workspace) {
             padNormalizer: 'pad',
             Match: 'Match',
             Reduce2One: 'reduceToOne',
-            MergeCreate: 'mergeCreate'
+            MergeCreate: 'mergeCreate',
+            ChangeEventEmit: 'emitter'
         }
         let anchorObject = state.blocks.blocks[0].inputs;
         let anchorProp = 'pipeline';
@@ -286,6 +287,39 @@ function loadFromDeploymentToWorkspace(name, workspace) {
                             mAnchorObject[nAnchorProp] = mapping;
                             mAnchorObject = mapping.block;
                             nAnchorProp = 'next';
+                        }
+                    }
+                    break;
+                    case 'ChangeEventEmit':
+                    fn.block.inputs.eventContent = {
+                        shadow: {
+                            type: 'text',
+                            id: Blockly.utils.idGenerator.genUid(),
+                            fields: {
+                                TEXT: p.parameters.eventContent
+                            }
+                        }
+                    }
+                    if(Object.hasOwn(p.parameters, 'eventKey')) {
+                        fn.block.inputs.eventKey = {
+                            shadow: {
+                                type: 'text',
+                                id: Blockly.utils.idGenerator.genUid(),
+                                fields: {
+                                    TEXT: p.parameters.eventKey
+                                }
+                            }
+                        }
+                    }
+                    if(Object.hasOwn(p.parameters, 'topic')) {
+                        fn.block.inputs.topic = {
+                            shadow: {
+                                type: 'text',
+                                id: Blockly.utils.idGenerator.genUid(),
+                                fields: {
+                                    TEXT: p.parameters.topic
+                                }
+                            }
                         }
                     }
                     break;

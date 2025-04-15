@@ -122,5 +122,22 @@ function createGenerator() {
         return '{"from": ' + generator.valueToCode(block, 'from', 0) + ', "to": ' + generator.valueToCode(block, 'to', 0) + '}'
     }
 
+    gen.forBlock['emitter'] = function(block, generator) {
+        let code = '"name": ' + generator.valueToCode(block, 'name', 0) + ',\n';
+        code += '"function": "ChangeEventEmit",\n';
+        code += '"parameters": {\n';
+        let params = '"eventContent": ' + generator.valueToCode(block, 'eventContent', 0) ;
+
+        let eventKey = generator.valueToCode(block, 'eventKey', 0);
+        if(eventKey.length !== 0) params += ',\n' + '"eventKey": ' + eventKey;
+
+        let topic = generator.valueToCode(block, 'topic', 0);
+        if(topic.length !== 0) params += ',\n' + '"topic": ' + topic;
+
+        code += generator.prefixLines(params, generator.INDENT);
+        code += '\n}\n'
+        return '{\n' + generator.prefixLines(code, generator.INDENT) + '}';
+    }
+
     return gen;
 }

@@ -23,4 +23,4 @@ kafkaservice:
 
 manager:
   chartVersion: 0.0.1
-  appVersion: 0.0.7
+  appVersion: 0.0.8

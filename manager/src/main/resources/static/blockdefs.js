@@ -311,6 +311,42 @@ function blockdefs() {
             "nextStatement": "function",
             "colour": 15,
             "inputsInline": false
+        },
+        {
+            "type": "emitter",
+            "tooltip": "emitter\n Emit an input message (or selected part of the input message with probable message key to configurable topic) ",
+            "helpUrl": "",
+            "message0": "emitter\n name %1 eventContent %2 eventKey %3 topic %4",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "name",
+                    "align": "RIGHT",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "eventContent",
+                    "align": "RIGHT",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "eventKey",
+                    "align": "RIGHT",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "align": "RIGHT",
+                    "check": "String"
+                }
+            ],
+            "previousStatement": "function",
+            "nextStatement": "function",
+            "colour": 430,
+            "inputsInline": false
         }
     ]);
 }
