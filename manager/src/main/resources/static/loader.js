@@ -300,21 +300,25 @@ function loadFromDeploymentToWorkspace(name, workspace) {
                             }
                         }
                     }
-                    fn.block.inputs.eventKey = {
-                        shadow: {
-                            type: 'text',
-                            id: Blockly.utils.idGenerator.genUid(),
-                            fields: {
-                                TEXT: p.parameters.eventKey
+                    if(Object.hasOwn(p.parameters, 'eventKey')) {
+                        fn.block.inputs.eventKey = {
+                            shadow: {
+                                type: 'text',
+                                id: Blockly.utils.idGenerator.genUid(),
+                                fields: {
+                                    TEXT: p.parameters.eventKey
+                                }
                             }
                         }
                     }
-                    fn.block.inputs.topic = {
-                        shadow: {
-                            type: 'text',
-                            id: Blockly.utils.idGenerator.genUid(),
-                            fields: {
-                                TEXT: p.parameters.topic
+                    if(Object.hasOwn(p.parameters, 'topic')) {
+                        fn.block.inputs.topic = {
+                            shadow: {
+                                type: 'text',
+                                id: Blockly.utils.idGenerator.genUid(),
+                                fields: {
+                                    TEXT: p.parameters.topic
+                                }
                             }
                         }
                     }

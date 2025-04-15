@@ -235,22 +235,6 @@ function createToolbox() {
                                 TEXT: "/input"
                             }
                         }
-                    },
-                    eventKey: {
-                        shadow: {
-                            type: "text",
-                            fields: {
-                                TEXT: ""
-                            }
-                        }
-                    },
-                    topic: {
-                        shadow: {
-                            type: "text",
-                            fields: {
-                                TEXT: ""
-                            }
-                        }
                     }
                 }
             }

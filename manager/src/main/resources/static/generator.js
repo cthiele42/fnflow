@@ -129,10 +129,10 @@ function createGenerator() {
         let params = '"eventContent": ' + generator.valueToCode(block, 'eventContent', 0) ;
 
         let eventKey = generator.valueToCode(block, 'eventKey', 0);
-        if(eventKey !== '""') params += ',\n' + '"eventKey": ' + eventKey;
+        if(eventKey.length !== 0) params += ',\n' + '"eventKey": ' + eventKey;
 
         let topic = generator.valueToCode(block, 'topic', 0);
-        if(topic !== '""') params += ',\n' + '"topic": ' + topic;
+        if(topic.length !== 0) params += ',\n' + '"topic": ' + topic;
 
         code += generator.prefixLines(params, generator.INDENT);
         code += '\n}\n'
