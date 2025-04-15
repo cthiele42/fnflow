@@ -347,6 +347,24 @@ function blockdefs() {
             "nextStatement": "function",
             "colour": 430,
             "inputsInline": false
+        },
+        {
+            "type": "multipleFunctions",
+            "tooltip": "multipleFunctions combine multiple functions together.",
+            "helpUrl": "",
+            "message0": "multipleFunctions\n functions %1",
+            "args0": [
+                {
+                    "type": "input_statement",
+                    "name": "functions",
+                    "align": "RIGHT",
+                    "check": "function"
+                }
+            ],
+            "previousStatement": "function",
+            "nextStatement": "function",
+            "colour": 565,
+            "inputsInline": false
         }
     ]);
 }

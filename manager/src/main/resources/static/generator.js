@@ -139,5 +139,15 @@ function createGenerator() {
         return '{\n' + generator.prefixLines(code, generator.INDENT) + '}';
     }
 
+    gen.forBlock['multipleFunctions'] = function(block, generator) {
+        const functions = generator.statementToCode(block, 'functions');
+
+        let code = ''
+        if(functions.length !== 0) {
+            code += generator.prefixLines(generator.INDENT, functions);
+        }
+        return '[\n' +generator.prefixLines(code, generator.INDENT) + '\n]';
+    }
+
     return gen;
 }
