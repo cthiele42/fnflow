@@ -145,8 +145,9 @@ function createGenerator() {
         let code = ''
         if(functions.length !== 0) {
             code += generator.prefixLines(generator.INDENT, functions);
+            return '[\n' +generator.prefixLines(code, generator.INDENT) + '\n]';
         }
-        return '[\n' +generator.prefixLines(code, generator.INDENT) + '\n]';
+        return '';
     }
 
     return gen;
