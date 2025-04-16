@@ -1,5 +1,5 @@
 function blockdefs() {
-    return Blockly.defineBlocksWithJsonArray([
+    let blocks = Blockly.defineBlocksWithJsonArray([
         {
             "type": "hasValue",
             "tooltip": "hasValue validator\n validating the element on the given path has a value",
@@ -347,6 +347,32 @@ function blockdefs() {
             "nextStatement": "function",
             "colour": 430,
             "inputsInline": false
+        },
+        {
+            "type": "multipleFunctions",
+            "tooltip": "multipleFunctions combine multiple functions together.",
+            "helpUrl": "",
+            "message0": "multipleFunctions\n functions %1",
+            "args0": [
+                {
+                    "type": "input_statement",
+                    "name": "functions",
+                    "align": "RIGHT",
+                    "check": "function"
+                }
+            ],
+            "previousStatement": "function",
+            "nextStatement": "function",
+            "colour": 565,
+            "inputsInline": false
         }
     ]);
+
+    Blockly.Blocks['multipleFunctions'].onchange = function(e) {
+        if (this.workspace.isDragging()) return;
+        if (e.type !== Blockly.Events.BLOCK_MOVE) return;
+        if (this.getSurroundParent() !== null && this.getSurroundParent().type === 'multipleFunctions') this.previousConnection.disconnect();
+    }
+
+    return blocks;
 }

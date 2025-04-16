@@ -237,6 +237,10 @@ function createToolbox() {
                         }
                     }
                 }
+            },
+            {
+                kind: 'block',
+                type: 'multipleFunctions'
             }
         ]
     };
