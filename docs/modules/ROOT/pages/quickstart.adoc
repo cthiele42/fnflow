@@ -1,0 +1,45 @@
+= Quickstart
+Learn to create your first FnFlow pipeline running FnFlow on your local machine.
+
+== Prerequisites
+The FnFlow project supports the local installation based on https://canonical.com/multipass[Multipass] for Linux, macOS and Windows.
+Multipass has to be installed on your system. Please follow the https://canonical.com/multipass/install[installation guide of Multipass].
+
+== Install FnFlow
+1. Download the cloud-init https://raw.githubusercontent.com/cthiele42/fnflow/refs/heads/main/deploy/cloud-init/Ubuntu-24.04.user-data[Ubuntu-24.04.user-data] configuration.
+2. Launch a VM passing the downloaded file as `--cloud-init` parameter
++
+[source, shell]
+----
+multipass launch -n fnflow --cpus 4 --disk 20G --memory 8G --cloud-init Ubuntu-24.04.user-data
+----
++
+3. Initialize the platform
++
+[source, shell]
+----
+multipass exec fnflow -- bash -c 'cd fnflow/deploy; helmfile -e local apply'
+----
++
+4. Get the platform service urls
++
+[source, shell]
+----
+multipass exec fnflow -- bash -c 'IP=$( hostname -I | cut -f 1 -d " " ); echo -e "Manager http://$IP:32581\nOpensearch Dashboards http://$IP:5601\nAKHQ http://$IP:32551\nKafkaService http://$IP:32580\nOpensearch REST API http://$IP:9200"'
+----
+
+This should give an output similar to the following:
+[source]
+----
+Manager http://10.48.190.147:32581
+Opensearch Dashboards http://10.48.190.147:5601
+AKHQ http://10.48.190.147:32551
+KafkaService http://10.48.190.147:32580
+Opensearch REST API http://10.48.190.147:9200
+----
+
+== Creating the very first Pipeline
+Pipelines can be created via the Manager UI. Open the Manager Url in a browser. +
+This should bring up the following:
+
+image::manager-ui.png[]

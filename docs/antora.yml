@@ -1,3 +1,5 @@
 name: fnflow
 version: ~
 title: FnFlow
+nav:
+  - modules/ROOT/nav.adoc
