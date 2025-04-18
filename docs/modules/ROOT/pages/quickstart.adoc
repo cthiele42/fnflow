@@ -64,7 +64,7 @@ Every property has a sensible default already, so we will not change anything he
 
 On the left hand side, there is a toolbar providing building block for the pipeline. We will just take the `hasValue` block and put it into the `pipeline` slot of the processor through drag and drop.
 
-image::addHasValue.webm[]
+video::addHasValue.webm[]
 
 `hasValue` is a validator checking if the input is having a value on a certain json path. Here, the default is to check for a value under the path `/id`. We will stay with the defaults for now.
 
@@ -72,4 +72,4 @@ This is already forming a minimal pipeline passing input events to the output to
 
 Let's deploy this pipeline. This is done by giving the pipeline a name in the input on the top of the screen. The name should consist of lowercase characters only. After typing the name, we press the `Create/Update` button. This will deploy the pipeline with the given name. For a successful deployment, the status will go to green showing a `RUNNING`.
 
-image::deploy-pipeline.webm[]
+video::deploy-pipeline.webm[]
