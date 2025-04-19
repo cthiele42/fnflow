@@ -1,0 +1,55 @@
+= Processor Functions
+
+== hasValueValidator
+image:hasValueValidator.png[]
+
+If the Json element at the given path does not have a value, an error is emitted. +
+Having a value means:
+
+- the element exists
+- the element value is not null
+- for a textual single value: the string is not empty
+- for a multivalue: the array contains at least one textual element which is not empty
+
+=== Parameters
+
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|elementPath
+|https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]
+|Yes
+|The Pointer to the element to be checked
+|===
+
+
+== trimNormalizer
+image:trimNormalizer.png[]
+
+== padNormalizer
+image:padNormalizer.png[]
+
+== Match
+image:Match.png[]
+
+image:fromInput.png[]
+
+image:literal.png[]
+
+== Reduce2One
+image:reduce2One.png[]
+
+== MergeCreate
+image:MergeCreate.png[]
+
+== ChangeEventEmit
+image:ChangeEventEmit.png[]
+
+== Multiple Functions
+image:multipleFns.png[]
+
