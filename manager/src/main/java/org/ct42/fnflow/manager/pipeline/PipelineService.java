@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.pipeline;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -23,6 +23,10 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.RequiredArgsConstructor;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.DeploymentService;
+import org.ct42.fnflow.manager.DeploymentStatusDTO;
+import org.ct42.fnflow.manager.KubernetesHelperService;
 import org.ct42.fnflow.manager.config.ManagerProperties;
 import org.springframework.stereotype.Service;
 
@@ -36,18 +40,17 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class PipelineService {
+public class PipelineService implements DeploymentService<PipelineConfigDTO> {
     private static final String IMAGE="docker.io/ct42/fnflow-json-processors-kafka";
-    private static final String NAME="fnflow-json-processors-kafka";
-    private static final String NAMESPACE="default";
+    private static final String APP_NAME="fnflow-json-processors-kafka";
     private static final String PROCESSOR_PREFIX="proc-";
 
-    private final KubernetesClient k8sClient;
-    private final ManagerProperties cfgProps;
+    private final KubernetesHelperService kubernetesHelperService;
 
-    public void createOrUpdatePipeline(String name, PipelineConfigDTO cfg) {
+    @Override
+    public void createOrUpdate(String name, PipelineConfigDTO config) {
         List<String> args = new ArrayList<>();
-        cfg.getPipeline().forEach(f -> {
+        config.getPipeline().forEach(f -> {
             if(f instanceof PipelineConfigDTO.SingleFunction singleFunction) {
                 prepareFunctionArgs(singleFunction.getFunction(), args);
             } else if(f instanceof PipelineConfigDTO.MultipleFunctions multipleFunctions) {
@@ -56,126 +59,47 @@ public class PipelineService {
         });
 
         String definition =
-                cfg.getPipeline().stream()
-                .map(function -> {
-                    return switch (function) {
-                        case PipelineConfigDTO.SingleFunction singleFunction ->
-                                singleFunction.getFunction().getName();
-                        case PipelineConfigDTO.MultipleFunctions multipleFunctions ->
-                                multipleFunctions.getFunctions().stream()
-                                        .map(PipelineConfigDTO.FunctionCfg::getName)
-                                        .collect(Collectors.joining("+"));
-                        default -> throw new IllegalStateException("Unexpected value: " + function);
-                    };
-                }).collect(Collectors.joining("|"));
+                config.getPipeline().stream()
+                        .map(function -> {
+                            return switch (function) {
+                                case PipelineConfigDTO.SingleFunction singleFunction ->
+                                        singleFunction.getFunction().getName();
+                                case PipelineConfigDTO.MultipleFunctions multipleFunctions ->
+                                        multipleFunctions.getFunctions().stream()
+                                                .map(PipelineConfigDTO.FunctionCfg::getName)
+                                                .collect(Collectors.joining("+"));
+                                default -> throw new IllegalStateException("Unexpected value: " + function);
+                            };
+                        }).collect(Collectors.joining("|"));
         args.add("--org.ct42.fnflow.function.definition=" + definition);
         args.add("--spring.cloud.stream.kafka.default.producer.compression-type=lz4");
         args.add("--spring.cloud.stream.kafka.default.producer.configuration.batch.size=131072");
         args.add("--spring.cloud.stream.kafka.default.producer.configuration.linger.ms=50");
         args.add("--spring.cloud.stream.default.group=" + name);
-        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=" + cfg.getSourceTopic());
-        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=" + cfg.getEntityTopic());
-        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=" + cfg.getErrorTopic());
+        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=" + config.getSourceTopic());
+        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=" + config.getEntityTopic());
+        args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=" + config.getErrorTopic());
         args.add("--spring.cloud.stream.kafka.binder.autoAlterTopics=true");
         args.add("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms="
-                + convertHoursToMilliseconds(cfg.getErrRetentionHours()));
+                + convertHoursToMilliseconds(config.getErrRetentionHours()));
 
-
-        //TODO construct args for kafka batch and compression settings and group and destinations
-
-
-        Map<String, String> selectorLabels = Map.of(
-                "app.kubernetes.io/name", NAME,
-                "app.kubernetes.io/instance", name
-        );
-
-        k8sClient.apps().deployments().inNamespace(NAMESPACE)
-                .resource(new DeploymentBuilder().withNewMetadata()
-                            .withName(PROCESSOR_PREFIX + name)
-                            .withNamespace(NAMESPACE)
-                            .withLabels(selectorLabels)
-                        .endMetadata()
-                        .withNewSpec()
-                        .withReplicas(1)
-                        .withNewSelector()
-                            .withMatchLabels(selectorLabels)
-                        .endSelector()
-                        .withNewTemplate()
-                            .withNewMetadata()
-                                .withLabels(selectorLabels)
-                            .endMetadata()
-                            .withNewSpec()
-                                .withContainers(new ContainerBuilder().withName(name)
-                                    .withImage(IMAGE + ":" + cfg.getVersion())
-                                    .withImagePullPolicy("IfNotPresent")
-                                    .withPorts(new ContainerPortBuilder()
-                                            .withName("http")
-                                            .withContainerPort(8080).build())
-                                    .withEnv(new EnvVarBuilder()
-                                                .withName("OPENSEARCH_URIS")
-                                                .withValue(cfgProps.getOsUris()).build(),
-                                            new EnvVarBuilder()
-                                                .withName("SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS")
-                                                .withValue(cfgProps.getKafkaBrokers()).build())
-                                    .withArgs(args).build())
-                            .endSpec()
-                        .endTemplate()
-                        .endSpec().build())
-                .forceConflicts().serverSideApply();
+        kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROCESSOR_PREFIX, IMAGE, config.getVersion(), args);
     }
+
 
     /**
      *
      * @param name of the pipeline the status should be taken for
      * @return the status or <ode>null</ode> if a deployment for the given name does not exist
      */
-    public DeploymentStatusDTO getPipelineStatus(String name) throws DeploymentDoesNotExistException {
-        Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
-                .withName(PROCESSOR_PREFIX + name).get();
-        if(deployment == null) throw new DeploymentDoesNotExistException(name);
-
-        DeploymentStatusDTO status = new DeploymentStatusDTO();
-        DeploymentStatus deploymentStatus = deployment.getStatus();
-        Integer specReplicas = deployment.getSpec().getReplicas();
-
-        if(deploymentStatus.getObservedGeneration() != null) {
-            Integer updatedReplicas = deploymentStatus.getUpdatedReplicas();
-            Integer availableReplicas = deploymentStatus.getAvailableReplicas();
-            Integer replicas = deploymentStatus.getReplicas();
-
-            Optional<DeploymentCondition> progressing = deploymentStatus.getConditions().stream().filter(c -> c.getType().equals("Progressing")).findFirst();
-            if(progressing.isPresent()) {
-                if(progressing.get().getReason().equals("ProgressDeadlineExceeded")) {
-                    status.setStatus(DeploymentStatusDTO.Status.FAILED);
-                    status.setMessage(progressing.get().getMessage());
-                    return status;
-                }
-            }
-            if(specReplicas != null && Optional.ofNullable(updatedReplicas).orElse(0) < specReplicas) {
-                status.setStatus(DeploymentStatusDTO.Status.PROGRESSING);
-                status.setMessage(String.format("Waiting for rollout to finish: %d out of %d new replicas have been updated...", updatedReplicas, specReplicas));
-                return status;
-            }
-            if(Optional.ofNullable(replicas).orElse(0) > Optional.ofNullable(updatedReplicas).orElse(0)) {
-                status.setStatus(DeploymentStatusDTO.Status.PROGRESSING);
-                status.setMessage(String.format("Waiting for rollout to finish: %d old replicas are pending termination...", replicas - updatedReplicas));
-                return status;
-            }
-            if(availableReplicas != null && availableReplicas < Optional.ofNullable(updatedReplicas).orElse(0)) {
-                status.setStatus(DeploymentStatusDTO.Status.PROGRESSING);
-                status.setMessage(String.format("Waiting for rollout to finish: %d of %d updated replicas are available...", availableReplicas, updatedReplicas));
-                return status;
-            }
-            status.setStatus(DeploymentStatusDTO.Status.COMPLETED);
-            status.setMessage("Successfully rolled out");
-            return status;
-        }
-        return status;
+    @Override
+    public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
+        return kubernetesHelperService.getDeploymentStatus(name, PROCESSOR_PREFIX);
     }
 
-    public void deletePipeline(String name) {
-        k8sClient.apps().deployments().inNamespace(NAMESPACE)
-                .withName(PROCESSOR_PREFIX + name).delete();
+    @Override
+    public void delete(String name) {
+        kubernetesHelperService.deleteDeployment(name, PROCESSOR_PREFIX);
     }
 
     /**
@@ -188,12 +112,9 @@ public class PipelineService {
      * @param name of the pipeline the configuration should be taken for
      * @return the config of the pipeline with given name or <code>null</code> if the deployment with given name does not exist
      */
-    public PipelineConfigDTO getPipelineConfig(String name) throws DeploymentDoesNotExistException {
-        Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
-                .withName(PROCESSOR_PREFIX + name).get();
-        if(deployment == null) throw new DeploymentDoesNotExistException(name);
-
-        Container container = deployment.getSpec().getTemplate().getSpec().getContainers().getFirst();
+    @Override
+    public PipelineConfigDTO getConfig(String name) throws DeploymentDoesNotExistException {
+        Container container = kubernetesHelperService.getDeploymentContainer(name, PROCESSOR_PREFIX);
 
         PipelineConfigDTO config = new PipelineConfigDTO();
 
@@ -204,20 +125,20 @@ public class PipelineService {
         List<String> pipelineCfg = new ArrayList<>();
 
         container.getArgs().forEach(arg -> {
-           if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=")) {
-               config.setSourceTopic(arg.substring(arg.lastIndexOf("=") + 1));
-           } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=")) {
+            if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=")) {
+                config.setSourceTopic(arg.substring(arg.lastIndexOf("=") + 1));
+            } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=")) {
                 config.setEntityTopic(arg.substring(arg.lastIndexOf("=") + 1));
-           } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=")) {
-               config.setErrorTopic(arg.substring(arg.lastIndexOf("=") + 1));
-           } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms=")) {
-               long milliseconds = Long.parseLong(arg.substring(arg.lastIndexOf("=") + 1));
-               config.setErrRetentionHours((int)(milliseconds / 3600000));
-           } else if(arg.startsWith("--org.ct42.fnflow.function.definition=")) {
-               fnDef.set(arg.substring(arg.lastIndexOf("=") + 1));
-           } else if(arg.startsWith("--cfgfns.")) {
-               pipelineCfg.add(arg.substring(9));
-           }
+            } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=")) {
+                config.setErrorTopic(arg.substring(arg.lastIndexOf("=") + 1));
+            } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms=")) {
+                long milliseconds = Long.parseLong(arg.substring(arg.lastIndexOf("=") + 1));
+                config.setErrRetentionHours((int)(milliseconds / 3600000));
+            } else if(arg.startsWith("--org.ct42.fnflow.function.definition=")) {
+                fnDef.set(arg.substring(arg.lastIndexOf("=") + 1));
+            } else if(arg.startsWith("--cfgfns.")) {
+                pipelineCfg.add(arg.substring(9));
+            }
         });
 
         String fnDefStr = fnDef.get();

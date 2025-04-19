@@ -16,41 +16,42 @@
 
 package org.ct42.fnflow.manager;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * @author Claas Thiele
- * @author Sajjad Safaeian
+ *
+ * @param <DTO>
+ * @param <Service>
+ *
+ * @author Sajjad Safaiean
  */
-@RestController
-@RequestMapping(value = "/pipelines")
-@RequiredArgsConstructor
-@RegisterReflectionForBinding(classes = {PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class, DeploymentStatusDTO.class})
-public class PipelineController {
-    private final PipelineService pipelineService;
+@AllArgsConstructor
+public abstract class AbstractDeploymentController<DTO, Service extends DeploymentService<DTO>> {
+
+    private Service service;
 
     @PostMapping(value="/{name}")
-    public ResponseEntity<Void> createPipeline(@PathVariable String name, @RequestBody PipelineConfigDTO cfg) {
-        pipelineService.createOrUpdatePipeline(name, cfg);
+    public ResponseEntity<Void> createPipeline(@PathVariable String name, @RequestBody DTO config) {
+        service.createOrUpdate(name, config);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping(value="/{name}/status")
     public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) throws DeploymentDoesNotExistException {
-        return pipelineService.getPipelineStatus(name);
+        return service.getStatus(name);
     }
 
     @GetMapping(value="/{name}")
-    public PipelineConfigDTO getPipelineConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
-        return pipelineService.getPipelineConfig(name);
+    public DTO getPipelineConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
+        return service.getConfig(name);
     }
 
     @DeleteMapping(value="/{name}")
     public ResponseEntity<Void> deletePipeline(@PathVariable String name) {
-        pipelineService.deletePipeline(name);
+        service.delete(name);
         return ResponseEntity.noContent().build();
     }
+
 }
