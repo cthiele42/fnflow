@@ -1,0 +1,4 @@
+= Programming and Operating Model
+
+FnFlow is a cloud-native programming and operating model for composable stream processing functions. +
+With FnFlow developers can create and orchestrate pipelines of processing functions especially in the use case of entity matching and linking.
