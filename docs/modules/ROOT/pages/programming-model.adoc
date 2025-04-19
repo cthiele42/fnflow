@@ -1,9 +1,17 @@
 = Programming and Operating Model
 
 FnFlow is a cloud-native programming and operating model for composable stream processing functions. +
-With FnFlow developers can create and orchestrate pipelines of processing functions especially in the use case of entity matching and linking.
+With FnFlow, developers can create and orchestrate pipelines of processing functions especially in the use case of entity matching and linking.
 
-In FnFlow, a pipeline of data processing functions is configured in a processor. The input, output and the dead letter topic are connected to Kafka topics.
+The smallest building block of FnFlow is a function with Json input and Json output. Functions are implemented as https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/Function.html[Java Function].
+In case of an error during the function execution, the unchanged input will be send to an error channel.
+Functions can be composed together by connecting the output of one function to the input of another function. The output of a function can be spread to multiple functions input. Special functions like `ChangeEventEmit` can route its output to a different topic. +
+The `Match` function is forming a search query from its input and is executing this query on Opensearch. The output is a list of matching entities which can be further processed.
+
+Composed functions are forming a pipeline. Pipelines are executed in a processor application. Processor applications are deployed and managed in Kubernetes.
+
+Each output topic is organized as Event Store holding a log of change events. The projector application can be used to write these change events to an Opensearch index.
+
 
 [plantuml]
 ----
@@ -12,6 +20,7 @@ left to right direction
 
 hide <<Kafka Topic>> stereotype
 hide <<Function>> stereotype
+hide <<Sink>> stereotype
 
 skinparam backgroundColor transparent
 
@@ -19,6 +28,7 @@ skinparam component {
     Style rectangle
     BackgroundColor<<Kafka Topic>> #cef
     BackgroundColor<<Function>> #fec
+    BackgroundColor<<Sink>> #efc
 }
 
 skinparam frame {
@@ -29,12 +39,21 @@ skinparam legend {
     BackgroundColor #eee
 }
 
+skinparam database {
+    BackgroundColor White
+}
+
 skinparam ranksep 0
 
 together {
     component "input" <<Kafka Topic>>
     component "error" <<Kafka Topic>>
 }
+database Opensearch {
+    frame entities
+    frame sourceRecords
+}
+
 frame "processor" {
     component hasId <<Function>> [
         hasValueValidator
@@ -46,18 +65,73 @@ frame "processor" {
         ---
         name: trimId
     ]
+    component idMatch <<Function>> [
+        Match
+        ---
+        name: idMatch
+        index: entities
+        template: exactMatch
+    ]
+    component reduce <<Function>> [
+        Reduce2One
+        ---
+        name: reduce
+    ]
+    component emitEntity <<Function>> [
+        ChangeEventEmit
+        ---
+        name: emitEntity
+    ]
+    component emitInput <<Function>> [
+        ChangeEventEmit
+        ---
+        name: emitInput
+        topic: sourceRecords
+    ]
 }
 component "output" <<Kafka Topic>>
+component "source" <<Kafka Topic>>
+
+frame "sourceprojector" {
+    component sourceProjector <<Sink>> [
+        Projector
+        ---
+        index: source
+    ]
+}
+
+frame "entityprojector" {
+    component entityProjector <<Sink>> [
+        Projector
+        ---
+        index: entities
+    ]
+}
+
 input .[hidden] error
 input ==|> hasId
 processor ==|> error
 hasId ==|> trim
-trim ==|> output
+trim ==|> idMatch
+idMatch ==|> reduce
+reduce ==|> emitEntity
+reduce ==|> emitInput
+emitEntity ==|> output
+emitInput ==|> source
 
-legend bottom right
+idMatch .....> Opensearch: uses
+
+source ==|> sourceProjector
+output ==|> entityProjector
+
+sourceProjector ==|> sourceRecords: writes
+entityProjector ==|> entities: writes
+
+legend bottom left
 |        |= Legend |
 |<#cef>   | Kafka Topic |
 |<#fec>  | Function |
+|<#efc>  | Sink |
 endlegend
 
 @enduml
