@@ -1,5 +1,11 @@
 = Processor Functions
 
+Processor functions can be composed to a pipeline. Each function in a pipeline has to have a unique name. +
+If an error occurs during function execution or a validation fails, the unchanged input from the pipeline will be sent to the error topic. The message sent to the error topic will take two headers:
+
+- x-exception-message: The message text of the exception
+- x-exception-fqcn: The full qualified classname of the exception
+
 == hasValueValidator
 image:hasValueValidator.png[]
 
@@ -27,6 +33,57 @@ Having a value means:
 |The Pointer to the element to be checked
 |===
 
+=== Example
+==== Configuration
+image:hasValueValidator.png[]
+
+==== Valid Input (single value)
+[source, json]
+----
+{
+  "id": "ID_1"
+}
+----
+
+==== Valid Input (multivalue)
+[source, json]
+----
+{
+  "id": [null, "ID_X"]
+}
+----
+
+==== Invalid Input (element does not exist)
+[source, json]
+----
+{
+  "name": "Without id"
+}
+----
+
+==== Invalid Input (null value)
+[source, json]
+----
+{
+  "id": null
+}
+----
+
+==== Invalid Input (empty string)
+[source, json]
+----
+{
+  "id": ""
+}
+----
+
+==== Invalid Input (multivalue with no non empty string)
+[source, json]
+----
+{
+  "id": [null, ""]
+}
+----
 
 == trimNormalizer
 image:trimNormalizer.png[]
