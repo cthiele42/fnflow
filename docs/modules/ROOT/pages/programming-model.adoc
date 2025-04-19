@@ -2,3 +2,63 @@
 
 FnFlow is a cloud-native programming and operating model for composable stream processing functions. +
 With FnFlow developers can create and orchestrate pipelines of processing functions especially in the use case of entity matching and linking.
+
+In FnFlow, a pipeline of data processing functions is configured in a processor. The input, output and the dead letter topic are connected to Kafka topics.
+
+[plantuml]
+----
+@startuml
+left to right direction
+
+hide <<Kafka Topic>> stereotype
+hide <<Function>> stereotype
+
+skinparam backgroundColor transparent
+
+skinparam component {
+    Style rectangle
+    BackgroundColor<<Kafka Topic>> #cef
+    BackgroundColor<<Function>> #fec
+}
+
+skinparam frame {
+    BackgroundColor White
+}
+
+skinparam legend {
+    BackgroundColor #eee
+}
+
+skinparam ranksep 0
+
+together {
+    component "input" <<Kafka Topic>>
+    component "error" <<Kafka Topic>>
+}
+frame "processor" {
+    component hasId <<Function>> [
+        hasValueValidator
+        ---
+        name: hasId
+    ]
+    component trim <<Function>> [
+        trim
+        ---
+        name: trimId
+    ]
+}
+component "output" <<Kafka Topic>>
+input .[hidden] error
+input ==|> hasId
+processor ==|> error
+hasId ==|> trim
+trim ==|> output
+
+legend bottom right
+|        |= Legend |
+|<#cef>   | Kafka Topic |
+|<#fec>  | Function |
+endlegend
+
+@enduml
+----
