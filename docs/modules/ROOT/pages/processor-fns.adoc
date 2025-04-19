@@ -47,6 +47,8 @@ image:reduce2One.png[]
 == MergeCreate
 image:MergeCreate.png[]
 
+image:mapping.png[]
+
 == ChangeEventEmit
 image:ChangeEventEmit.png[]
 
