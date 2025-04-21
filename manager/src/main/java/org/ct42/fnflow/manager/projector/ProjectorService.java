@@ -45,7 +45,8 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
         List<String> args = new ArrayList<>();
 
         args.add("--fnflow.projector.index=" + config.getIndex());
-        args.add("--spring.cloud.stream.bindings.projector-in-0.destination=" + config.getTopic());
+        args.add("--spring.cloud.stream.bindings.project-in-0.destination=" + config.getTopic());
+        args.add("--spring.cloud.stream.default.group=" + name);
 
         kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROJECTOR_PREFIX, IMAGE, config.getVersion(), args);
     }
@@ -72,7 +73,7 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
         container.getArgs().forEach(arg -> {
             if(arg.startsWith("--fnflow.projector.index=")) {
                 config.setIndex(arg.substring(arg.lastIndexOf("=") + 1));
-            } else if(arg.startsWith("--spring.cloud.stream.bindings.projector-in-0.destination=")) {
+            } else if(arg.startsWith("--spring.cloud.stream.bindings.project-in-0.destination=")) {
                 config.setTopic(arg.substring(arg.lastIndexOf("=") + 1));
             }
         });

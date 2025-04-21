@@ -52,7 +52,7 @@ public class ProjectorIntegrationTests extends AbstractIntegrationTests {
         thenCountOfPodRunningAndWithInstanceLabel("projector-name", 1);
         thenPodWithInstanceNameArgumentsContains("projector-name",
                 "--fnflow.projector.index=entities-index",
-                "--spring.cloud.stream.bindings.projector-in-0.destination=entities-topic");
+                "--spring.cloud.stream.bindings.project-in-0.destination=entities-topic");
         thenDeploymentIsCompleted("projector-name");
     }
 
