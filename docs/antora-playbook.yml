@@ -6,6 +6,15 @@ content:
     - url: ./..
       branches: HEAD
       start_path: docs
+asciidoc:
+  attributes:
+    plantuml-server-url: http://www.plantuml.com/plantuml
+    experimental: ''
+    idprefix: ''
+    idseparator: '-'
+    page-pagination: ''
+  extensions:
+    - asciidoctor-plantuml
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable

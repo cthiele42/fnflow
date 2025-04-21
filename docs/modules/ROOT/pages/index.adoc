@@ -1,7 +1,8 @@
 = Introduction
 
-FnFlow is a project with the following goals:
+FnFlow wants to be a Data Integration platform focusing on Entity Matching and Entity Linking. +
+FnFlow wants to provide a toolset for matching, linking and fusing data of entities from multiple sources of semi structured data of uncertain data quality. +
+The platform is optimized for operating on BigData.
 
-* provide a data processing platform for large input datasets of uncertain quality
-* allow detection of quality issues
-* easy application of corrective actions after erroneous processing
+For matching, https://opensearch.org/[Opensearch] is utilized. The processing of data is done in stream processing.
+

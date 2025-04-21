@@ -1,0 +1,87 @@
+= Quickstart
+Learn to create your first FnFlow pipeline running FnFlow on your local machine.
+
+== Prerequisites
+The FnFlow project supports the local installation based on https://canonical.com/multipass[Multipass] for Linux, macOS and Windows.
+Multipass has to be installed on your system. Please follow the https://canonical.com/multipass/install[installation guide of Multipass].
+
+== Install FnFlow
+1. Download the cloud-init https://raw.githubusercontent.com/cthiele42/fnflow/refs/heads/main/deploy/cloud-init/Ubuntu-24.04.user-data[Ubuntu-24.04.user-data] configuration.
+2. Launch a VM passing the downloaded file as `--cloud-init` parameter
++
+[source, shell]
+----
+multipass launch -n fnflow --cpus 4 --disk 20G --memory 8G --cloud-init Ubuntu-24.04.user-data
+----
++
+3. Initialize the platform
++
+[source, shell]
+----
+multipass exec fnflow -- bash -c 'cd fnflow/deploy; helmfile -e local apply'
+----
++
+4. Get the platform service urls [[platform-urls]]
++
+[source, shell]
+----
+multipass exec fnflow -- bash -c 'IP=$( hostname -I | cut -f 1 -d " " ); echo -e "Manager http://$IP:32581\nOpensearch Dashboards http://$IP:5601\nAKHQ http://$IP:32551\nKafkaService http://$IP:32580\nOpensearch REST API http://$IP:9200"'
+----
+
+This should give an output similar to the following:
+[source]
+----
+Manager http://10.48.190.147:32581
+Opensearch Dashboards http://10.48.190.147:5601
+AKHQ http://10.48.190.147:32551
+KafkaService http://10.48.190.147:32580
+Opensearch REST API http://10.48.190.147:9200
+----
+
+== Creating the very first Pipeline
+Pipelines can be created via the Manager UI. Open the Manager Url in a browser. +
+This should bring up the following:
+
+image::manager-ui.png[]
+
+This is where a processor pipeline can be created and deployed. On the right hand side there is the container for a processor with its default configuration properties. These are:
+|===
+|Property name |Description
+
+|version
+|The application version of the processor
+|inputTopic
+|The Kafka topic the processor gets its input data from
+|outputTopic
+|The default Kafka topic being used to write the output to
+|errorTopic
+|The Dead Letter Topic (DLT), a Kafka topic, error events are written
+|errRetentionHours
+|The time in hours error events will stay in the DLT
+|===
+
+Every property has a sensible default already, so we will not change anything here.
+
+On the left hand side, there is a toolbar providing building block for the pipeline. We will just take the `hasValue` block and put it into the `pipeline` slot of the processor through drag and drop.
+
+video::addHasValue.webm[]
+
+`hasValue` is a validator checking if the input is having a value on a certain json path. Here, the default is to check for a value under the path `/id`. We will stay with the defaults for now.
+
+This is already forming a minimal pipeline passing input events to the output topic, if the property `/id` is having a value. If not, the input event is passed to the DLT.
+
+Let's deploy this pipeline. This is done by giving the pipeline a name in the input on the top of the screen. The name should consist of lowercase characters only. After typing the name, we press the `Create/Update` button. This will deploy the pipeline with the given name. For a successful deployment, the status will go to green showing a `RUNNING`.
+
+video::deploy-pipeline.webm[]
+
+Congratulations! Your very first FnFlow pipeline is up and running!
+
+== Testing a Pipeline
+All input data for the pipeline is passed via the configured input topic. There are several possibilities to provide data to the pipeline. For testing, this can be done using the AKHQ UI.
+Open the AKHQ url as printed out by <<platform-urls,Get the platform service urls>>.
+AKHQ can be used to place data in the input topic of the pipeline and to show the results placed in the output or error topic by the running pipeline. This is shown in the following video:
+
+video::test-on-topics.webm[]
+
+The validator will route the second event, without an id value to the error topic.
+

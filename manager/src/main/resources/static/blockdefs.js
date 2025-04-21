@@ -3,7 +3,7 @@ function blockdefs() {
         {
             "type": "hasValue",
             "tooltip": "hasValue validator\n validating the element on the given path has a value",
-            "helpUrl": "",
+            "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#hasvaluevalidator",
             "message0": "hasValue\n name %1 elementPath %2",
             "args0": [
                 {
