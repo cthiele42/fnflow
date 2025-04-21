@@ -21,7 +21,7 @@ Feature: Validate and match input data
       }
     }
     """
-    And a pipeline processing app with name 'sample-pipeline' and with this configs:
+    And an app from type of 'pipelines', with name 'sample-pipeline', and with this configs:
     """
     {
      "version": "0.0.11",
@@ -55,7 +55,7 @@ Feature: Validate and match input data
     }
     """
     Then a topic with name 'output-topic-wrong' and messageCount 0 exists
-    And a pipeline processing app with name 'sample-pipeline' and with this configs:
+    And an app from type of 'pipelines', with name 'sample-pipeline', and with this configs:
     """
     {
       "version": "0.0.11",
@@ -129,9 +129,18 @@ Feature: Validate and match input data
       ]
     }
     """
+    And an app from type of 'projectors', with name 'sample-projector', and with this configs:
+    """
+    {
+      "version": "0.0.2-SNAPSHOT",
+      "topic": "output-topic",
+      "index": "testindex"
+    }
+    """
     And documents from 'entities/two-docs.json' were indexed to 'testindex'
     When messages from 'input/six-valid-four-invalid.json' were sent to the topic 'input-topic'
     Then a number of 6 messages are landing in the topic 'output-topic'
-    Then a number of 6 messages are landing in the topic 'source-topic'
+    And a number of 6 messages are landing in the topic 'source-topic'
     And a number of 4 messages are landing in the topic 'error-topic'
     And in topic 'output-topic' all messages are having a key
+    And a number of 5 entities are landing in the index 'testindex'
