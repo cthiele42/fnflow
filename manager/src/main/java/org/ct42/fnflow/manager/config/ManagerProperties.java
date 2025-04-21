@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  * @author Claas Thiele
  */
 @Component
-@ConfigurationProperties("processorcfg")
+@ConfigurationProperties("deploymentcfg")
 @Data
 public class ManagerProperties {
     private String osUris;

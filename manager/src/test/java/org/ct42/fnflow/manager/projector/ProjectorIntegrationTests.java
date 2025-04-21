@@ -31,8 +31,8 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 @Testcontainers
 @SpringBootTest(properties = {
-        "processorcfg.os-uris=http://opensearch-cluster-master.default.svc:9200",
-        "processorcfg.kafka-brokers=kafka.default.svc:9092"
+        "deploymentcfg.os-uris=http://opensearch-cluster-master.default.svc:9200",
+        "deploymentcfg.kafka-brokers=kafka.default.svc:9092"
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ProjectorIntegrationTests extends AbstractIntegrationTests {
