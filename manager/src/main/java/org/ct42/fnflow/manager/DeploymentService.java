@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.config;
-
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+package org.ct42.fnflow.manager;
 
 /**
- * @author Claas Thiele
+ *
+ * @param <DTO>
+ *
+ * @author Sajjad Safaeian
  */
-@Component
-@ConfigurationProperties("deploymentcfg")
-@Data
-public class ManagerProperties {
-    private String osUris;
-    private String kafkaBrokers;
+public interface DeploymentService<DTO> {
+
+    void createOrUpdate(String name, DTO config);
+
+    DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException;
+
+    void delete(String name);
+
+    DTO getConfig(String name) throws DeploymentDoesNotExistException;
 }

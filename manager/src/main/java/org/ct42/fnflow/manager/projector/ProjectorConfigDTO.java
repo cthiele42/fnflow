@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.config;
+package org.ct42.fnflow.manager.projector;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
- * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
-@Component
-@ConfigurationProperties("deploymentcfg")
 @Data
-public class ManagerProperties {
-    private String osUris;
-    private String kafkaBrokers;
+public class ProjectorConfigDTO {
+    private String version;
+    private String topic;
+    private String index;
 }

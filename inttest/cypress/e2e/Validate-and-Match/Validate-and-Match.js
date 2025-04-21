@@ -20,17 +20,17 @@ Given("an index {string} with mapping:", (name, body) => {
     Cypress.env('ENTITY_INDEX', name)
 })
 
-Given("a pipeline processing app with name {string} and with this configs:", (name, body) => {
+Given("an app from type of {string}, with name {string}, and with this configs:", (appType, name, body) => {
     cy.request({
         method: 'POST',
-        url: 'http://localhost:32581/pipelines/' + name,
+        url: 'http://localhost:32581/' + appType + '/' + name,
         failOnStatusCode: true,
         body: JSON.parse(body)
     }).then(() => {
         return recurse(
             () => cy.request({
                 method: 'GET',
-                url: 'http://localhost:32581/pipelines/' + name + '/status',
+                url: 'http://localhost:32581/' + appType + '/' + name + '/status',
                 failOnStatusCode: false
             }),
             (response) => response.body.status === 'COMPLETED',
@@ -45,7 +45,9 @@ Given("a pipeline processing app with name {string} and with this configs:", (na
           return cy.wait(2000);
     });
 
-    Cypress.env('PIPELINE_NAME', name)
+    let apps = Cypress.env('APPS') || [];
+    apps.push({appType, name})
+    Cypress.env('APPS', apps)
 })
 
 Given("documents from {string} were indexed to {string}", (fixture, index) => {
@@ -98,6 +100,28 @@ Then("a number of {int} messages are landing in the topic {string}", (expected, 
     )
 })
 
+Then("a number of {int} entities are landing in the index {string}", (expected, index) => {
+    return recurse(
+        () => cy.request({
+            method: 'GET',
+            url: 'http://localhost:9200/' + index + '/_count',
+            failOnStatusCode: false
+        }),
+        (response) => {
+            if (response.status !== 200 && response.status !== 204) {
+                return false;
+            }
+            return response.body.count === expected;
+        },
+        {
+            log: true,
+            limit: 120,
+            timeout: 60000,
+            delay: 500
+        }
+    )
+})
+
 Then("in topic {string} all messages are having a key", (topic) => {
     cy.request({
         method: 'GET',
@@ -127,10 +151,7 @@ Then("a topic with name {string} and messageCount {int} exists", (topic, msgCoun
 //cleanup
 after(()=>{
     //delete pipeline
-    cy.request({
-        method: 'DELETE',
-        url: 'http://localhost:32581/pipelines/' + Cypress.env('PIPELINE_NAME'),
-    })
+    deleteApps(Cypress.env('APPS'));
 
     //delete entity index
     cy.request({
@@ -147,6 +168,15 @@ const deleteTopics = (topics) => {
         cy.request({
             method: 'DELETE',
             url: 'http://localhost:32580/' + name
+        })
+    });
+}
+
+const deleteApps = (apps) => {
+    apps.forEach((app) => {
+        cy.request({
+            method: 'DELETE',
+            url: 'http://localhost:32581/' + app.appType + '/' + app.name
         })
     });
 }

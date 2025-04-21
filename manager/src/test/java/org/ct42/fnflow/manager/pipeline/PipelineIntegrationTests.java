@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.pipeline;
 
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import org.ct42.fnflow.manager.AbstractIntegrationTests;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.DeploymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.convention.TestBean;
-import org.testcontainers.junit.jupiter.Container;
+import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.k3s.K3sContainer;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
-import java.time.Duration;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author Claas Thiele
@@ -44,28 +37,11 @@ import static org.awaitility.Awaitility.await;
  */
 @Testcontainers
 @SpringBootTest(properties = {
-		"processorcfg.os-uris=http://opensearch-cluster-master.default.svc:9200",
-		"processorcfg.kafka-brokers=kafka.default.svc:9092"
+		"deploymentcfg.os-uris=http://opensearch-cluster-master.default.svc:9200",
+		"deploymentcfg.kafka-brokers=kafka.default.svc:9092"
 })
-class ManagerApplicationTests {
-	@Container
-	static final K3sContainer k3s = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.3-k3s1"));
-
-
-	@TestBean
-	KubernetesClient kubernetesClient;
-
-	static KubernetesClient kubernetesClient() {
-		String config = k3s.getKubeConfigYaml();
-		KubernetesClientBuilder builder = new KubernetesClientBuilder();
-
-		// we do this in a conditional manner to satisfy processTestAOT
-		if(config != null) {
-			Config kubeconfig = Config.fromKubeconfig(config);
-			builder.withConfig(kubeconfig);
-		}
-		return builder.build();
-	}
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+class PipelineIntegrationTests extends AbstractIntegrationTests {
 
 	@Autowired
 	private PipelineService pipelineService;
@@ -118,7 +94,7 @@ class ManagerApplicationTests {
 		dto.setPipeline(List.of(functions, match, merge));
 
 		//WHEN
-		pipelineService.createOrUpdatePipeline("pipeline-name", dto);
+		pipelineService.createOrUpdate("pipeline-name", dto);
 
 		//THEN
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-name", 1);
@@ -128,14 +104,14 @@ class ManagerApplicationTests {
 				"--cfgfns.MergeCreate.merge.mappings[0].to=/name",
 				"--cfgfns.MergeCreate.merge.mappings[1].from=/name",
 				"--cfgfns.MergeCreate.merge.mappings[1].to=/product/fullName");
-		thenPipelineDeploymentIsCompleted("pipeline-name");
+		thenDeploymentIsCompleted("pipeline-name");
 
 		//WHEN
 		dto.setSourceTopic("sourceTopicChanged");
-		pipelineService.createOrUpdatePipeline("pipeline-name", dto);
+		pipelineService.createOrUpdate("pipeline-name", dto);
 
 		//THEN
-		thenPipelineDeploymentIsCompleted("pipeline-name");
+		thenDeploymentIsCompleted("pipeline-name");
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-name", 1);
 		thenPodWithInstanceNameArgumentsContains("pipeline-name", "--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopicChanged");
 	}
@@ -167,15 +143,14 @@ class ManagerApplicationTests {
 
 		dto.setPipeline(List.of(valid, match));
 
-		pipelineService.createOrUpdatePipeline("pipeline-tobedeleted", dto);
+		pipelineService.createOrUpdate("pipeline-tobedeleted", dto);
 
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-tobedeleted", 1);
 		thenPodWithInstanceNameArgumentsContains("pipeline-tobedeleted", "--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
-		thenPipelineDeploymentIsCompleted("pipeline-tobedeleted");
-
+		thenDeploymentIsCompleted("pipeline-tobedeleted");
 
 		//WHEN
-		pipelineService.deletePipeline("pipeline-tobedeleted");
+		pipelineService.delete("pipeline-tobedeleted");
 
 		//THEN
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-tobedeleted", 0);
@@ -239,37 +214,25 @@ class ManagerApplicationTests {
 
 		dto.setPipeline(List.of(functions, match, merge));
 
-		pipelineService.createOrUpdatePipeline("pipeline-toberead", dto);
+		pipelineService.createOrUpdate("pipeline-toberead", dto);
 
 		thenCountOfPodRunningAndWithInstanceLabel("pipeline-toberead", 1);
 		thenPodWithInstanceNameArgumentsContains("pipeline-toberead", "--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=sourceTopic");
-		thenPipelineDeploymentIsCompleted("pipeline-toberead");
+		thenDeploymentIsCompleted("pipeline-toberead");
 
 		//WHEN
-		PipelineConfigDTO config = pipelineService.getPipelineConfig("pipeline-toberead");
+		PipelineConfigDTO config = pipelineService.getConfig("pipeline-toberead");
 		then(config).isEqualTo(dto);
 	}
 
 	@Test
 	void testGetDeploymentThatDoesNotExist() {
-		thenThrownBy(() -> pipelineService.getPipelineConfig("this-does-not-exist")).isInstanceOf(DeploymentDoesNotExistException.class);
+		thenThrownBy(() -> pipelineService.getConfig("this-does-not-exist")).isInstanceOf(DeploymentDoesNotExistException.class);
 	}
 
-	private void thenCountOfPodRunningAndWithInstanceLabel(String instanceName, int count) {
-		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(kubernetesClient.pods()
-				.inNamespace("default")
-				.withLabel("app.kubernetes.io/instance", instanceName)
-				.list().getItems().stream().filter(p -> p.getStatus().getPhase().equals("Running")).collect(Collectors.toList())).hasSize(count));
+	@Override
+	protected DeploymentService<?> getDeploymentService() {
+		return pipelineService;
 	}
 
-	private void thenPipelineDeploymentIsCompleted(String pipelineName) {
-		await().atMost(Duration.ofSeconds(180)).untilAsserted(() -> assertThat(pipelineService.getPipelineStatus(pipelineName).getStatus()).isEqualTo(DeploymentStatusDTO.Status.COMPLETED));
-	}
-
-	private void thenPodWithInstanceNameArgumentsContains(String name, String... args) {
-		then(kubernetesClient.pods()
-				.inNamespace("default")
-				.withLabel("app.kubernetes.io/instance", name)
-				.list().getItems().getFirst().getSpec().getContainers().getFirst().getArgs()).contains(args);
-	}
 }

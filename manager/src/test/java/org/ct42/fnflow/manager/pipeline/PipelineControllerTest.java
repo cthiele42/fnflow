@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -99,7 +99,7 @@ public class PipelineControllerTest {
 
     @Test
     void createPipelineTest() throws Exception {
-        doNothing().when(pipelineService).createOrUpdatePipeline(any(), any());
+        doNothing().when(pipelineService).createOrUpdate(any(), any());
 
         mockMvc.perform(
             post("/pipelines/{name}", "sample-name")
@@ -166,7 +166,7 @@ public class PipelineControllerTest {
 
         dto.setPipeline(List.of(functions, match, merge));
 
-        when(pipelineService.getPipelineConfig(any())).thenReturn(dto);
+        when(pipelineService.getConfig(any())).thenReturn(dto);
 
         mockMvc.perform(get("/pipelines/{name}", "sample-name"))
         .andExpect(status().is2xxSuccessful())

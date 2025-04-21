@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.9'
+version = '0.0.10'
 
 java {
 	toolchain {
@@ -61,6 +61,6 @@ tasks.named("bootBuildImage") {
 
 bootRun {
 	jvmArgs '-agentlib:native-image-agent=config-output-dir=build/native/agent-output/run,config-write-period-secs=10,config-write-initial-delay-secs=5' ,'-Dspring.aot.enabled=true'
-	args '--processorcfg.os-uris=http://opensearch-cluster-master.default.svc:9200',
-			'--processorcfg.kafka-brokers=kafka.default.svc:9092'
+	args '--deploymentcfg.os-uris=http://opensearch-cluster-master.default.svc:9200',
+			'--deploymentcfg.kafka-brokers=kafka.default.svc:9092'
 }

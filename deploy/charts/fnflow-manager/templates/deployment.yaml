@@ -31,9 +31,9 @@ spec:
             - name: http
               containerPort: 8080
           env:
-            - name: PROCESSORCFG_OS-URIS
+            - name: DEPLOYMENTCFG_OS-URIS
               value: {{ .Values.opensearch.uris | quote }}
-            - name: PROCESSORCFG_KAFKA-BROKERS
+            - name: DEPLOYMENTCFG_KAFKA-BROKERS
               value: {{ .Values.kafka.brokers | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
