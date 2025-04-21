@@ -132,7 +132,7 @@ Feature: Validate and match input data
     And an app from type of 'projectors', with name 'sample-projector', and with this configs:
     """
     {
-      "version": "0.0.2-SNAPSHOT",
+      "version": "0.0.2",
       "topic": "output-topic",
       "index": "testindex"
     }
