@@ -33,23 +33,23 @@ public abstract class AbstractDeploymentController<DTO, Service extends Deployme
     private Service service;
 
     @PostMapping(value="/{name}")
-    public ResponseEntity<Void> createPipeline(@PathVariable String name, @RequestBody DTO config) {
+    public ResponseEntity<Void> create(@PathVariable String name, @RequestBody DTO config) {
         service.createOrUpdate(name, config);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping(value="/{name}/status")
-    public DeploymentStatusDTO getPipelineStatus(@PathVariable String name) throws DeploymentDoesNotExistException {
+    public DeploymentStatusDTO getStatus(@PathVariable String name) throws DeploymentDoesNotExistException {
         return service.getStatus(name);
     }
 
     @GetMapping(value="/{name}")
-    public DTO getPipelineConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
+    public DTO getConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
         return service.getConfig(name);
     }
 
     @DeleteMapping(value="/{name}")
-    public ResponseEntity<Void> deletePipeline(@PathVariable String name) {
+    public ResponseEntity<Void> delete(@PathVariable String name) {
         service.delete(name);
         return ResponseEntity.noContent().build();
     }
