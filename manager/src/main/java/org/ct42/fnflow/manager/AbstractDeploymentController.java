@@ -16,7 +16,6 @@
 
 package org.ct42.fnflow.manager;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +32,9 @@ import java.util.Map;
  */
 @AllArgsConstructor
 public abstract class AbstractDeploymentController<DTO, Service extends DeploymentService<DTO>> {
-
     private Service service;
+
+    protected abstract String getApptype();
 
     @PostMapping(value="/{name}")
     public ResponseEntity<Void> create(@PathVariable String name, @RequestBody DTO config) {
@@ -53,10 +53,8 @@ public abstract class AbstractDeploymentController<DTO, Service extends Deployme
     }
 
     @GetMapping
-    public Map<String, List<DeploymentDTO>> getList(HttpServletRequest request) {
-        String appType = request.getRequestURI().replace("/", "");
-
-        return Map.of(appType, service.getList());
+    public Map<String, List<DeploymentDTO>> getList() {
+        return Map.of(getApptype(), service.getList());
     }
 
     @DeleteMapping(value="/{name}")

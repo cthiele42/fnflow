@@ -28,11 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Sajjad Safaeian
  */
 @RestController
-@RequestMapping(value = "/projectors")
+@RequestMapping(value = "/" + ProjectorController.APP_TYPE)
 @RegisterReflectionForBinding(classes = {ProjectorConfigDTO.class, DeploymentStatusDTO.class, DeploymentDTO.class})
 public class ProjectorController extends AbstractDeploymentController<ProjectorConfigDTO, ProjectorService> {
+    public static final String APP_TYPE = "projectors";
 
     public ProjectorController(@Autowired ProjectorService projectorService) {
         super(projectorService);
+    }
+
+    @Override
+    protected String getApptype() {
+        return APP_TYPE;
     }
 }
