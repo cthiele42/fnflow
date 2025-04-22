@@ -17,6 +17,7 @@
 package org.ct42.fnflow.manager.pipeline;
 
 import org.ct42.fnflow.manager.AbstractDeploymentController;
+import org.ct42.fnflow.manager.DeploymentDTO;
 import org.ct42.fnflow.manager.DeploymentStatusDTO;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Sajjad Safaeian
  */
 @RestController
-@RequestMapping(value = "/pipelines")
-@RegisterReflectionForBinding(classes = {PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class, DeploymentStatusDTO.class})
+@RequestMapping(value = "/" + PipelineController.APP_TYPE)
+@RegisterReflectionForBinding(classes = {
+        PipelineConfigDTO.class, PipelineConfigDTO.FunctionCfg.class, DeploymentStatusDTO.class, DeploymentDTO.class
+})
 public class PipelineController extends AbstractDeploymentController<PipelineConfigDTO, PipelineService> {
+    public static final String APP_TYPE = "pipelines";
 
     public PipelineController(@Autowired PipelineService pipelineService) {
         super(pipelineService);
+    }
+
+    @Override
+    protected String getApptype() {
+        return APP_TYPE;
     }
 }

@@ -23,10 +23,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
-import org.ct42.fnflow.manager.DeploymentService;
-import org.ct42.fnflow.manager.DeploymentStatusDTO;
-import org.ct42.fnflow.manager.KubernetesHelperService;
+import org.ct42.fnflow.manager.*;
 import org.ct42.fnflow.manager.config.ManagerProperties;
 import org.springframework.stereotype.Service;
 
@@ -222,6 +219,11 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
         }
 
         return config;
+    }
+
+    @Override
+    public List<DeploymentDTO> getList() {
+        return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROCESSOR_PREFIX);
     }
 
     private Long convertHoursToMilliseconds(int hours) {

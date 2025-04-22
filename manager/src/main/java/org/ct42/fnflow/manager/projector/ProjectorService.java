@@ -18,10 +18,7 @@ package org.ct42.fnflow.manager.projector;
 
 import io.fabric8.kubernetes.api.model.Container;
 import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
-import org.ct42.fnflow.manager.DeploymentService;
-import org.ct42.fnflow.manager.DeploymentStatusDTO;
-import org.ct42.fnflow.manager.KubernetesHelperService;
+import org.ct42.fnflow.manager.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -79,5 +76,10 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
         });
 
         return config;
+    }
+
+    @Override
+    public List<DeploymentDTO> getList() {
+        return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROJECTOR_PREFIX);
     }
 }

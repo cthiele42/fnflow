@@ -17,6 +17,7 @@
 package org.ct42.fnflow.manager.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ct42.fnflow.manager.DeploymentDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -172,5 +173,19 @@ public class PipelineControllerTest {
         .andExpect(status().is2xxSuccessful())
         .andExpect(jsonPath("$.version", is("0.0.9")))
         .andExpect(jsonPath("$.pipeline[0][0].name", is("idExist")));
+    }
+
+    @Test
+    void getPipelineListTest() throws Exception {
+        when(pipelineService.getList()).thenReturn(
+            List.of(
+                new DeploymentDTO("pipeline-name-1"),
+                new DeploymentDTO("pipeline-name-2")
+            )
+        );
+
+        mockMvc.perform(get("/pipelines"))
+        .andExpect(status().is2xxSuccessful())
+        .andExpect(jsonPath("$.pipelines[0].name", is("pipeline-name-1")));
     }
 }

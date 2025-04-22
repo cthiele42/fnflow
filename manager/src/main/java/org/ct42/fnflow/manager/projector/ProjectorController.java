@@ -17,6 +17,7 @@
 package org.ct42.fnflow.manager.projector;
 
 import org.ct42.fnflow.manager.AbstractDeploymentController;
+import org.ct42.fnflow.manager.DeploymentDTO;
 import org.ct42.fnflow.manager.DeploymentStatusDTO;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Sajjad Safaeian
  */
 @RestController
-@RequestMapping(value = "/projectors")
-@RegisterReflectionForBinding(classes = {ProjectorConfigDTO.class, DeploymentStatusDTO.class})
+@RequestMapping(value = "/" + ProjectorController.APP_TYPE)
+@RegisterReflectionForBinding(classes = {ProjectorConfigDTO.class, DeploymentStatusDTO.class, DeploymentDTO.class})
 public class ProjectorController extends AbstractDeploymentController<ProjectorConfigDTO, ProjectorService> {
+    public static final String APP_TYPE = "projectors";
 
     public ProjectorController(@Autowired ProjectorService projectorService) {
         super(projectorService);
+    }
+
+    @Override
+    protected String getApptype() {
+        return APP_TYPE;
     }
 }

@@ -17,6 +17,7 @@
 package org.ct42.fnflow.manager.pipeline;
 
 import org.ct42.fnflow.manager.AbstractIntegrationTests;
+import org.ct42.fnflow.manager.DeploymentDTO;
 import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.DeploymentService;
 import org.junit.jupiter.api.Test;
@@ -228,6 +229,38 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 	@Test
 	void testGetDeploymentThatDoesNotExist() {
 		thenThrownBy(() -> pipelineService.getConfig("this-does-not-exist")).isInstanceOf(DeploymentDoesNotExistException.class);
+	}
+
+	@Test
+	void getListTest() {
+		//GIVEN
+		PipelineConfigDTO dto = new PipelineConfigDTO();
+		dto.setVersion("0.0.9");
+		dto.setSourceTopic("sourceTopic");
+		dto.setEntityTopic("entityTopic");
+		dto.setErrorTopic("errorTopic");
+
+		PipelineConfigDTO.FunctionCfg validCfg = new PipelineConfigDTO.FunctionCfg();
+		validCfg.setFunction("hasValueValidator");
+		validCfg.setName("idExist");
+		validCfg.setParameters(Map.of("elementPath", "/id"));
+		PipelineConfigDTO.SingleFunction valid = new PipelineConfigDTO.SingleFunction(validCfg);
+
+		dto.setPipeline(List.of(valid));
+
+		pipelineService.createOrUpdate("pipeline-name-1", dto);
+		pipelineService.createOrUpdate("pipeline-name-2", dto);
+		thenCountOfPodRunningAndWithInstanceLabel("pipeline-name-1", 1);
+		thenCountOfPodRunningAndWithInstanceLabel("pipeline-name-2", 1);
+
+		//When
+		List<DeploymentDTO> deployments = pipelineService.getList();
+
+		//Then
+		then(deployments)
+				.hasSize(2)
+				.extracting("name")
+				.contains("pipeline-name-1", "pipeline-name-2");
 	}
 
 	@Override

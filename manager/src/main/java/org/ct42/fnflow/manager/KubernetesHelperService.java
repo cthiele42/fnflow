@@ -39,7 +39,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class KubernetesHelperService {
-    private static final String NAMESPACE="default";
+    private static final String NAMESPACE = "default";
+    private static final String APP_LABEL_KEY = "app.kubernetes.io/name";
+    private static final String INSTANCE_LABEL_KEY = "app.kubernetes.io/instance";
 
     private final KubernetesClient k8sClient;
     private final ManagerProperties cfgProps;
@@ -50,8 +52,8 @@ public class KubernetesHelperService {
         //TODO construct args for kafka batch and compression settings and group and destinations
 
         Map<String, String> selectorLabels = Map.of(
-                "app.kubernetes.io/name", appName,
-                "app.kubernetes.io/instance", deploymentName
+                APP_LABEL_KEY, appName,
+                INSTANCE_LABEL_KEY, deploymentName
         );
 
         k8sClient.apps().deployments().inNamespace(NAMESPACE)
@@ -148,5 +150,16 @@ public class KubernetesHelperService {
         if(deployment == null) throw new DeploymentDoesNotExistException(deploymentName);
 
         return deployment.getSpec().getTemplate().getSpec().getContainers().getFirst();
+    }
+
+    public List<DeploymentDTO> getDeploymentsByLabel(String appName, String deploymentNamePrefix) {
+        return k8sClient.apps()
+            .deployments().inNamespace(NAMESPACE).withLabel(APP_LABEL_KEY, appName)
+            .list().getItems().stream()
+            .map(deployment ->
+                    new DeploymentDTO(
+                        deployment.getMetadata().getName().replaceFirst(deploymentNamePrefix, "")
+                    )
+            ).toList();
     }
 }

@@ -20,6 +20,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  *
  * @param <DTO>
@@ -29,8 +32,9 @@ import org.springframework.web.bind.annotation.*;
  */
 @AllArgsConstructor
 public abstract class AbstractDeploymentController<DTO, Service extends DeploymentService<DTO>> {
-
     private Service service;
+
+    protected abstract String getApptype();
 
     @PostMapping(value="/{name}")
     public ResponseEntity<Void> create(@PathVariable String name, @RequestBody DTO config) {
@@ -46,6 +50,11 @@ public abstract class AbstractDeploymentController<DTO, Service extends Deployme
     @GetMapping(value="/{name}")
     public DTO getConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
         return service.getConfig(name);
+    }
+
+    @GetMapping
+    public Map<String, List<DeploymentDTO>> getList() {
+        return Map.of(getApptype(), service.getList());
     }
 
     @DeleteMapping(value="/{name}")
