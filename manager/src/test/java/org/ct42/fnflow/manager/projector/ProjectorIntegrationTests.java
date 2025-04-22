@@ -17,12 +17,15 @@
 package org.ct42.fnflow.manager.projector;
 
 import org.ct42.fnflow.manager.AbstractIntegrationTests;
+import org.ct42.fnflow.manager.DeploymentDTO;
 import org.ct42.fnflow.manager.DeploymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.List;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -86,6 +89,26 @@ public class ProjectorIntegrationTests extends AbstractIntegrationTests {
         then(result).isEqualTo(config);
     }
 
+    @Test
+    void getListTest() {
+        //Given
+        ProjectorConfigDTO config = getProjectorConfig();
+
+        projectorService.createOrUpdate("projector-name-1", config);
+        projectorService.createOrUpdate("projector-name-2", config);
+        thenCountOfPodRunningAndWithInstanceLabel("projector-name-1", 1);
+        thenCountOfPodRunningAndWithInstanceLabel("projector-name-2", 1);
+
+        //When
+        List<DeploymentDTO> deployments = projectorService.getList();
+
+        //Then
+        then(deployments)
+            .hasSize(2)
+            .extracting("name")
+            .contains("projector-name-1", "projector-name-2");
+    }
+
     @Override
     protected DeploymentService<?> getDeploymentService() {
         return projectorService;
@@ -93,7 +116,7 @@ public class ProjectorIntegrationTests extends AbstractIntegrationTests {
 
     private ProjectorConfigDTO getProjectorConfig() {
         ProjectorConfigDTO config = new ProjectorConfigDTO();
-        config.setVersion("0.0.1");
+        config.setVersion("0.0.2");
         config.setTopic("entities-topic");
         config.setIndex("entities-index");
 

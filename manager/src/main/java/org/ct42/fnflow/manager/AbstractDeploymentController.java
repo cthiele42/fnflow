@@ -16,9 +16,13 @@
 
 package org.ct42.fnflow.manager;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -46,6 +50,13 @@ public abstract class AbstractDeploymentController<DTO, Service extends Deployme
     @GetMapping(value="/{name}")
     public DTO getConfig(@PathVariable String name) throws DeploymentDoesNotExistException {
         return service.getConfig(name);
+    }
+
+    @GetMapping
+    public Map<String, List<DeploymentDTO>> getList(HttpServletRequest request) {
+        String appType = request.getRequestURI().replace("/", "");
+
+        return Map.of(appType, service.getList());
     }
 
     @DeleteMapping(value="/{name}")

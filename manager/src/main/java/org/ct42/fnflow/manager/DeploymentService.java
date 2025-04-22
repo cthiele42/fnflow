@@ -16,6 +16,8 @@
 
 package org.ct42.fnflow.manager;
 
+import java.util.List;
+
 /**
  *
  * @param <DTO>
@@ -31,4 +33,6 @@ public interface DeploymentService<DTO> {
     void delete(String name);
 
     DTO getConfig(String name) throws DeploymentDoesNotExistException;
+
+    List<DeploymentDTO> getList();
 }
