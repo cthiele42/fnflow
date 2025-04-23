@@ -1,61 +1,10 @@
-/*
-NOTE: The plugin set has to be the same in all submodules,
-otherwise nativeCompile and other native* tasks will fail
-See: https://github.com/graalvm/native-build-tools/issues/572 and https://github.com/gradle/gradle/issues/17559
- */
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.2'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.graalvm.buildtools.native' version '0.10.4'
-	id 'idea'
-	id 'maven-publish'
-	id 'org.jreleaser' version '1.17.0'
+	id 'fnflow-library-conventions'
 }
 
 group = 'org.ct42.fnflow'
 version = '0.0.7'
-
-idea {
-	module {
-		downloadSources = true
-	}
-}
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-	withJavadocJar()
-	withSourcesJar()
-}
-
-bootJar {
-	enabled = false
-}
-
-jar {
-	archiveClassifier=''
-	enabled = true
-}
-
-processAot.enabled = false
-processTestAot.enabled = false
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-repositories {
-	mavenCentral()
-	mavenLocal()
-}
-
-ext {
-	set('springCloudVersion', "2024.0.0")
-}
+description= 'Function library with configurable functions for Json processing'
 
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-function-context'
@@ -66,90 +15,4 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
-tasks.withType(Javadoc) {
-	options.addStringOption('Xdoclint:none', '-quiet')
-}
-
-publishing {
-	repositories {
-		maven {
-			url = layout.buildDirectory.dir('staging-deploy')
-		}
-	}
-	publications {
-		maven(MavenPublication) {
-			versionMapping {
-				allVariants {
-					fromResolutionResult()
-				}
-			}
-			from(components.java)
-
-			pom {
-				name = 'fnlib'
-				description = 'Function library with configurable functions for Json processing'
-				url = 'https://github.com/cthiele42/fnflow'
-				inceptionYear = '2025'
-				licenses {
-					license {
-						name = 'Apache-2.0'
-						url = 'https://spdx.org/licenses/Apache-2.0.html'
-					}
-				}
-				developers {
-					developer {
-						id = 'cthiele42'
-						name = 'Claas Thiele'
-					}
-					developer {
-						id = 'safairon'
-						name = 'Sajjad Safaeian'
-					}
-				}
-				scm {
-					connection = 'scm:git:https://github.com/cthiele42/fnflow.git'
-					developerConnection = 'scm:git:ssh://github.com/cthiele42/fnflow.git'
-					url = 'http://github.com/cthiele42/fnflow'
-				}
-			}
-		}
-	}
-}
-
-jreleaser {
-	gitRootSearch = true
-	signing {
-		active = 'ALWAYS'
-		armored = true
-	}
-	deploy {
-		maven {
-			mavenCentral {
-				sonatype {
-					active = 'ALWAYS'
-					url = 'https://central.sonatype.com/api/v1/publisher'
-					stagingRepository('build/staging-deploy')
-					retryDelay = 30
-					maxRetries = 60
-				}
-			}
-		}
-	}
-	release {
-		github {
-			tagName = '{{projectName}}-{{projectVersion}}'
-		}
-	}
 }
