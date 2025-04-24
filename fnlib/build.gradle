@@ -6,6 +6,16 @@ group = 'org.ct42.fnflow'
 version = '0.0.7'
 description= 'Function library with configurable functions for Json processing'
 
+ext {
+	set('springCloudVersion', "2024.0.0")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-function-context'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
