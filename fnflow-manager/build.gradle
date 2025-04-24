@@ -1,36 +1,9 @@
-/*
-NOTE: The plugin set has to be the same in all submodules,
-otherwise nativeCompile and other native* tasks will fail
-See: https://github.com/graalvm/native-build-tools/issues/572 and https://github.com/gradle/gradle/issues/17559
- */
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.2'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.graalvm.buildtools.native' version '0.10.4'
-	id 'idea'
-	id 'maven-publish'
-	id 'org.jreleaser' version '1.17.0'
+	id 'fnflow-native-conventions'
 }
 
 group = 'org.ct42.fnflow'
 version = '0.0.11'
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-repositories {
-	mavenCentral()
-}
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -43,20 +16,6 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation "org.testcontainers:k3s:1.20.6"
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
-tasks.named("bootBuildImage") {
-	imageName.set("ct42/fnflow-manager:${version}")
-	docker {
-		publishRegistry {
-			username = "$usr"
-			password = "$pwd"
-		}
-	}
 }
 
 bootRun {

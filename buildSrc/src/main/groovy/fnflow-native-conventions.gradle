@@ -1,0 +1,15 @@
+plugins {
+    id 'fnflow-java-conventions'
+    id 'org.graalvm.buildtools.native'
+}
+
+tasks.named("bootBuildImage") {
+    imageName.set("ct42/${project.name}:${version}")
+    docker {
+        publishRegistry {
+            username = "$usr"
+            password = "$pwd"
+        }
+    }
+}
+
