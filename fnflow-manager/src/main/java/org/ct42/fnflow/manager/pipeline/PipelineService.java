@@ -1,6 +1,11 @@
 package org.ct42.fnflow.manager.pipeline;
 
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.manager.*;
 import org.springframework.stereotype.Service;
@@ -10,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +30,8 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
     private static final String PROCESSOR_PREFIX="proc-";
 
     private final KubernetesHelperService kubernetesHelperService;
+    private SharedIndexInformer<Deployment> deploymentInformer;
+    private Map<Consumer<DeploymentInfo>, ResourceEventHandler<Deployment>> handlerLookup = new HashMap<>();
 
     @Override
     public void createOrUpdate(String name, PipelineConfigDTO config) {
@@ -205,6 +213,34 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
     @Override
     public List<DeploymentDTO> getList() {
         return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROCESSOR_PREFIX);
+    }
+
+    @PostConstruct
+    void initInformer() {
+        deploymentInformer = kubernetesHelperService.createDeploymentInformer(APP_NAME);
+    }
+
+    @PreDestroy
+    void cleanupInformer() {
+        if(deploymentInformer != null) {
+            deploymentInformer.close();
+        }
+    }
+
+    public void addDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
+        if(!handlerLookup.containsKey(listener)) {
+            DeploymentInfoHandler handler = new DeploymentInfoHandler(listener);
+            handler.setAppPrefix(PROCESSOR_PREFIX);
+            handlerLookup.put(listener, handler);
+            deploymentInformer.addEventHandler(handler);
+        }
+    }
+
+    public void removeDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
+        handlerLookup.computeIfPresent(listener, (l, h) -> {
+            deploymentInformer.removeEventHandler(h);
+            return null;
+        });
     }
 
     private Long convertHoursToMilliseconds(int hours) {

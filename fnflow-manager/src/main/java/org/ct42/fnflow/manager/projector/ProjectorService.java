@@ -17,12 +17,20 @@
 package org.ct42.fnflow.manager.projector;
 
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.manager.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author Sajjad Safaeian
@@ -36,6 +44,8 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
     private static final String PROJECTOR_PREFIX = "projector-";
 
     private final KubernetesHelperService kubernetesHelperService;
+    private SharedIndexInformer<Deployment> deploymentInformer;
+    private Map<Consumer<DeploymentInfo>, ResourceEventHandler<Deployment>> handlerLookup = new HashMap<>();
 
     @Override
     public void createOrUpdate(String name, ProjectorConfigDTO config) {
@@ -81,5 +91,33 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
     @Override
     public List<DeploymentDTO> getList() {
         return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROJECTOR_PREFIX);
+    }
+
+    @PostConstruct
+    void initInformer() {
+        deploymentInformer = kubernetesHelperService.createDeploymentInformer(APP_NAME);
+    }
+
+    @PreDestroy
+    void cleanupInformer() {
+        if(deploymentInformer != null) {
+            deploymentInformer.close();
+        }
+    }
+
+    public void addDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
+        if(!handlerLookup.containsKey(listener)) {
+            DeploymentInfoHandler handler = new DeploymentInfoHandler(listener);
+            handler.setAppPrefix(PROJECTOR_PREFIX);
+            handlerLookup.put(listener, handler);
+            deploymentInformer.addEventHandler(handler);
+        }
+    }
+
+    public void removeDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
+        handlerLookup.computeIfPresent(listener, (l, h) -> {
+            deploymentInformer.removeEventHandler(h);
+            return null;
+        });
     }
 }

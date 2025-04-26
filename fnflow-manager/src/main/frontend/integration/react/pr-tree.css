@@ -1,0 +1,21 @@
+.pr-tree .p-treenode-content {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.pr-tree .p-treenode {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.pi-play-circle.p-treenode-icon {
+    color: darkgreen;
+}
+
+.pi-times-circle.p-treenode-icon {
+    color: darkred;
+}
+
+.pi-spinner-dotted.p-treenode-icon {
+    color: darkgoldenrod;
+}

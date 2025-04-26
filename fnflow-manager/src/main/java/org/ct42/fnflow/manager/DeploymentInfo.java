@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.ct42.fnflow.manager;
 
-import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.component.page.Push;
-import com.vaadin.flow.theme.Theme;
-import org.ct42.fnflow.manager.aot.Fabric8RuntimeHints;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ImportRuntimeHints;
+import lombok.Data;
 
 /**
  * @author Claas Thiele
- * @author Sajjad Safaeian
  */
-@SpringBootApplication
-@ImportRuntimeHints(Fabric8RuntimeHints.class)
-@Theme("my-theme")
-@Push
-public class ManagerApplication implements AppShellConfigurator {
+@Data
+public class DeploymentInfo {
+    private Action action;
+    private String internalName;
+    private String name;
+    private DeploymentStatusDTO status;
+    private Long generation;
+    private String creationTimestamp;
 
-    public static void main(String[] args) {
-        SpringApplication.run(ManagerApplication.class, args);
+    public static enum Action {
+        ADD, UPDATE, DELETE
     }
 }
