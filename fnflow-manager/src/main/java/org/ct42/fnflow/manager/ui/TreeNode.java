@@ -26,11 +26,10 @@ import java.util.List;
  */
 @Data
 public class TreeNode {
-    private String id;
     private String key;
     private String label;
-    private Object data;
     private String icon;
+    private String data;
     private List<TreeNode> children = new ArrayList<>();
     private String className;
     private boolean droppable = true;

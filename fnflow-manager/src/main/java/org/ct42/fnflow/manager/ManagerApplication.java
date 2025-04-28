@@ -19,6 +19,8 @@ import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.theme.Theme;
 import org.ct42.fnflow.manager.aot.Fabric8RuntimeHints;
+import org.ct42.fnflow.manager.ui.TreeNode;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportRuntimeHints;
@@ -29,8 +31,9 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  */
 @SpringBootApplication
 @ImportRuntimeHints(Fabric8RuntimeHints.class)
-@Theme("my-theme")
+@Theme(value="my-theme")
 @Push
+@RegisterReflectionForBinding(classes = TreeNode.class)
 public class ManagerApplication implements AppShellConfigurator {
 
     public static void main(String[] args) {

@@ -3,6 +3,16 @@
     padding-bottom: 0;
 }
 
+.p-treenode-label {
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.p-treenode-label .info {
+    font-weight: normal;
+    font-style: italic;
+}
+
 .pr-tree .p-treenode {
     padding-top: 0;
     padding-bottom: 0;

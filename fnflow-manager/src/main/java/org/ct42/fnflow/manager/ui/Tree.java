@@ -16,18 +16,22 @@
 
 package org.ct42.fnflow.manager.ui;
 
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Tag;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
+import com.vaadin.flow.component.tabs.TabSheet;
+import elemental.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.ct42.fnflow.manager.DeploymentInfo;
 import org.ct42.fnflow.manager.pipeline.PipelineService;
 import org.ct42.fnflow.manager.projector.ProjectorService;
 
+import java.time.Instant;
 import java.util.function.Consumer;
 
 /**
@@ -98,7 +102,6 @@ public class Tree extends ReactAdapterComponent {
 
         @Override
         public void accept(DeploymentInfo dI) {
-            log.info("PROC: {}: {}", dI.getAction(), dI.getName());
             switch (dI.getAction()) {
                 case ADD -> getUI().ifPresent(ui -> ui.access(() -> {
                     TreeNode[] nodes = Tree.this.getNodes();
@@ -106,15 +109,20 @@ public class Tree extends ReactAdapterComponent {
                     if(procs.getChildren().stream().noneMatch(proc -> proc.getKey().equals(dI.getInternalName()))) {
                         TreeNode node = new TreeNode();
                         node.setKey(dI.getInternalName());
-                        node.setLabel(dI.getName());
                         node.setLeaf(true);
                         node.setSelectable(true);
+                        node.setLabel(dI.getName());
                         switch(dI.getStatus().getStatus()) {
                             case COMPLETED -> node.setIcon("pi pi-play-circle");
                             case PROGRESSING -> node.setIcon("pi pi-spinner-dotted pi-spin");
                             case FAILED -> node.setIcon("pi pi-times-circle");
                             case UNKNOWN -> node.setIcon("pi pi-question-circle");
                         }
+                        long epochSeconds = Instant.parse(dI.getCreationTimestamp()).getEpochSecond();
+                        node.setData(formatDurationWordsShort(
+                                System.currentTimeMillis() - (epochSeconds * 1000L),
+                                true,
+                                true));
                         procs.getChildren().add(node);
                     }
                     procs.setLeaf(procs.getChildren().isEmpty());
@@ -124,6 +132,7 @@ public class Tree extends ReactAdapterComponent {
                     TreeNode[] nodes = Tree.this.getNodes();
                     TreeNode procs = nodes[rootNodeIndex];
                     procs.getChildren().removeIf(n -> n.getKey().equals(dI.getInternalName()));
+                    procs.setLeaf(procs.getChildren().isEmpty());
                     Tree.this.setNodes(nodes);
                 }));
                 case UPDATE -> getUI().ifPresent(ui -> ui.access(() -> {
@@ -131,6 +140,11 @@ public class Tree extends ReactAdapterComponent {
                     TreeNode procs = nodes[rootNodeIndex];
                     procs.getChildren().stream().filter(n -> n.getKey().equals(dI.getInternalName())).forEach(v -> {
                         v.setLabel(dI.getName());
+                        long epochSeconds = Instant.parse(dI.getCreationTimestamp()).getEpochSecond();
+                        v.setData(formatDurationWordsShort(
+                                System.currentTimeMillis() - (epochSeconds * 1000L),
+                                true,
+                                true));
                         switch(dI.getStatus().getStatus()) {
                             case COMPLETED -> v.setIcon("pi pi-play-circle");
                             case PROGRESSING -> v.setIcon("pi pi-spinner-dotted pi-spin");
@@ -154,6 +168,31 @@ public class Tree extends ReactAdapterComponent {
             projectorChangeHandler = new DeploymentChangeHandler(1);
             projectorService.addDeploymentInfoListener(projectorChangeHandler);
         }
+        getElement().addEventListener("execute", event -> {
+            JsonObject cmd = event.getEventData().getObject("event.detail");
+            String key = cmd.getString("key");
+            String type = cmd.getString("type");
+            if(key.startsWith("proc-")) {
+                String name = key.replaceFirst("proc-", "");
+                switch (type) {
+                    case "delete" -> pipelineService.delete(name);
+                    case "load" -> getUI().ifPresent(uil -> uil.access(() -> {
+                        UI ui = UI.getCurrent();
+                        Component currentView = ui.getCurrentView();
+                        currentView.getChildren().forEach(child -> {
+                            if(child instanceof TabSheet tabSheet) {
+                                tabSheet.add(name, new Div(new Text("This could be the editor for " + name)));
+                            }
+                        });
+                    }));
+                }
+            } else if(key.startsWith("projector-")) {
+                String name = key.replaceFirst("projector-", "");
+                switch(type) {
+                    case "delete" -> projectorService.delete(name);
+                }
+            }
+        }).addEventData("event.detail");
     }
 
     @Override
@@ -164,5 +203,49 @@ public class Tree extends ReactAdapterComponent {
         if(projectorChangeHandler != null) {
             projectorService.removeDeploymentInfoListener(projectorChangeHandler);
         }
+    }
+
+    private String formatDurationWordsShort(
+            final long durationMillis,
+            final boolean suppressLeadingZeroElements,
+            final boolean suppressTrailingZeroElements) {
+
+        // This method is generally replaceable by the format method, but
+        // there are a series of tweaks and special cases that require
+        // trickery to replicate.
+        String duration = DurationFormatUtils.formatDuration(durationMillis, "d'd 'H'h 'm'm 's's'");
+        if (suppressLeadingZeroElements) {
+            // this is a temporary marker on the front. Like ^ in regexp.
+            duration = " " + duration;
+            String tmp = StringUtils.replaceOnce(duration, " 0d", StringUtils.EMPTY);
+            if (tmp.length() != duration.length()) {
+                duration = tmp;
+                tmp = StringUtils.replaceOnce(duration, " 0h", StringUtils.EMPTY);
+                if (tmp.length() != duration.length()) {
+                    duration = tmp;
+                    tmp = StringUtils.replaceOnce(duration, " 0m", StringUtils.EMPTY);
+                    duration = tmp;
+                }
+            }
+            if (!duration.isEmpty()) {
+                // strip the space off again
+                duration = duration.substring(1);
+            }
+        }
+        if (suppressTrailingZeroElements) {
+            String tmp = StringUtils.replaceOnce(duration, " 0s", StringUtils.EMPTY);
+            if (tmp.length() != duration.length()) {
+                duration = tmp;
+                tmp = StringUtils.replaceOnce(duration, " 0m", StringUtils.EMPTY);
+                if (tmp.length() != duration.length()) {
+                    duration = tmp;
+                    tmp = StringUtils.replaceOnce(duration, " 0h", StringUtils.EMPTY);
+                    if (tmp.length() != duration.length()) {
+                        duration = StringUtils.replaceOnce(tmp, " 0d", StringUtils.EMPTY);
+                    }
+                }
+            }
+        }
+        return duration.trim();
     }
 }

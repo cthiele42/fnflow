@@ -17,6 +17,7 @@
 package org.ct42.fnflow.manager.ui.view;
 
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
@@ -36,6 +37,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 @RequiredArgsConstructor
 @Layout
 @Slf4j
+@JsModule("@vaadin/vaadin-lumo-styles/presets/compact.js")
 public class RootLayout extends AppLayout implements AfterNavigationObserver {
     private final PipelineService pipelineService;
     private final ProjectorService projectorService;
