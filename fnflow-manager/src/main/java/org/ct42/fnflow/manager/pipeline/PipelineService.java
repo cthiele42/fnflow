@@ -58,6 +58,12 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
         args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=" + config.getEntityTopic());
         args.add("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=" + config.getErrorTopic());
         args.add("--spring.cloud.stream.kafka.binder.autoAlterTopics=true");
+        args.add("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.cleanup.policy="
+                + config.getCleanUpMode().toString().toLowerCase());
+        args.add(
+            "--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties." +
+            getCleanUpConfig(config.getCleanUpMode()) + "=" + convertHoursToMilliseconds(config.getCleanUpTimeHours())
+        );
         args.add("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms="
                 + convertHoursToMilliseconds(config.getErrRetentionHours()));
 
@@ -104,16 +110,22 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
 
         container.getArgs().forEach(arg -> {
             if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-in-0.destination=")) {
-                config.setSourceTopic(arg.substring(arg.lastIndexOf("=") + 1));
+                config.setSourceTopic(getArgValue(arg));
             } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-0.destination=")) {
-                config.setEntityTopic(arg.substring(arg.lastIndexOf("=") + 1));
+                config.setEntityTopic(getArgValue(arg));
             } else if(arg.startsWith("--spring.cloud.stream.bindings.fnFlowComposedFnBean-out-1.destination=")) {
-                config.setErrorTopic(arg.substring(arg.lastIndexOf("=") + 1));
+                config.setErrorTopic(getArgValue(arg));
             } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms=")) {
-                long milliseconds = Long.parseLong(arg.substring(arg.lastIndexOf("=") + 1));
-                config.setErrRetentionHours((int)(milliseconds / 3600000));
+                long milliseconds = Long.parseLong(getArgValue(arg));
+                config.setErrRetentionHours(convertMillisecondsToHours(milliseconds));
+            } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.cleanup.policy=")) {
+                config.setCleanUpMode(PipelineConfigDTO.CleanUpMode.valueOf(getArgValue(arg).toUpperCase()));
+            } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.retention.ms=") ||
+                    arg.startsWith("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.max.compaction.lag.ms=")) {
+                long milliseconds = Long.parseLong(getArgValue(arg));
+                config.setCleanUpTimeHours(convertMillisecondsToHours(milliseconds));
             } else if(arg.startsWith("--org.ct42.fnflow.function.definition=")) {
-                fnDef.set(arg.substring(arg.lastIndexOf("=") + 1));
+                fnDef.set(getArgValue(arg));
             } else if(arg.startsWith("--cfgfns.")) {
                 pipelineCfg.add(arg.substring(9));
             }
@@ -207,10 +219,6 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
         return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROCESSOR_PREFIX);
     }
 
-    private Long convertHoursToMilliseconds(int hours) {
-        return hours * 60L * 60L * 1000L;
-    }
-
     private void prepareFunctionArgs(PipelineConfigDTO.FunctionCfg functionCfg, List<String> args) {
         String prefix = "--cfgfns." + functionCfg.getFunction() + "." + functionCfg.getName();
         functionCfg.getParameters().forEach((k, v) -> {
@@ -231,4 +239,24 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
             }
         });
     }
+
+    private String getCleanUpConfig(PipelineConfigDTO.CleanUpMode cleanUpMode) {
+        return switch (cleanUpMode) {
+            case DELETE -> "retention.ms";
+            case COMPACT -> "max.compaction.lag.ms";
+        };
+    }
+
+    private Long convertHoursToMilliseconds(int hours) {
+        return hours * 60L * 60L * 1000L;
+    }
+
+    private int convertMillisecondsToHours(long milliseconds) {
+        return (int)(milliseconds / 3600000);
+    }
+
+    private String getArgValue(String arg) {
+        return arg.substring(arg.lastIndexOf("=") + 1);
+    }
+
 }
