@@ -45,8 +45,9 @@ public class PipelineConfigDTO {
     private String sourceTopic;
     private String entityTopic;
     private String errorTopic;
+    private CleanUpMode cleanUpMode = CleanUpMode.COMPACT;
+    private int cleanUpTimeHours = 336; //default 14 days
     private int errRetentionHours = 336; //default 14 days
-    private int outCompactionLagHours = 744; //default 31 days
     private List<Function> pipeline;
 
     @Data
@@ -103,4 +104,7 @@ public class PipelineConfigDTO {
         }
     }
 
+    public enum CleanUpMode {
+        COMPACT, DELETE
+    }
 }

@@ -55,6 +55,8 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
+		dto.setCleanUpMode(PipelineConfigDTO.CleanUpMode.DELETE);
+		dto.setCleanUpTimeHours(1);
 
 		PipelineConfigDTO.FunctionCfg validCfg = new PipelineConfigDTO.FunctionCfg();
 		validCfg.setFunction("hasValueValidator");
@@ -65,8 +67,10 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 		emitCfg.setFunction("ChangeEventEmit");
 		emitCfg.setName("validateEmitter");
 		emitCfg.setParameters(Map.of(
-				"eventContent", "/",
-				"topic", "validate-topic"
+				"eventContent", "",
+				"topic", "validate-topic",
+				"cleanUpMode", PipelineConfigDTO.CleanUpMode.DELETE,
+				"cleanUpTimeHours", 1
 		));
 		PipelineConfigDTO.MultipleFunctions functions =
 				new PipelineConfigDTO.MultipleFunctions(List.of(validCfg, emitCfg));
@@ -104,7 +108,11 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 				"--cfgfns.MergeCreate.merge.mappings[0].from=/name",
 				"--cfgfns.MergeCreate.merge.mappings[0].to=/name",
 				"--cfgfns.MergeCreate.merge.mappings[1].from=/name",
-				"--cfgfns.MergeCreate.merge.mappings[1].to=/product/fullName");
+				"--cfgfns.MergeCreate.merge.mappings[1].to=/product/fullName",
+				"--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.cleanup.policy=delete",
+				"--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-0.producer.topic.properties.retention.ms=3600000",
+				"--spring.cloud.stream.kafka.bindings.validate-topic.producer.topic.properties.cleanup.policy=delete",
+				"--spring.cloud.stream.kafka.bindings.validate-topic.producer.topic.properties.retention.ms=3600000");
 		thenDeploymentIsCompleted("pipeline-name");
 
 		//WHEN
@@ -165,6 +173,7 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
+		dto.setCleanUpTimeHours(1);
 
 		PipelineConfigDTO.FunctionCfg validCfg = new PipelineConfigDTO.FunctionCfg();
 		validCfg.setFunction("hasValueValidator");
@@ -175,8 +184,10 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 		emitCfg.setFunction("ChangeEventEmit");
 		emitCfg.setName("validateEmitter");
 		emitCfg.setParameters(Map.of(
-				"eventContent", "/",
-				"topic", "validate-topic"
+				"eventContent", "",
+				"topic", "validate-topic",
+				"cleanUpMode", PipelineConfigDTO.CleanUpMode.DELETE,
+				"cleanUpTimeHours", 1
 		));
 		PipelineConfigDTO.MultipleFunctions functions =
 				new PipelineConfigDTO.MultipleFunctions(List.of(validCfg, emitCfg));
