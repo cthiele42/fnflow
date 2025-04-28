@@ -63,6 +63,8 @@ Feature: Validate and match input data
       "entityTopic": "output-topic",
       "errorTopic": "error-topic",
       "errRetentionHours": 1,
+      "cleanUpMode": "COMPACT",
+      "cleanUpTimeHours": 1,
       "pipeline": [
         {
           "name": "idExist",
@@ -114,7 +116,9 @@ Feature: Validate and match input data
             "function": "ChangeEventEmit",
             "parameters": {
               "eventContent": "/input",
-              "topic": "source-topic"
+              "topic": "source-topic",
+              "cleanUpMode": "COMPACT",
+              "cleanUpTimeHours": 1
             }
           },
           {
