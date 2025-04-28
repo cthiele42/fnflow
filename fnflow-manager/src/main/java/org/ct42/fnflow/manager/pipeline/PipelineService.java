@@ -5,12 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.manager.*;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Claas Thiele
@@ -38,8 +36,8 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
 
         String definition =
                 config.getPipeline().stream()
-                        .map(function -> {
-                            return switch (function) {
+                        .map(function ->
+                            switch (function) {
                                 case PipelineConfigDTO.SingleFunction singleFunction ->
                                         singleFunction.getFunction().getName();
                                 case PipelineConfigDTO.MultipleFunctions multipleFunctions ->
@@ -47,8 +45,8 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
                                                 .map(PipelineConfigDTO.FunctionCfg::getName)
                                                 .collect(Collectors.joining("+"));
                                 default -> throw new IllegalStateException("Unexpected value: " + function);
-                            };
-                        }).collect(Collectors.joining("|"));
+                            }
+                        ).collect(Collectors.joining("|"));
         args.add("--org.ct42.fnflow.function.definition=" + definition);
         args.add("--spring.cloud.stream.kafka.default.producer.compression-type=lz4");
         args.add("--spring.cloud.stream.kafka.default.producer.configuration.batch.size=131072");
@@ -66,6 +64,22 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
         );
         args.add("--spring.cloud.stream.kafka.bindings.fnFlowComposedFnBean-out-1.producer.topic.properties.retention.ms="
                 + convertHoursToMilliseconds(config.getErrRetentionHours()));
+
+        getListOfChangeEventEmitWithTopicParam(config).forEach(functionCfg -> {
+                String topic = functionCfg.getParameters().get("topic").toString();
+                int cleanUpTimeHours = (int) functionCfg.getParameters().getOrDefault("cleanUpTimeHours", 336);
+                PipelineConfigDTO.CleanUpMode cleanUpMode =
+                    PipelineConfigDTO.CleanUpMode.valueOf(
+                        functionCfg.getParameters().getOrDefault("cleanUpMode", "COMPACT").toString()
+                    );
+
+                args.add("--spring.cloud.stream.kafka.bindings." + topic + ".producer.topic.properties.cleanup.policy="
+                        + cleanUpMode.toString().toLowerCase());
+                args.add(
+                        "--spring.cloud.stream.kafka.bindings." + topic + ".producer.topic.properties." +
+                                getCleanUpConfig(cleanUpMode) + "=" + convertHoursToMilliseconds(cleanUpTimeHours)
+                );
+            });
 
         kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROCESSOR_PREFIX, IMAGE, config.getVersion(), args);
     }
@@ -211,6 +225,20 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
             config.setPipeline(functions);
         }
 
+        getListOfChangeEventEmitWithTopicParam(config).forEach(functionCfg -> {
+            String topic = functionCfg.getParameters().get("topic").toString();
+
+            container.getArgs().forEach(arg -> {
+                if(arg.startsWith("--spring.cloud.stream.kafka.bindings."+ topic + ".producer.topic.properties.cleanup.policy=")) {
+                    functionCfg.getParameters().put("cleanUpMode", PipelineConfigDTO.CleanUpMode.valueOf(getArgValue(arg).toUpperCase()));
+                } else if(arg.startsWith("--spring.cloud.stream.kafka.bindings." + topic + ".producer.topic.properties.retention.ms=") ||
+                        arg.startsWith("--spring.cloud.stream.kafka.bindings." + topic + ".producer.topic.properties.max.compaction.lag.ms=")) {
+                    long milliseconds = Long.parseLong(getArgValue(arg));
+                    functionCfg.getParameters().put("cleanUpTimeHours", convertMillisecondsToHours(milliseconds));
+                }
+            });
+        });
+
         return config;
     }
 
@@ -259,4 +287,21 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
         return arg.substring(arg.lastIndexOf("=") + 1);
     }
 
+    private List<PipelineConfigDTO.FunctionCfg> getListOfChangeEventEmitWithTopicParam(PipelineConfigDTO config) {
+        return config.getPipeline().stream()
+            .flatMap(function ->
+                switch (function) {
+                    case PipelineConfigDTO.SingleFunction singleFunction ->
+                            Stream.of(singleFunction.getFunction());
+                    case PipelineConfigDTO.MultipleFunctions multipleFunctions ->
+                            multipleFunctions.getFunctions().stream();
+                    default -> throw new IllegalStateException("Unexpected value: " + function);
+                }
+            )
+            .filter(functionCfg ->
+                functionCfg.getFunction().equals("ChangeEventEmit") &&
+                functionCfg.getParameters().containsKey("topic")
+            )
+            .toList();
+    }
 }
