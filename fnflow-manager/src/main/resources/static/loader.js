@@ -33,10 +33,28 @@ function loadFromDeploymentToWorkspace(name, workspace) {
                                 },
                                 outputTopic: {
                                     shadow: {
-                                        type: "text",
+                                        type: "tParamTopic",
                                         id: Blockly.utils.idGenerator.genUid(),
+                                        inputs: {
+                                            name: {
+                                                shadow: {
+                                                    type: "text",
+                                                    fields: {
+                                                        TEXT: data.entityTopic
+                                                    }
+                                                }
+                                            },
+                                            cleanUpTimeHours: {
+                                                shadow: {
+                                                    type: "math_number",
+                                                    fields: {
+                                                        NUM: data.cleanUpTimeHours
+                                                    }
+                                                }
+                                            }
+                                        },
                                         fields: {
-                                            TEXT: data.entityTopic
+                                            cleanUpMode: data.cleanUpMode
                                         }
                                     }
                                 },
@@ -358,10 +376,28 @@ function createBlockContent(p) {
             if(Object.hasOwn(p.parameters, 'topic')) {
                 fn.block.inputs.topic = {
                     shadow: {
-                        type: 'text',
+                        type: 'tParamTopic',
                         id: Blockly.utils.idGenerator.genUid(),
+                        inputs: {
+                            name: {
+                                shadow: {
+                                    type: "text",
+                                    fields: {
+                                        TEXT: p.parameters.topic
+                                    }
+                                }
+                            },
+                            cleanUpTimeHours: {
+                                shadow: {
+                                    type: "math_number",
+                                    fields: {
+                                        NUM: p.parameters.cleanUpTimeHours
+                                    }
+                                }
+                            }
+                        },
                         fields: {
-                            TEXT: p.parameters.topic
+                            cleanUpMode: p.parameters.cleanUpMode
                         }
                     }
                 }

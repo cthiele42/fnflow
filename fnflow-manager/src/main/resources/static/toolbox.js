@@ -12,6 +12,28 @@ function createToolbox() {
             },
             {
                 kind: 'block',
+                type: 'tParamTopic',
+                inputs: {
+                    name: {
+                        shadow: {
+                            type: "text",
+                            fields: {
+                                TEXT: "topic-name"
+                            }
+                        }
+                    },
+                    cleanUpTimeHours: {
+                        shadow: {
+                            type: "math_number",
+                            fields: {
+                                NUM: 336
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                kind: 'block',
                 type: 'tParamFromInput',
                 inputs: {
                     paramName: {

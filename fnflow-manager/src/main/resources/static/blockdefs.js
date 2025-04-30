@@ -25,6 +25,43 @@ function blockdefs() {
             "inputsInline": false
         },
         {
+            "type": "tParamTopic",
+            "tooltip": "Template parameter for topic",
+            "helpUrl": "",
+            "message0": "Topic: name %1 cleanUp %2 cleanUpTime %3 ",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "name",
+                    "align": "RIGHT",
+                    "check": "String"
+                },
+                {
+                    "type": "field_dropdown",
+                    "name": "cleanUpMode",
+                    "options": [
+                        [
+                            "COMPACT",
+                            "COMPACT"
+                        ],
+                        [
+                            "DELETE",
+                            "DELETE"
+                        ]
+                    ]
+                },
+                {
+                    "type": "input_value",
+                    "name": "cleanUpTimeHours",
+                    "align": "RIGHT",
+                    "check": "Number"
+                }
+            ],
+            "colour": 80,
+            "output": "Topic",
+            "inputsInline": true
+        },
+        {
             "type": "processor",
             "tooltip": "A FnFlow processor",
             "helpUrl": "",
@@ -46,7 +83,7 @@ function blockdefs() {
                     "type": "input_value",
                     "name": "outputTopic",
                     "align": "RIGHT",
-                    "check": "String"
+                    "check": "Topic"
                 },
                 {
                     "type": "input_value",
@@ -340,7 +377,7 @@ function blockdefs() {
                     "type": "input_value",
                     "name": "topic",
                     "align": "RIGHT",
-                    "check": "String"
+                    "check": "Topic"
                 }
             ],
             "previousStatement": "function",
