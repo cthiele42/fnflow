@@ -19,12 +19,10 @@ package org.ct42.fnflow.manager.ui;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
-import com.vaadin.flow.component.tabs.TabSheet;
 import elemental.json.JsonObject;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.ct42.fnflow.manager.DeploymentInfo;
@@ -37,10 +35,9 @@ import java.util.function.Consumer;
 /**
  * @author Claas Thiele
  */
-@Slf4j
 @NpmPackage(value="primereact", version="10.9.5")
 @NpmPackage(value="primeicons", version="7.0.0")
-@JsModule("Frontend/integration/react/primereact-tree.tsx")
+@JsModule("Frontend/integration/react/tree/primereact-tree.tsx")
 @Tag("pr-tree")
 public class Tree extends ReactAdapterComponent {
     private final PipelineService pipelineService;
@@ -48,6 +45,20 @@ public class Tree extends ReactAdapterComponent {
 
     private final ProjectorService projectorService;
     private DeploymentChangeHandler projectorChangeHandler;
+
+    @Getter
+    public class TreeActionEvent extends ComponentEvent<Tree> {
+        private final String action;
+        private final String key;
+        private final String name;
+
+        public TreeActionEvent(String action, String key, String name) {
+            super(Tree.this, false);
+            this.action = action;
+            this.key = key;
+            this.name = name;
+        }
+    }
 
     public Tree(PipelineService pipelineService, ProjectorService projectorService) {
         this.pipelineService = pipelineService;
@@ -176,21 +187,15 @@ public class Tree extends ReactAdapterComponent {
                 String name = key.replaceFirst("proc-", "");
                 switch (type) {
                     case "delete" -> pipelineService.delete(name);
-                    case "load" -> getUI().ifPresent(uil -> uil.access(() -> {
-                        UI ui = UI.getCurrent();
-                        Component currentView = ui.getCurrentView();
-                        currentView.getChildren().forEach(child -> {
-                            if(child instanceof TabSheet tabSheet) {
-                                tabSheet.add(name, new Div(new Text("This could be the editor for " + name)));
-                            }
-                        });
-                    }));
+                    case "load" -> ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("load", key, name));
                 }
             } else if(key.startsWith("projector-")) {
                 String name = key.replaceFirst("projector-", "");
                 switch(type) {
                     case "delete" -> projectorService.delete(name);
                 }
+            } else if("procs".equals(key) && "new".equals(type)) {
+                ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("new", key, ""));
             }
         }).addEventData("event.detail");
     }

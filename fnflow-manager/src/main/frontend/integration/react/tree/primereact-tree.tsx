@@ -5,7 +5,7 @@ import { Toast } from 'primereact/toast';
 import { ReactAdapterElement, type RenderHooks } from 'Frontend/generated/flow/ReactAdapter';
 import {TreeNode} from "primereact/treenode";
 import 'primereact/resources/themes/mdc-light-indigo/theme.css';
-import 'Frontend/integration/react/pr-tree.css';
+import 'Frontend/integration/react/tree/pr-tree.css';
 import 'primeicons/primeicons.css';
 
 interface DeploymentAction {
@@ -31,13 +31,6 @@ class TreeElement extends ReactAdapterElement {
             }
         ];
         const deplMenu = [
-            {
-                label: 'Create/Update',
-                icon: 'pi pi-search',
-                command: () => {
-                    cmCommendEvent({type: 'create', key: selectedKey});
-                }
-            },
             {
                 label: 'Load',
                 icon: 'pi pi-search',
@@ -83,6 +76,13 @@ class TreeElement extends ReactAdapterElement {
                     } else if(key.startsWith('proc-') || key.startsWith('projector-')) {
                         // @ts-ignore
                         cmDepl.current.show(e.originalEvent);
+                    }
+                }}
+                onNodeDoubleClick={(e) => {
+                    // @ts-ignore
+                    const key = e.node.key.toString();
+                    if(key.startsWith('proc-') || key.startsWith('projector-')) {
+                        cmCommendEvent({type: 'load', key: key});
                     }
                 }}
                 className="pr-tree"/>

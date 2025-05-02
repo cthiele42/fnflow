@@ -16,6 +16,7 @@
 
 package org.ct42.fnflow.manager.ui.view;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.html.H1;
@@ -55,11 +56,15 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
 
         addToDrawer(tree);
 
-        SplitLayout splitLayout = new SplitLayout(new EditorView(), new LogView());
+        SplitLayout splitLayout = new SplitLayout(new EditorView(pipelineService), new LogView());
         splitLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
         splitLayout.addThemeVariants(SplitLayoutVariant.LUMO_MINIMAL);
         splitLayout.setSplitterPosition(70);
         splitLayout.setSizeFull();
+        splitLayout.addSplitterDragendListener(dragEndEvent -> {
+            //trigger the resizing of the blockly editor
+            UI.getCurrent().getPage().executeJs("window.dispatchEvent(new Event('resize'));");
+        });
         setContent(splitLayout);
     }
 }
