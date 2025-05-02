@@ -35,8 +35,26 @@ export function loadPipelineConfig(configString: string) {
                             },
                             outputTopic: {
                                 shadow: {
+                                        type: "tParamTopic",
+                                        id: Blockly.utils.idGenerator.genUid(),
+                                        inputs: {
+                                            name: {
+                                                shadow: {
                                     type: "text",
-                                    id: Blockly.utils.idGenerator.genUid(),
+                                                    fields: {
+                                                        TEXT: pipelineConfig.entityTopic
+                                                    }
+                                                }
+                                            },
+                                            cleanUpTimeHours: {
+                                                shadow: {
+                                                    type: "math_number",
+                                                    fields: {
+                                                        NUM: pipelineConfig.cleanUpTimeHours
+                                                    }
+                                                }
+                                            }
+                                        },
                                     fields: {
                                         TEXT: pipelineConfig.entityTopic
                                     }
@@ -376,10 +394,28 @@ function createBlockContent(p: any) {
                 // @ts-ignore
                 fn.block.inputs['topic'] = {
                     shadow: {
-                        type: 'text',
+                        type: 'tParamTopic',
                         id: Blockly.utils.idGenerator.genUid(),
+                        inputs: {
+                            name: {
+                                shadow: {
+                                    type: "text",
                         fields: {
                             TEXT: p.parameters.topic
+                        }
+                    }
+                            },
+                            cleanUpTimeHours: {
+                                shadow: {
+                                    type: "math_number",
+                                    fields: {
+                                        NUM: p.parameters.cleanUpTimeHours
+                                    }
+                                }
+                            }
+                        },
+                        fields: {
+                            cleanUpMode: p.parameters.cleanUpMode
                         }
                     }
                 }

@@ -15,7 +15,7 @@ export const ProcessorBlock = {
                             "type": "text",
                             "id": "KRP:3OR5V-^E9DW1z}Sx",
                             "fields": {
-                                "TEXT": "0.0.9"
+                                "TEXT": "0.0.11"
                             }
                         }
                     },
@@ -30,10 +30,25 @@ export const ProcessorBlock = {
                     },
                     "outputTopic": {
                         "shadow": {
-                            "type": "text",
+                            "type": "tParamTopic",
                             "id": "Z)Qntf5Z=DImj46`ZIC:",
-                            "fields": {
-                                "TEXT": "output"
+                            "inputs": {
+                                "name": {
+                                    "shadow": {
+                                        "type": "text",
+                                        "fields": {
+                                            "TEXT": "output"
+                                        }
+                                    }
+                                },
+                                "cleanUpTimeHours": {
+                                    "shadow": {
+                                        "type": "math_number",
+                                        "fields": {
+                                            "NUM": 336
+                                        }
+                                    }
+                                }
                             }
                         }
                     },

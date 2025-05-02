@@ -12,10 +12,29 @@ export function createGenerator() {
         return code;
     }
 
+    gen.forBlock['tParamTopic'] = function(block, generator) {
+        let name = generator.valueToCode(block, 'name', 0);
+        let cleanUpMode = block.getFieldValue('cleanUpMode');
+        let cleanUpTimeHours = generator.valueToCode(block, 'cleanUpTimeHours', 0);
+
+         let code = `{
+            "name": ${name},
+            "cleanUpMode": "${cleanUpMode}",
+            "cleanUpTimeHours": ${cleanUpTimeHours}
+          }`;
+
+        return [code, 0];
+    };
+
     gen.forBlock['processor'] = function(block, generator) {
         let code = '"version": ' + generator.valueToCode(block, 'version', 0) + ',\n';
         code += '"sourceTopic": ' + generator.valueToCode(block, 'inputTopic', 0) + ',\n';
-        code += '"entityTopic": ' + generator.valueToCode(block, 'outputTopic', 0) + ',\n';
+
+        let entityTopic = JSON.parse(generator.valueToCode(block, 'outputTopic', 0));
+        code += '"entityTopic": ' + '"' + entityTopic.name + '"' + ',\n';
+        code += '"cleanUpMode": ' + '"' + entityTopic.cleanUpMode + '"' + ',\n';
+        code += '"cleanUpTimeHours": ' + entityTopic.cleanUpTimeHours + ',\n';
+
         code += '"errorTopic": ' + generator.valueToCode(block, 'errorTopic', 0) + ',\n';
         code += '"errRetentionHours": ' + generator.valueToCode(block, 'errRetentionHours', 0) + ',\n';
 
@@ -133,8 +152,13 @@ export function createGenerator() {
         let eventKey = generator.valueToCode(block, 'eventKey', 0);
         if(eventKey.length !== 0) params += ',\n' + '"eventKey": ' + eventKey;
 
-        let topic = generator.valueToCode(block, 'topic', 0);
-        if(topic.length !== 0) params += ',\n' + '"topic": ' + topic;
+        let topicContent = generator.valueToCode(block, 'topic', 0);
+        if(topicContent.length !== 0) {
+            let topic = JSON.parse(topicContent);
+            params += ',\n' + '"topic": ' + '"' + topic.name + '"';
+            params += ',\n' + '"cleanUpMode": ' + '"' + topic.cleanUpMode + '"';
+            params += ',\n' + '"cleanUpTimeHours": ' + topic.cleanUpTimeHours;
+        }
 
         code += generator.prefixLines(params, generator.INDENT);
         code += '\n}\n'
