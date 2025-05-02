@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.12'
+version = '0.0.13'
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
