@@ -40,7 +40,7 @@ export function loadPipelineConfig(configString: string) {
                                         inputs: {
                                             name: {
                                                 shadow: {
-                                    type: "text",
+                                                    type: "text",
                                                     fields: {
                                                         TEXT: pipelineConfig.entityTopic
                                                     }
@@ -56,7 +56,7 @@ export function loadPipelineConfig(configString: string) {
                                             }
                                         },
                                     fields: {
-                                        TEXT: pipelineConfig.entityTopic
+                                        cleanUpMode: pipelineConfig.cleanUpMode
                                     }
                                 }
                             },

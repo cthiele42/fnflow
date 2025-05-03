@@ -109,16 +109,15 @@ public class EditorView extends VerticalLayout {
     private void openTab(String name, String key, PipelineConfigDTO config) {
         try {
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.addItem("Create/Update").addClickListener(event -> {
-                ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(key));
-            });
-            MenuItem close = contextMenu.addItem("Close", event -> {
-                contextMenu.getTarget().getParent().ifPresent(c -> {
-                    if(c instanceof Tab t) {
-                        tabSheet.remove(tabSheet.getComponent(t));
-                    }
-                });
-            });
+            contextMenu.setOpenOnClick(true);
+            contextMenu.addItem("Create/Update").addClickListener(event ->
+                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name)));
+            contextMenu.addItem("Close", event ->
+                    contextMenu.getTarget().getParent().ifPresent(c -> {
+                        if(c instanceof Tab t) {
+                            tabSheet.remove(tabSheet.getComponent(t));
+                        }
+                    }));
 
             Icon icon = new Icon(VaadinIcon.ELLIPSIS_V);
             contextMenu.setTarget(icon);

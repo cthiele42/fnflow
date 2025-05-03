@@ -52,8 +52,8 @@ class FixedEdgesMetricsManager extends Blockly.MetricsManager {
 class BlocklyElement extends ReactAdapterElement {
     protected override render(hooks: RenderHooks): ReactElement | null {
         const [wsState, setWsState] = hooks.useState<string>('wsState');
-        const [wsCode, setWsCode] = hooks.useState<string>('wsCode')
         const wsStateRef = useRef(wsState)
+        const ref = useRef(null);
 
         const workspaceConfiguration: any = {
             toolbox: FnFlowToolbox,
@@ -83,13 +83,21 @@ class BlocklyElement extends ReactAdapterElement {
                 if (workspace.isDragging()) return; // Don't update while changes are happening.
                 if (!supportedEvents.has(event.type)) return;
                 const code = generator.workspaceToCode(workspace);
-                setWsCode(code);
+                // @ts-ignore
+                ref.current.setAttribute('data-code', code);
             }
             workspace.addChangeListener(updateCode);
         }, []);
 
         // @ts-ignore
-        return <BlocklyEditor className={'editor'} workspaceConfiguration={workspaceConfiguration} onInject={onInject}/>
+        return (
+            <>
+                <div ref={ref} style={{display: 'none'}}/>
+                <BlocklyEditor
+                    className={'editor'}
+                    workspaceConfiguration={workspaceConfiguration}
+                    onInject={onInject}/>
+            </>)
     }
 }
 

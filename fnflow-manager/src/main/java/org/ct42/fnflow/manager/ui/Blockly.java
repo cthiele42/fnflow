@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 import com.vaadin.flow.shared.Registration;
 import org.ct42.fnflow.manager.pipeline.PipelineConfigDTO;
@@ -39,6 +41,8 @@ public class Blockly extends ReactAdapterComponent {
           "version": "0.0.11",
           "sourceTopic": "input",
           "entityTopic": "output",
+          "cleanUpMode": "COMPACT",
+          "cleanUpTimeHours": 336,
           "errorTopic": "error",
           "errRetentionHours": 336,
           "pipeline": [
@@ -73,13 +77,22 @@ public class Blockly extends ReactAdapterComponent {
                 EditorView.CreateUpdateInitEvent.class, // event class
                 event -> {
                     String name = event.getName();
-                    String wsCode = getState("wsCode", String.class);
-                    try {
-                        PipelineConfigDTO configDTO = objectMapper.readValue(wsCode, PipelineConfigDTO.class);
-                        pipelineService.createOrUpdate(name, configDTO);
-                    } catch (JsonProcessingException e) {
-                        //TODO error handling
-                    }
+                    getElement().executeJs("return this.firstChild.getAttribute('data-code')").then(String.class, code -> {
+                        try {
+                            PipelineConfigDTO configDTO = objectMapper.readValue(code, PipelineConfigDTO.class);
+                            pipelineService.createOrUpdate(name, configDTO);
+                            Notification notification = Notification.show("Processor " + name + " successfully deployed");
+                            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            notification.setPosition(Notification.Position.BOTTOM_END);
+                            notification.setDuration(5000);
+
+                        } catch (JsonProcessingException e) {
+                            Notification notification = Notification.show("Deployment of processor " + name + " failed");
+                            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            notification.setPosition(Notification.Position.BOTTOM_END);
+                            notification.setDuration(0);
+                        }
+                    });
                 });
     }
 
