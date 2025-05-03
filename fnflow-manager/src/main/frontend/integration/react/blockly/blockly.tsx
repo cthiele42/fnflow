@@ -3,18 +3,29 @@ import { BlocklyEditor } from '@react-blockly/web';
 import {ReactElement, useCallback, useRef} from "react";
 import './blockly.css';
 import * as Blockly from 'blockly/core';
+import * as En from 'blockly/msg/en';
 import {FnFlowToolbox} from "./toolbox";
 import {FnFlowBlockDefinitions} from "./blockdefs";
 import {loadPipelineConfig} from "./load"
 import {createGenerator} from "./generator";
 import type {BlocklyCbStateType} from "@react-blockly/core/lib/typescript/src/types/BlocklyStateType";
 
+function showHelp(this: any) {
+    window.open(this.helpUrl, 'helpview');
+};
+
+// @ts-ignore
+Blockly.setLocale(En)
 Blockly.defineBlocksWithJsonArray(FnFlowBlockDefinitions);
 
 Blockly.Blocks['multipleFunctions'].onchange = function(e:any) {
     if (this.workspace.isDragging()) return;
     if (e.type !== Blockly.Events.BLOCK_MOVE) return;
     if (this.getSurroundParent() !== null && this.getSurroundParent().type === 'multipleFunctions') this.previousConnection.disconnect();
+}
+
+for(const block in Blockly.Blocks) {
+    Blockly.Blocks[block].showHelp = showHelp;
 }
 
 class FixedEdgesMetricsManager extends Blockly.MetricsManager {
