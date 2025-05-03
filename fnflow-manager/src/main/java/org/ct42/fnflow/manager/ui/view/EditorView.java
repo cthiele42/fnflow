@@ -4,11 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
-import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
@@ -79,7 +80,10 @@ public class EditorView extends VerticalLayout {
                                     PipelineConfigDTO config = pipelineService.getConfig(event.getName());
                                     openTab(event.getName(), event.getKey(), config);
                                 } catch (DeploymentDoesNotExistException e) {
-                                    //TODO handle error
+                                    Notification notification = Notification.show("Deployment of processor " + event.getName() + " does not exist");
+                                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                    notification.setPosition(Notification.Position.BOTTOM_END);
+                                    notification.setDuration(0);
                                 }
                             }
                         }
@@ -109,7 +113,6 @@ public class EditorView extends VerticalLayout {
     private void openTab(String name, String key, PipelineConfigDTO config) {
         try {
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.setOpenOnClick(true);
             contextMenu.addItem("Create/Update").addClickListener(event ->
                     ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name)));
             contextMenu.addItem("Close", event ->
@@ -128,7 +131,10 @@ public class EditorView extends VerticalLayout {
             Tab newTab = tabSheet.add(tab, new Blockly(config != null ? objectMapper.writeValueAsString(config) : null, pipelineService));
             tabSheet.setSelectedTab(newTab);
         } catch (JsonProcessingException e) {
-            //TODO handle error
+            Notification notification = Notification.show("Loading of deployment of processor " + name + " failed due to format errors");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            notification.setPosition(Notification.Position.BOTTOM_END);
+            notification.setDuration(0);
         }
     }
 

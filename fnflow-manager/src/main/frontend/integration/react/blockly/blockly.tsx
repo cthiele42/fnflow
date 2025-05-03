@@ -7,6 +7,7 @@ import {FnFlowToolbox} from "./toolbox";
 import {FnFlowBlockDefinitions} from "./blockdefs";
 import {loadPipelineConfig} from "./load"
 import {createGenerator} from "./generator";
+import type {BlocklyCbStateType} from "@react-blockly/core/lib/typescript/src/types/BlocklyStateType";
 
 Blockly.defineBlocksWithJsonArray(FnFlowBlockDefinitions);
 
@@ -66,9 +67,12 @@ class BlocklyElement extends ReactAdapterElement {
             }
         };
 
-        const onInject: ({workspace, xml, json}: { workspace: any; xml: any; json: any }) => void = useCallback(({ workspace, xml, json }) => {
-            Blockly.serialization.workspaces.load(loadPipelineConfig(wsStateRef.current), workspace);
-            workspace.addChangeListener(Blockly.Events.disableOrphans);
+        // @ts-ignore
+        const onInject = useCallback((state: BlocklyCbStateType) => {
+            // @ts-ignore
+            Blockly.serialization.workspaces.load(loadPipelineConfig(wsStateRef.current), state.workspace);
+            // @ts-ignore
+            state.workspace.addChangeListener(Blockly.Events.disableOrphans);
 
             const supportedEvents = new Set([
                 Blockly.Events.BLOCK_CHANGE,
@@ -80,16 +84,18 @@ class BlocklyElement extends ReactAdapterElement {
             const generator = createGenerator();
             // @ts-ignore
             function updateCode(event) {
-                if (workspace.isDragging()) return; // Don't update while changes are happening.
+                // @ts-ignore
+                if (state.workspace.isDragging()) return; // Don't update while changes are happening.
                 if (!supportedEvents.has(event.type)) return;
-                const code = generator.workspaceToCode(workspace);
+                // @ts-ignore
+                const code = generator.workspaceToCode(state.workspace);
                 // @ts-ignore
                 ref.current.setAttribute('data-code', code);
             }
-            workspace.addChangeListener(updateCode);
+            // @ts-ignore
+            state.workspace.addChangeListener(updateCode);
         }, []);
 
-        // @ts-ignore
         return (
             <>
                 <div ref={ref} style={{display: 'none'}}/>
