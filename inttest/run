@@ -1,0 +1,56 @@
+#!/bin/bash
+
+_help() {
+  echo "Run tests"
+  echo -e "Usage: run [-i] [-s] "
+  exit 0
+}
+
+initialize() {
+  # initialize a pristine platform
+  cd ../deploy
+
+  # kind delete cluster
+  # kind create cluster --config kind-clusterconfig.yml
+
+  helmfile -e local apply
+  cd ../inttest
+}
+
+while getopts "is" options; do
+  case "${options}" in
+    i)
+      INTERACTIVE=true
+      ;;
+    s)
+      SHOW=true
+      ;;
+    *)
+      _help
+      ;;
+  esac
+done
+
+set -e
+
+docker build --tag 'cypresscucumber' cypress-cucumber
+
+if [ "$INTERACTIVE" == "true" ]; then
+  initialize
+  xhost + local:
+  docker run -it --rm --network host -e DISPLAY -v .:/app -w /app -u $(id -u) --entrypoint cypress cypresscucumber:latest open --env allure=false --project .
+elif [ "$SHOW" == "true" ]; then
+  xhost + local:
+  docker run -d --name cypress-reporter --network host -v .:/app -w /app -u $(id -u) --entrypoint allure cypresscucumber:latest serve -p 18888
+  sleep 2
+  sensible-browser http://localhost:18888
+  docker rm -f cypress-reporter
+else
+    initialize
+    rm -Rf allure-results/* cypress/screenshots cypress/videos 2>/dev/null || true
+    cp -r allure-report/history allure-results/ 2>/dev/null || true
+    rm -Rf allure-report/* 2>/dev/null || true
+    docker run -it --rm --network host -v .:/app -w /app -u $(id -u) cypresscucumber:latest
+    docker run -it --rm -v .:/app -w /app -u $(id -u) --entrypoint allure cypresscucumber:latest generate allure-results --clean -o allure-report
+fi
+

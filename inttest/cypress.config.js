@@ -1,4 +1,5 @@
 const { defineConfig } = require('cypress')
+const allureWriter = require('@shelex/cypress-allure-plugin/writer');
 const createBundler = require("@bahmutov/cypress-esbuild-preprocessor");
 const {
     addCucumberPreprocessorPlugin,
@@ -17,12 +18,13 @@ async function setupNodeEvents(on, config) {
             plugins: [createEsbuildPlugin(config)],
         })
     );
-
+    allureWriter(on, config);
     // Make sure to return the config object as it might have been modified by the plugin.
     return config;
 }
 
 module.exports = defineConfig({
+    video: true,
     e2e: {
         setupNodeEvents,
         baseUrl: 'http://localhost:9200',
@@ -30,7 +32,12 @@ module.exports = defineConfig({
         pageLoadTimeout: 30000,
         viewportWidth: 1280,
         viewportHeight: 720,
-        supportFile: false,
-        specPattern: "**/*.feature"
+        specPattern: "cypress/e2e/**/*.feature",
+        excludeSpecPattern: '**/*.cy.js'
     },
+    env: {
+        allure: true,
+        allureReuseAfterSpec: true,
+        stepDefinitions: `cypress/e2e/**/*.js`
+    }
 })
