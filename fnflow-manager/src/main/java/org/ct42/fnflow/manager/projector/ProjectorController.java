@@ -20,7 +20,6 @@ import org.ct42.fnflow.manager.AbstractDeploymentController;
 import org.ct42.fnflow.manager.DeploymentDTO;
 import org.ct42.fnflow.manager.DeploymentStatusDTO;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectorController extends AbstractDeploymentController<ProjectorConfigDTO, ProjectorService> {
     public static final String APP_TYPE = "projectors";
 
-    public ProjectorController(@Autowired ProjectorService projectorService) {
+    public ProjectorController(ProjectorService projectorService) {
         super(projectorService);
     }
 

@@ -1,4 +1,6 @@
-function createGenerator() {
+import * as Blockly from 'blockly/core';
+
+export function createGenerator() {
     const gen = new Blockly.CodeGenerator('FnFlowProcCfg');
 
     gen.scrub_ = function(block, code, thisOnly) {

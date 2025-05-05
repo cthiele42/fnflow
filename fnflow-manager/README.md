@@ -1,3 +1,6 @@
+# Prepare for UI Development with Vaadin
+Enable Hotswap by following the [Vaadin instructions](https://vaadin.com/docs/latest/flow/configuration/live-reload/hotswap-agent). 
+
 # Processor Configuration
 ## Implementation
 Using https://github.com/fabric8io/kubernetes-client

@@ -1,11 +1,15 @@
 package org.ct42.fnflow.manager.pipeline;
 
 import io.fabric8.kubernetes.api.model.Container;
-import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.manager.*;
+import org.ct42.fnflow.manager.AbstractDeploymentService;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.KubernetesHelperService;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,13 +19,15 @@ import java.util.stream.Stream;
  * @author Sajjad Safaeian
  */
 @Service
-@RequiredArgsConstructor
-public class PipelineService implements DeploymentService<PipelineConfigDTO> {
+public class PipelineService extends AbstractDeploymentService<PipelineConfigDTO> {
+
     private static final String IMAGE="docker.io/ct42/fnflow-json-processors-kafka";
     private static final String APP_NAME="fnflow-json-processors-kafka";
     private static final String PROCESSOR_PREFIX="proc-";
 
-    private final KubernetesHelperService kubernetesHelperService;
+    public PipelineService(KubernetesHelperService kubernetesHelperService) {
+        super(kubernetesHelperService);
+    }
 
     @Override
     public void createOrUpdate(String name, PipelineConfigDTO config) {
@@ -82,22 +88,6 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
             });
 
         kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROCESSOR_PREFIX, IMAGE, config.getVersion(), args);
-    }
-
-
-    /**
-     *
-     * @param name of the pipeline the status should be taken for
-     * @return the status or <ode>null</ode> if a deployment for the given name does not exist
-     */
-    @Override
-    public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
-        return kubernetesHelperService.getDeploymentStatus(name, PROCESSOR_PREFIX);
-    }
-
-    @Override
-    public void delete(String name) {
-        kubernetesHelperService.deleteDeployment(name, PROCESSOR_PREFIX);
     }
 
     /**
@@ -243,8 +233,13 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
     }
 
     @Override
-    public List<DeploymentDTO> getList() {
-        return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROCESSOR_PREFIX);
+    public String getAppName() {
+        return APP_NAME;
+    }
+
+    @Override
+    public String getDeploymentNamePrefix() {
+        return PROCESSOR_PREFIX;
     }
 
     private void prepareFunctionArgs(PipelineConfigDTO.FunctionCfg functionCfg, List<String> args) {

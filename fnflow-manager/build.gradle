@@ -1,13 +1,23 @@
 plugins {
 	id 'fnflow-native-conventions'
+	id 'com.vaadin' version '24.7.2'
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.13'
+version = '0.0.14'
+
+ext {
+	set('vaadinVersion', "24.7.2")
+}
+
+vaadin {
+	productionMode = true
+}
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'com.vaadin:vaadin-spring-boot-starter'
 	implementation 'io.fabric8:kubernetes-client:7.1.0'
 	implementation 'io.github.classgraph:classgraph:4.8.179'
 	compileOnly 'org.projectlombok:lombok'
@@ -16,6 +26,12 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation "org.testcontainers:k3s:1.20.6"
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
+	}
 }
 
 bootRun {
