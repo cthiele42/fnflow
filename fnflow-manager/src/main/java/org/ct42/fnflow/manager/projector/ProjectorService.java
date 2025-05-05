@@ -17,35 +17,28 @@
 package org.ct42.fnflow.manager.projector;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
-import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.manager.*;
+import org.ct42.fnflow.manager.AbstractDeploymentService;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.KubernetesHelperService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * @author Sajjad Safaeian
  */
 @Service
-@RequiredArgsConstructor
-public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
+public class ProjectorService extends AbstractDeploymentService<ProjectorConfigDTO> {
 
     private static final String IMAGE = "docker.io/ct42/fnflow-projector";
     private static final String APP_NAME = "fnflow-projector";
     private static final String PROJECTOR_PREFIX = "projector-";
 
-    private final KubernetesHelperService kubernetesHelperService;
-    private SharedIndexInformer<Deployment> deploymentInformer;
-    private Map<Consumer<DeploymentInfo>, ResourceEventHandler<Deployment>> handlerLookup = new HashMap<>();
+    public ProjectorService(@Autowired KubernetesHelperService kubernetesHelperService) {
+        super(kubernetesHelperService);
+    }
 
     @Override
     public void createOrUpdate(String name, ProjectorConfigDTO config) {
@@ -56,16 +49,6 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
         args.add("--spring.cloud.stream.default.group=" + name);
 
         kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROJECTOR_PREFIX, IMAGE, config.getVersion(), args);
-    }
-
-    @Override
-    public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
-        return kubernetesHelperService.getDeploymentStatus(name, PROJECTOR_PREFIX);
-    }
-
-    @Override
-    public void delete(String name) {
-        kubernetesHelperService.deleteDeployment(name, PROJECTOR_PREFIX);
     }
 
     @Override
@@ -89,35 +72,13 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
     }
 
     @Override
-    public List<DeploymentDTO> getList() {
-        return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROJECTOR_PREFIX);
+    public String getAppName() {
+        return APP_NAME;
     }
 
-    @PostConstruct
-    void initInformer() {
-        deploymentInformer = kubernetesHelperService.createDeploymentInformer(APP_NAME);
+    @Override
+    public String getDeploymentNamePrefix() {
+        return PROJECTOR_PREFIX;
     }
 
-    @PreDestroy
-    void cleanupInformer() {
-        if(deploymentInformer != null) {
-            deploymentInformer.close();
-        }
-    }
-
-    public void addDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
-        if(!handlerLookup.containsKey(listener)) {
-            DeploymentInfoHandler handler = new DeploymentInfoHandler(listener);
-            handler.setAppPrefix(PROJECTOR_PREFIX);
-            handlerLookup.put(listener, handler);
-            deploymentInformer.addEventHandler(handler);
-        }
-    }
-
-    public void removeDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
-        handlerLookup.computeIfPresent(listener, (l, h) -> {
-            deploymentInformer.removeEventHandler(h);
-            return null;
-        });
-    }
 }

@@ -35,4 +35,8 @@ public interface DeploymentService<DTO> {
     DTO getConfig(String name) throws DeploymentDoesNotExistException;
 
     List<DeploymentDTO> getList();
+
+    String getAppName();
+
+    String getDeploymentNamePrefix();
 }

@@ -1,18 +1,17 @@
 package org.ct42.fnflow.manager.pipeline;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
-import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.manager.*;
+import org.ct42.fnflow.manager.AbstractDeploymentService;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.KubernetesHelperService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,15 +20,15 @@ import java.util.stream.Stream;
  * @author Sajjad Safaeian
  */
 @Service
-@RequiredArgsConstructor
-public class PipelineService implements DeploymentService<PipelineConfigDTO> {
+public class PipelineService extends AbstractDeploymentService<PipelineConfigDTO> {
+
     private static final String IMAGE="docker.io/ct42/fnflow-json-processors-kafka";
     private static final String APP_NAME="fnflow-json-processors-kafka";
     private static final String PROCESSOR_PREFIX="proc-";
 
-    private final KubernetesHelperService kubernetesHelperService;
-    private SharedIndexInformer<Deployment> deploymentInformer;
-    private Map<Consumer<DeploymentInfo>, ResourceEventHandler<Deployment>> handlerLookup = new HashMap<>();
+    public PipelineService(@Autowired KubernetesHelperService kubernetesHelperService) {
+        super(kubernetesHelperService);
+    }
 
     @Override
     public void createOrUpdate(String name, PipelineConfigDTO config) {
@@ -90,22 +89,6 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
             });
 
         kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROCESSOR_PREFIX, IMAGE, config.getVersion(), args);
-    }
-
-
-    /**
-     *
-     * @param name of the pipeline the status should be taken for
-     * @return the status or <ode>null</ode> if a deployment for the given name does not exist
-     */
-    @Override
-    public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
-        return kubernetesHelperService.getDeploymentStatus(name, PROCESSOR_PREFIX);
-    }
-
-    @Override
-    public void delete(String name) {
-        kubernetesHelperService.deleteDeployment(name, PROCESSOR_PREFIX);
     }
 
     /**
@@ -251,36 +234,13 @@ public class PipelineService implements DeploymentService<PipelineConfigDTO> {
     }
 
     @Override
-    public List<DeploymentDTO> getList() {
-        return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROCESSOR_PREFIX);
+    public String getAppName() {
+        return APP_NAME;
     }
 
-    @PostConstruct
-    void initInformer() {
-        deploymentInformer = kubernetesHelperService.createDeploymentInformer(APP_NAME);
-    }
-
-    @PreDestroy
-    void cleanupInformer() {
-        if(deploymentInformer != null) {
-            deploymentInformer.close();
-        }
-    }
-
-    public void addDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
-        if(!handlerLookup.containsKey(listener)) {
-            DeploymentInfoHandler handler = new DeploymentInfoHandler(listener);
-            handler.setAppPrefix(PROCESSOR_PREFIX);
-            handlerLookup.put(listener, handler);
-            deploymentInformer.addEventHandler(handler);
-        }
-    }
-
-    public void removeDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
-        handlerLookup.computeIfPresent(listener, (l, h) -> {
-            deploymentInformer.removeEventHandler(h);
-            return null;
-        });
+    @Override
+    public String getDeploymentNamePrefix() {
+        return PROCESSOR_PREFIX;
     }
 
     private void prepareFunctionArgs(PipelineConfigDTO.FunctionCfg functionCfg, List<String> args) {
