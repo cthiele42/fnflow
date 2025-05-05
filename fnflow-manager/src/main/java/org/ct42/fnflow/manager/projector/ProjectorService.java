@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import org.ct42.fnflow.manager.AbstractDeploymentService;
 import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.KubernetesHelperService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public class ProjectorService extends AbstractDeploymentService<ProjectorConfigD
     private static final String APP_NAME = "fnflow-projector";
     private static final String PROJECTOR_PREFIX = "projector-";
 
-    public ProjectorService(@Autowired KubernetesHelperService kubernetesHelperService) {
+    public ProjectorService(KubernetesHelperService kubernetesHelperService) {
         super(kubernetesHelperService);
     }
 

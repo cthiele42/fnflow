@@ -20,7 +20,6 @@ import org.ct42.fnflow.manager.AbstractDeploymentController;
 import org.ct42.fnflow.manager.DeploymentDTO;
 import org.ct42.fnflow.manager.DeploymentStatusDTO;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PipelineController extends AbstractDeploymentController<PipelineConfigDTO, PipelineService> {
     public static final String APP_TYPE = "pipelines";
 
-    public PipelineController(@Autowired PipelineService pipelineService) {
+    public PipelineController(PipelineService pipelineService) {
         super(pipelineService);
     }
 

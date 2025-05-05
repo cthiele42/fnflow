@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import org.ct42.fnflow.manager.AbstractDeploymentService;
 import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.KubernetesHelperService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ public class PipelineService extends AbstractDeploymentService<PipelineConfigDTO
     private static final String APP_NAME="fnflow-json-processors-kafka";
     private static final String PROCESSOR_PREFIX="proc-";
 
-    public PipelineService(@Autowired KubernetesHelperService kubernetesHelperService) {
+    public PipelineService(KubernetesHelperService kubernetesHelperService) {
         super(kubernetesHelperService);
     }
 
