@@ -1,12 +1,18 @@
 # Cypress based Integration Tests
 ## Run Tests
+This will run the whole testsuite and generating a report.
 ```shell
-docker build --tag 'cypresscucumber' cypress-cucumber
-docker run -it --rm --network host -v .:/app -w /app -u $(id -u) cypresscucumber:latest
+./run
 ```
-## Run Tests interactivly
+If the test run results should be added to the report history, the directory `allure-report/history` should be checked in.
+
+## Run Tests interactively
+This will start a browser providing cypress.
 ```shell
-docker build --tag 'cypresscucumber' cypress-cucumber
-xhost + local:
-docker run -it --rm --network host -e DISPLAY -v .:/app -w /app -u $(id -u) --entrypoint cypress cypresscucumber:latest open --project .
+./run -i
+```
+## Show report
+This will open a browser showing the generated report.
+```shell
+./run -s
 ```
