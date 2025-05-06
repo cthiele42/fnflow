@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.ui;
 
+import lombok.Data;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @param <DTO>
- *
- * @author Sajjad Safaeian
+ * @author Claas Thiele
  */
-public interface DeploymentService<DTO> {
-
-    void createOrUpdate(String name, DTO config);
-
-    DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException;
-
-    void delete(String name);
-
-    DTO getConfig(String name) throws DeploymentDoesNotExistException;
-
-    List<DeploymentDTO> getList();
-
-    String getAppName();
-
-    String getDeploymentNamePrefix();
+@Data
+public class TreeNode {
+    private String key;
+    private String label;
+    private String icon;
+    private String data;
+    private List<TreeNode> children = new ArrayList<>();
+    private String className;
+    private boolean droppable = true;
+    private boolean draggable = true;
+    private boolean selectable;
+    private boolean leaf;
+    private boolean expanded;
 }

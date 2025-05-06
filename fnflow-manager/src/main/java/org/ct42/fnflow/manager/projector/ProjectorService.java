@@ -17,8 +17,9 @@
 package org.ct42.fnflow.manager.projector;
 
 import io.fabric8.kubernetes.api.model.Container;
-import lombok.RequiredArgsConstructor;
-import org.ct42.fnflow.manager.*;
+import org.ct42.fnflow.manager.AbstractDeploymentService;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.KubernetesHelperService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,14 +29,15 @@ import java.util.List;
  * @author Sajjad Safaeian
  */
 @Service
-@RequiredArgsConstructor
-public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
+public class ProjectorService extends AbstractDeploymentService<ProjectorConfigDTO> {
 
     private static final String IMAGE = "docker.io/ct42/fnflow-projector";
     private static final String APP_NAME = "fnflow-projector";
     private static final String PROJECTOR_PREFIX = "projector-";
 
-    private final KubernetesHelperService kubernetesHelperService;
+    public ProjectorService(KubernetesHelperService kubernetesHelperService) {
+        super(kubernetesHelperService);
+    }
 
     @Override
     public void createOrUpdate(String name, ProjectorConfigDTO config) {
@@ -46,16 +48,6 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
         args.add("--spring.cloud.stream.default.group=" + name);
 
         kubernetesHelperService.createOrUpdateDeployment(APP_NAME, name, PROJECTOR_PREFIX, IMAGE, config.getVersion(), args);
-    }
-
-    @Override
-    public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
-        return kubernetesHelperService.getDeploymentStatus(name, PROJECTOR_PREFIX);
-    }
-
-    @Override
-    public void delete(String name) {
-        kubernetesHelperService.deleteDeployment(name, PROJECTOR_PREFIX);
     }
 
     @Override
@@ -79,7 +71,13 @@ public class ProjectorService implements DeploymentService<ProjectorConfigDTO> {
     }
 
     @Override
-    public List<DeploymentDTO> getList() {
-        return kubernetesHelperService.getDeploymentsByLabel(APP_NAME, PROJECTOR_PREFIX);
+    public String getAppName() {
+        return APP_NAME;
     }
+
+    @Override
+    public String getDeploymentNamePrefix() {
+        return PROJECTOR_PREFIX;
+    }
+
 }

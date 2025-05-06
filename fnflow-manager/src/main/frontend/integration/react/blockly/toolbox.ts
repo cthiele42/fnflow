@@ -1,7 +1,6 @@
-function createToolbox() {
-    return {
+export const FnFlowToolbox =  {
         kind: 'flyoutToolbox',
-        contents: [
+            contents: [
             {
                 kind: 'block',
                 type: 'text'
@@ -266,4 +265,3 @@ function createToolbox() {
             }
         ]
     };
-}

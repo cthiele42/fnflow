@@ -16,27 +16,21 @@
 
 package org.ct42.fnflow.manager;
 
-import java.util.List;
+import lombok.Data;
 
 /**
- *
- * @param <DTO>
- *
- * @author Sajjad Safaeian
+ * @author Claas Thiele
  */
-public interface DeploymentService<DTO> {
+@Data
+public class DeploymentInfo {
+    private Action action;
+    private String internalName;
+    private String name;
+    private DeploymentStatusDTO status;
+    private Long generation;
+    private String creationTimestamp;
 
-    void createOrUpdate(String name, DTO config);
-
-    DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException;
-
-    void delete(String name);
-
-    DTO getConfig(String name) throws DeploymentDoesNotExistException;
-
-    List<DeploymentDTO> getList();
-
-    String getAppName();
-
-    String getDeploymentNamePrefix();
+    public static enum Action {
+        ADD, UPDATE, DELETE
+    }
 }

@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.manager.config.ManagerProperties;
 import org.springframework.stereotype.Service;
@@ -97,7 +98,10 @@ public class KubernetesHelperService {
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(deploymentNamePrefix + deploymentName).get();
         if(deployment == null) throw new DeploymentDoesNotExistException(deploymentName);
+        return getDeploymentStatus(deployment);
+    }
 
+    public static DeploymentStatusDTO getDeploymentStatus(Deployment deployment) {
         DeploymentStatusDTO status = new DeploymentStatusDTO();
         DeploymentStatus deploymentStatus = deployment.getStatus();
         Integer specReplicas = deployment.getSpec().getReplicas();
@@ -161,5 +165,16 @@ public class KubernetesHelperService {
                         deployment.getMetadata().getName().replaceFirst(deploymentNamePrefix, "")
                     )
             ).toList();
+    }
+
+    /**
+     * Creates an Informer for Deployments with <code>appName</code>.
+     * Should be called only once by the using service.
+     *
+     * @param appName application label of the deployment which must match
+     * @return an Informer for deployments with the given label
+     */
+    public SharedIndexInformer<Deployment> createDeploymentInformer(String appName) {
+        return k8sClient.apps().deployments().inNamespace(NAMESPACE).withLabel(APP_LABEL_KEY, appName).inform(null, 10_000);
     }
 }

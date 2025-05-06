@@ -1,38 +1,40 @@
-function loadFromDeploymentToWorkspace(name, workspace) {
-    fetch('/pipelines/' + name).then(res => res.json()).then(data => {
-        let state =
-            {
-                blocks: {
-                    languageVersion: 0,
-                    blocks: [
-                        {
-                            type: "processor",
-                            id: Blockly.utils.idGenerator.genUid(),
-                            x: 10,
-                            y: 10,
-                            deletable: false,
-                            movable: false,
-                            inputs: {
-                                version: {
-                                    shadow: {
-                                        type: "text",
-                                        id: Blockly.utils.idGenerator.genUid(),
-                                        fields: {
-                                            TEXT: data.version
-                                        }
+import * as Blockly from 'blockly/core';
+
+export function loadPipelineConfig(configString: string) {
+    const pipelineConfig = JSON.parse(configString);
+    let state =
+        {
+            blocks: {
+                languageVersion: 0,
+                blocks: [
+                    {
+                        type: "processor",
+                        id: Blockly.utils.idGenerator.genUid(),
+                        x: 10,
+                        y: 10,
+                        deletable: false,
+                        movable: false,
+                        inputs: {
+                            version: {
+                                shadow: {
+                                    type: "text",
+                                    id: Blockly.utils.idGenerator.genUid(),
+                                    fields: {
+                                        TEXT: pipelineConfig.version
                                     }
-                                },
-                                inputTopic: {
-                                    shadow: {
-                                        type: "text",
-                                        id: Blockly.utils.idGenerator.genUid(),
-                                        fields: {
-                                            TEXT: data.sourceTopic
-                                        }
+                                }
+                            },
+                            inputTopic: {
+                                shadow: {
+                                    type: "text",
+                                    id: Blockly.utils.idGenerator.genUid(),
+                                    fields: {
+                                        TEXT: pipelineConfig.sourceTopic
                                     }
-                                },
-                                outputTopic: {
-                                    shadow: {
+                                }
+                            },
+                            outputTopic: {
+                                shadow: {
                                         type: "tParamTopic",
                                         id: Blockly.utils.idGenerator.genUid(),
                                         inputs: {
@@ -40,7 +42,7 @@ function loadFromDeploymentToWorkspace(name, workspace) {
                                                 shadow: {
                                                     type: "text",
                                                     fields: {
-                                                        TEXT: data.entityTopic
+                                                        TEXT: pipelineConfig.entityTopic
                                                     }
                                                 }
                                             },
@@ -48,90 +50,87 @@ function loadFromDeploymentToWorkspace(name, workspace) {
                                                 shadow: {
                                                     type: "math_number",
                                                     fields: {
-                                                        NUM: data.cleanUpTimeHours
+                                                        NUM: pipelineConfig.cleanUpTimeHours
                                                     }
                                                 }
                                             }
                                         },
-                                        fields: {
-                                            cleanUpMode: data.cleanUpMode
-                                        }
+                                    fields: {
+                                        cleanUpMode: pipelineConfig.cleanUpMode
                                     }
-                                },
-                                errorTopic: {
-                                    shadow: {
-                                        type: "text",
-                                        id: Blockly.utils.idGenerator.genUid(),
-                                        fields: {
-                                            TEXT: data.errorTopic
-                                        }
-                                    }
-                                },
-                                errRetentionHours: {
-                                    shadow: {
-                                        type: "math_number",
-                                        id: Blockly.utils.idGenerator.genUid(),
-                                        fields: {
-                                            NUM: data.errRetentionHours
-                                        }
-                                    }
-                                },
-                                pipeline: {
-
                                 }
+                            },
+                            errorTopic: {
+                                shadow: {
+                                    type: "text",
+                                    id: Blockly.utils.idGenerator.genUid(),
+                                    fields: {
+                                        TEXT: pipelineConfig.errorTopic
+                                    }
+                                }
+                            },
+                            errRetentionHours: {
+                                shadow: {
+                                    type: "math_number",
+                                    id: Blockly.utils.idGenerator.genUid(),
+                                    fields: {
+                                        NUM: pipelineConfig.errRetentionHours
+                                    }
+                                }
+                            },
+                            pipeline: {
+
                             }
                         }
-                    ]
-                }
-            };
-
-        let anchorObject = state.blocks.blocks[0].inputs;
-        let anchorProp = 'pipeline';
-
-        for( const p of data.pipeline ) {
-            if (Array.isArray(p)) {
-                if(p.length > 0 ) {
-                    let fn = {
-                        block: {
-                            type: 'multipleFunctions',
-                            id: Blockly.utils.idGenerator.genUid(),
-                            inputs: {}
-                        }
                     }
+                ]
+            }
+        };
 
-                    let mAnchorObject = fn.block.inputs;
-                    let nAnchorProp = 'functions';
-                    for(const f of p) {
-                        let inFn = createBlockContent(f)
-                        mAnchorObject[nAnchorProp] = inFn;
-                        mAnchorObject = inFn.block;
-                        nAnchorProp = 'next';
+    let anchorObject = state.blocks.blocks[0].inputs;
+    let anchorProp = 'pipeline';
+
+    for( const p of pipelineConfig.pipeline ) {
+        if (Array.isArray(p)) {
+            if(p.length > 0 ) {
+                let fn = {
+                    block: {
+                        type: 'multipleFunctions',
+                        id: Blockly.utils.idGenerator.genUid(),
+                        inputs: {}
                     }
-
-                    anchorObject[anchorProp] = fn;
-                    anchorObject = fn.block;
-                    anchorProp = 'next';
                 }
-            } else {
-                let fn = createBlockContent(p);
 
+                let mAnchorObject = fn.block.inputs;
+                let nAnchorProp = 'functions';
+                for(const f of p) {
+                    let inFn = createBlockContent(f)
+                    // @ts-ignore
+                    mAnchorObject[nAnchorProp] = inFn;
+                    mAnchorObject = inFn.block;
+                    nAnchorProp = 'next';
+                }
+
+                // @ts-ignore
                 anchorObject[anchorProp] = fn;
+                // @ts-ignore
                 anchorObject = fn.block;
                 anchorProp = 'next';
             }
+        } else {
+            let fn = createBlockContent(p);
 
+            // @ts-ignore
+            anchorObject[anchorProp] = fn;
+            // @ts-ignore
+            anchorObject = fn.block;
+            anchorProp = 'next';
         }
-
-    console.log('>>> ' + JSON.stringify(state, null, 2));
-
-    Blockly.serialization.workspaces.load(state, workspace);
-
-    }).catch(error => {
-        console.log(error)
-    });
+    }
+    return state;
 }
 
-function createBlockContent(p) {
+function createBlockContent(p: any) {
     const typeMapping = {
         hasValueValidator: 'hasValue',
         trimNormalizer: 'trim',
@@ -144,6 +143,7 @@ function createBlockContent(p) {
 
     let fn = {
         block: {
+            // @ts-ignore
             type: typeMapping[p.function],
             id: Blockly.utils.idGenerator.genUid(),
             inputs: {
@@ -162,7 +162,8 @@ function createBlockContent(p) {
 
     switch(p.function) {
         case 'hasValueValidator':
-            fn.block.inputs.elementPath = {
+            // @ts-ignore
+            fn.block.inputs['elementPath'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -173,10 +174,12 @@ function createBlockContent(p) {
             }
             break;
         case 'trimNormalizer':
+            // @ts-ignore
             fn.block['fields'] = {
                 dir: p.parameters.mode
             }
-            fn.block.inputs.elementPath = {
+            // @ts-ignore
+            fn.block.inputs['elementPath'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -187,10 +190,12 @@ function createBlockContent(p) {
             }
             break;
         case 'padNormalizer':
+            // @ts-ignore
             fn.block['fields'] = {
                 dir: p.parameters.pad
             }
-            fn.block.inputs.elementPath = {
+            // @ts-ignore
+            fn.block.inputs['elementPath'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -199,7 +204,8 @@ function createBlockContent(p) {
                     }
                 }
             }
-            fn.block.inputs.length = {
+            // @ts-ignore
+            fn.block.inputs['length'] = {
                 shadow: {
                     type: 'math_number',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -208,7 +214,8 @@ function createBlockContent(p) {
                     }
                 }
             }
-            fn.block.inputs.fillchar = {
+            // @ts-ignore
+            fn.block.inputs['fillchar'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -219,7 +226,8 @@ function createBlockContent(p) {
             }
             break;
         case 'Match':
-            fn.block.inputs.index = {
+            // @ts-ignore
+            fn.block.inputs['index'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -228,7 +236,8 @@ function createBlockContent(p) {
                     }
                 }
             }
-            fn.block.inputs.template = {
+            // @ts-ignore
+            fn.block.inputs['template'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -269,7 +278,9 @@ function createBlockContent(p) {
                                 }
                             }
                         }
+                        // @ts-ignore
                         pAnchorObject[pAnchorProp] = param;
+                        // @ts-ignore
                         pAnchorObject = param.block;
                         pAnchorProp = 'next';
                     }
@@ -305,7 +316,9 @@ function createBlockContent(p) {
                                 }
                             }
                         }
+                        // @ts-ignore
                         pAnchorObject[pAnchorProp] = param;
+                        // @ts-ignore
                         pAnchorObject = param.block;
                         pAnchorProp = 'next';
                     }
@@ -346,14 +359,17 @@ function createBlockContent(p) {
                             }
                         }
                     }
+                    // @ts-ignore
                     mAnchorObject[nAnchorProp] = mapping;
+                    // @ts-ignore
                     mAnchorObject = mapping.block;
                     nAnchorProp = 'next';
                 }
             }
             break;
-            case 'ChangeEventEmit':
-            fn.block.inputs.eventContent = {
+        case 'ChangeEventEmit':
+            // @ts-ignore
+            fn.block.inputs['eventContent'] = {
                 shadow: {
                     type: 'text',
                     id: Blockly.utils.idGenerator.genUid(),
@@ -363,7 +379,8 @@ function createBlockContent(p) {
                 }
             }
             if(Object.hasOwn(p.parameters, 'eventKey')) {
-                fn.block.inputs.eventKey = {
+                // @ts-ignore
+                fn.block.inputs['eventKey'] = {
                     shadow: {
                         type: 'text',
                         id: Blockly.utils.idGenerator.genUid(),
@@ -374,7 +391,8 @@ function createBlockContent(p) {
                 }
             }
             if(Object.hasOwn(p.parameters, 'topic')) {
-                fn.block.inputs.topic = {
+                // @ts-ignore
+                fn.block.inputs['topic'] = {
                     shadow: {
                         type: 'tParamTopic',
                         id: Blockly.utils.idGenerator.genUid(),
@@ -382,10 +400,10 @@ function createBlockContent(p) {
                             name: {
                                 shadow: {
                                     type: "text",
-                                    fields: {
-                                        TEXT: p.parameters.topic
-                                    }
-                                }
+                        fields: {
+                            TEXT: p.parameters.topic
+                        }
+                    }
                             },
                             cleanUpTimeHours: {
                                 shadow: {
@@ -404,6 +422,5 @@ function createBlockContent(p) {
             }
             break;
     }
-
     return fn
 }
