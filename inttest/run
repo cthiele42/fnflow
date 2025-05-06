@@ -40,11 +40,11 @@ if [ "$INTERACTIVE" == "true" ]; then
   xhost + local:
   docker run -it --rm --network host -e DISPLAY -v .:/app -w /app -u $(id -u) --entrypoint cypress cypresscucumber:latest open --env allure=false --project .
 elif [ "$SHOW" == "true" ]; then
+  docker rm -f cypress-reporter > /dev/null
   xhost + local:
   docker run -d --name cypress-reporter --network host -v .:/app -w /app -u $(id -u) --entrypoint allure cypresscucumber:latest serve -p 18888
   sleep 2
   sensible-browser http://localhost:18888
-  docker rm -f cypress-reporter
 else
     initialize
     rm -Rf allure-results/* cypress/screenshots cypress/videos 2>/dev/null || true
