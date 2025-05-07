@@ -53,3 +53,19 @@ roleBinding:
   name: deployment-creator-binding
 
 namespace: default
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8079
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/info
+    port: 8079
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
