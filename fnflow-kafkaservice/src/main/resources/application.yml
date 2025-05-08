@@ -1,1 +1,7 @@
+management:
+  server:
+    port: 8079
+  endpoints:
+    web.exposure.include: "*"
+
 spring.application.name: fnflow-kafkaservice
