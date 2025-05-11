@@ -19,12 +19,15 @@ package org.ct42.fnflow.manager.ui;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 import elemental.json.JsonObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.DeploymentInfo;
 import org.ct42.fnflow.manager.pipeline.PipelineService;
 import org.ct42.fnflow.manager.projector.ProjectorService;
@@ -186,13 +189,31 @@ public class Tree extends ReactAdapterComponent {
             if(key.startsWith("proc-")) {
                 String name = key.replaceFirst("proc-", "");
                 switch (type) {
-                    case "delete" -> pipelineService.delete(name);
+                    case "delete" -> {
+                        try {
+                            pipelineService.delete(name);
+                        } catch (DeploymentDoesNotExistException e) {
+                            Notification notification = Notification.show("Deployment of processor " + name + " does not exist");
+                            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            notification.setPosition(Notification.Position.BOTTOM_END);
+                            notification.setDuration(0);
+                        }
+                    }
                     case "load" -> ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("load", key, name));
                 }
             } else if(key.startsWith("projector-")) {
                 String name = key.replaceFirst("projector-", "");
                 switch(type) {
-                    case "delete" -> projectorService.delete(name);
+                    case "delete" -> {
+                        try {
+                            projectorService.delete(name);
+                        } catch (DeploymentDoesNotExistException e) {
+                            Notification notification = Notification.show("Deployment of projector " + name + " does not exist");
+                            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            notification.setPosition(Notification.Position.BOTTOM_END);
+                            notification.setDuration(0);
+                        }
+                    }
                 }
             } else if("procs".equals(key) && "new".equals(type)) {
                 ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("new", key, ""));

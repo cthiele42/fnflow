@@ -60,7 +60,7 @@ public class ProjectorIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
-    void deleteTest() {
+    void deleteTest() throws Exception {
         //Given
         ProjectorConfigDTO config = getProjectorConfig();
 

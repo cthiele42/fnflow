@@ -46,7 +46,10 @@ Given("an app from type of {string}, with name {string}, and with this configs:"
     });
 
     let apps = Cypress.env('APPS') || [];
-    apps.push({appType, name})
+    const exists = apps.some(app => app.appType === appType && app.name === name);
+    if(!exists) {
+        apps.push({appType, name})
+    }
     Cypress.env('APPS', apps)
 })
 

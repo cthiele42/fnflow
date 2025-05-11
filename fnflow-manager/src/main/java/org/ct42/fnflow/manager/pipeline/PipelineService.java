@@ -24,6 +24,7 @@ public class PipelineService extends AbstractDeploymentService<PipelineConfigDTO
     private static final String IMAGE="docker.io/ct42/fnflow-json-processors-kafka";
     private static final String APP_NAME="fnflow-json-processors-kafka";
     private static final String PROCESSOR_PREFIX="proc-";
+    private static final String DEPLOYMENT_TYPE="pipeline";
 
     public PipelineService(KubernetesHelperService kubernetesHelperService) {
         super(kubernetesHelperService);
@@ -102,7 +103,7 @@ public class PipelineService extends AbstractDeploymentService<PipelineConfigDTO
      */
     @Override
     public PipelineConfigDTO getConfig(String name) throws DeploymentDoesNotExistException {
-        Container container = kubernetesHelperService.getDeploymentContainer(name, PROCESSOR_PREFIX);
+        Container container = kubernetesHelperService.getDeploymentContainer(name, PROCESSOR_PREFIX, DEPLOYMENT_TYPE);
 
         PipelineConfigDTO config = new PipelineConfigDTO();
 
@@ -240,6 +241,11 @@ public class PipelineService extends AbstractDeploymentService<PipelineConfigDTO
     @Override
     public String getDeploymentNamePrefix() {
         return PROCESSOR_PREFIX;
+    }
+
+    @Override
+    public String getDeploymentType() {
+        return DEPLOYMENT_TYPE;
     }
 
     private void prepareFunctionArgs(PipelineConfigDTO.FunctionCfg functionCfg, List<String> args) {

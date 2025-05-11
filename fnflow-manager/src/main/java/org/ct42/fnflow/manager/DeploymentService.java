@@ -30,7 +30,7 @@ public interface DeploymentService<DTO> {
 
     DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException;
 
-    void delete(String name);
+    void delete(String name) throws DeploymentDoesNotExistException;
 
     DTO getConfig(String name) throws DeploymentDoesNotExistException;
 
@@ -39,4 +39,6 @@ public interface DeploymentService<DTO> {
     String getAppName();
 
     String getDeploymentNamePrefix();
+
+    String getDeploymentType();
 }
