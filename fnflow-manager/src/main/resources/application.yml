@@ -3,5 +3,7 @@ management:
     port: 8079
   endpoints:
     web.exposure.include: "*"
+  endpoint:
+    health.probes.enabled: true
 
 spring.application.name: manager

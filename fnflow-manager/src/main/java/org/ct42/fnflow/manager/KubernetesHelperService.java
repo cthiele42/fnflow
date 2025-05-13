@@ -42,8 +42,9 @@ public class KubernetesHelperService {
     private static final String INSTANCE_LABEL_KEY = "app.kubernetes.io/instance";
 
     private static final String HTTP_SCHEMA = "HTTP";
-    private static final String LIVENESS_PATH = "/actuator/health";
-    private static final String READINESS_PATH = "/actuator/info";
+    private static final String STARTUP_PATH = "/actuator/health/liveness";
+    private static final String LIVENESS_PATH = "/actuator/health/liveness";
+    private static final String READINESS_PATH = "/actuator/health/readiness";
     private static final Integer ACTUATOR_PORT = 8079;
 
     private final KubernetesClient k8sClient;
@@ -88,8 +89,9 @@ public class KubernetesHelperService {
                                                 .withName("SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS")
                                                 .withValue(cfgProps.getKafkaBrokers()).build())
                                 .withArgs(args)
-                                .withLivenessProbe(httpProbeCreator(LIVENESS_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 10, 10, 3))
-                                .withReadinessProbe(httpProbeCreator(READINESS_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 5, 10, 3))
+                                .withStartupProbe(httpProbeCreator(STARTUP_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 0, 1, 180))
+                                .withLivenessProbe(httpProbeCreator(LIVENESS_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 0, 10, 1))
+                                .withReadinessProbe(httpProbeCreator(READINESS_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 0, 1, 3))
                                 .build())
                         .endSpec()
                         .endTemplate()
