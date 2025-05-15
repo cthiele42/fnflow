@@ -91,6 +91,132 @@ image:trimNormalizer.png[]
 == padNormalizer
 image:padNormalizer.png[]
 
+If the Json element at the given path is textual or an array containing textual elements, the `padNormalizer` function will add the determined character to the content to achieve a specific length and return the normalized Json.
+
+=== Parameters
+
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|elementPath
+|https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]
+|Yes
+|The Pointer to the element to be trimmed
+
+|length
+|Integer
+|Yes
+|The minimum length of textual elements
+
+* The value of `length` should be greater than or equal to `1`
+* If the length of textual elements is less than the given `length`, then the `padNormalizer` function will add the filler character to the textual elements to achieve the given `length`.
+
+|fillerCharacter
+|Character
+|Yes
+|The `padNormalizer` function uses this given character to increase the length of the textual elements.
+
+|pad
+|Enum
+|Yes
+|Determining the side of adding the filler character. The validated content for pad is: `LEFT`, `RIGHT`.
+
+* `LEFT`: add the filler character only on the left side
+* `RIGHT`: add the filler character only on the right side
+
+|===
+
+=== Example
+==== Configuration
+image:padNormalizer.png[]
+----
+Function configuration:
+    pad: LEFT
+    elementPath: /ean
+    lenght: 8
+    fillerCharacter: 0
+----
+
+===== Sample input (Single textual content)
+[source, json]
+----
+{
+  "ean": "12345"
+}
+----
+
+===== Sample output of `padNormalizer` function
+[source, json]
+----
+{
+  "ean": "00012345"
+}
+----
+
+===== Sample input (Multiple textual content)
+[source, json]
+----
+{
+  "ean": ["12345", "123456789"]
+}
+----
+
+===== Sample output of `padNormalizer` function
+[source, json]
+----
+{
+  "ean": ["00012345", "123456789"]
+}
+----
+
+==== Configuration
+image:padNormalizer-RIGHT.png[]
+----
+Function configuration:
+    pad: RIGHT
+    elementPath: /ean
+    lenght: 8
+    fillerCharacter: 0
+----
+
+===== Sample input (Single textual content)
+[source, json]
+----
+{
+  "ean": "12345"
+}
+----
+
+===== Sample output of `padNormalizer` function
+[source, json]
+----
+{
+  "ean": "12345000"
+}
+----
+
+===== Sample input (Multiple textual content)
+[source, json]
+----
+{
+  "ean": ["12345", "123456789"]
+}
+----
+
+===== Sample output of `padNormalizer` function
+[source, json]
+----
+{
+  "ean": ["12345000", "123456789"]
+}
+----
+
 == Match
 image:Match.png[]
 
