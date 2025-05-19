@@ -16,6 +16,7 @@
 
 package org.ct42.fnflow.fnlib.reducer;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -42,9 +43,29 @@ public class Reduce2One extends ConfigurableFunction<JsonNode, JsonNode, NullPro
             emptyEntity.set("source", JsonNodeFactory.instance.objectNode());
             ((ArrayNode)matches).add(emptyEntity);
         } else { // ambiguous match
-            ((ObjectNode)input).replace("input", JsonNodeFactory.instance.nullNode());
-            ((ObjectNode)input).replace("matches", JsonNodeFactory.instance.arrayNode());
+            ((ObjectNode)input).replace("matches", JsonNodeFactory.instance.arrayNode().add(findTheFirstHighestScore(matches)));
         }
         return input;
+    }
+
+    private JsonNode findTheFirstHighestScore(JsonNode matches) {
+        JsonNode result = null;
+
+        JsonPointer pointer = JsonPointer.compile("/score");
+        double maxScore = 0;
+        for (JsonNode match: matches) {
+            JsonNode score = match.at(pointer);
+
+            if(score.isMissingNode() || !score.isEmpty() || !score.isNumber()) {
+                throw new IllegalArgumentException("Invalid input, matched does not contain score, or contains score with wrong format.");
+            }
+
+            if(score.asDouble() > maxScore) {
+                result = match;
+            }
+            maxScore = Math.max(score.asDouble(), maxScore);
+        }
+
+        return result;
     }
 }

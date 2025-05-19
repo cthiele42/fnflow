@@ -24,7 +24,7 @@ Feature: Validate and match input data
     And an app from type of 'pipelines', with name 'sample-pipeline', and with this configs:
     """
     {
-     "version": "0.0.12",
+     "version": "0.0.13-SNAPSHOT",
      "sourceTopic": "input-topic",
      "entityTopic": "output-topic-wrong",
      "errorTopic": "error-topic",
@@ -58,7 +58,7 @@ Feature: Validate and match input data
     And an app from type of 'pipelines', with name 'sample-pipeline', and with this configs:
     """
     {
-      "version": "0.0.12",
+      "version": "0.0.13-SNAPSHOT",
       "sourceTopic": "input-topic",
       "entityTopic": "output-topic",
       "errorTopic": "error-topic",
