@@ -113,6 +113,83 @@ public class Reduce2OneTest {
                         ]
                     }
                     """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                                {"id": "match2", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                                {"id": "match2", "score":"", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "score":"", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                                {"id": "match2", "score":"a", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "score":"a", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":-100, "source":{"foo":"bar"}},
+                                {"id": "match2", "score":-99, "source":{"foo":"baz"}},
+                                {"id": "match3", "score":-101, "source":{"foo":"bad"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "score":-99, "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
                 )
         );
     }
@@ -153,54 +230,6 @@ public class Reduce2OneTest {
         thenThrownBy(() -> function.apply(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid input, no matches array found");
-    }
-
-    @ParameterizedTest
-    @MethodSource("createAmbiguousMatchWithWrongScore")
-    void testReduceOneMatchesWithoutScore(String inputJson) throws Exception {
-        Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
-        JsonNode input = mapper.readTree(inputJson);
-        thenThrownBy(() -> function.apply(input))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid input, matched does not contain score, or contains score with wrong format.");
-    }
-
-    private static Stream<Arguments> createAmbiguousMatchWithWrongScore() {
-        return Stream.of(
-                Arguments.of(
-                        """
-                        {
-                            "input": {"id": "ID1"},
-                            "matches": [
-                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
-                                {"id": "match2", "source":{"foo":"baz"}}
-                            ]
-                        }
-                        """
-                ),
-                Arguments.of(
-                        """
-                        {
-                            "input": {"id": "ID1"},
-                            "matches": [
-                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
-                                {"id": "match2", "score":"", "source":{"foo":"baz"}}
-                            ]
-                        }
-                        """
-                ),
-                Arguments.of(
-                        """
-                        {
-                            "input": {"id": "ID1"},
-                            "matches": [
-                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
-                                {"id": "match2", "score":"a", "source":{"foo":"baz"}}
-                            ]
-                        }
-                        """
-                )
-        );
     }
 
     @SpringBootApplication

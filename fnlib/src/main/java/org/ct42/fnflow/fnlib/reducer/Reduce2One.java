@@ -16,7 +16,6 @@
 
 package org.ct42.fnflow.fnlib.reducer;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -49,21 +48,16 @@ public class Reduce2One extends ConfigurableFunction<JsonNode, JsonNode, NullPro
     }
 
     private JsonNode findTheFirstHighestScore(JsonNode matches) {
-        JsonNode result = null;
+        JsonNode result = matches.get(0);
 
-        JsonPointer pointer = JsonPointer.compile("/score");
-        double maxScore = 0;
+        double maxScore = -Double.MAX_VALUE;
         for (JsonNode match: matches) {
-            JsonNode score = match.at(pointer);
+            double score = match.path("score").asDouble(1.0);
 
-            if(score.isMissingNode() || !score.isEmpty() || !score.isNumber()) {
-                throw new IllegalArgumentException("Invalid input, matched does not contain score, or contains score with wrong format.");
-            }
-
-            if(score.asDouble() > maxScore) {
+            if(score > maxScore) {
                 result = match;
+                maxScore = score;
             }
-            maxScore = Math.max(score.asDouble(), maxScore);
         }
 
         return result;
