@@ -107,10 +107,10 @@ The `Reduce2One` reads a message from the output of the `Match` function, and tr
 * If the `matches` element contains no item, it adds a matched entity to the `matches` with an empty `source` element.
 * If the `matches` element contains more than one item, it returns the highest `score` matched entity. (If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
 
-Note: In these situations the `Reduce2One` raises an exception:
+*Note:*
 
-* If the `matches` element does not exist, or is not an array.
-* If the `matches` element contains more than one item, and one of these items does not contain the `score` element, or the `score` element is not numeric.
+* If the `matches` element does not exist, or is not an array, the `Reduce2One` raises an exception.
+* If the `matches` element contains more than one item, and one of these items does not contain the `score` element, or the `score` element is not numeric, it would be replaced with the default value equal to `1.0`
 
 
 === Parameters
