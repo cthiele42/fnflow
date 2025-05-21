@@ -36,6 +36,7 @@ import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @SpringBootTest(
         properties = {

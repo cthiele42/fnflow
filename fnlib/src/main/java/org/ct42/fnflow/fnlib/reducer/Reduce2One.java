@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Component("Reduce2One")
 public class Reduce2One extends ConfigurableFunction<JsonNode, JsonNode, NullProperties> {
