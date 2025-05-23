@@ -91,6 +91,7 @@ image:trimNormalizer.png[]
 == padNormalizer
 image:padNormalizer.png[]
 
+[#match]
 == Match
 image:Match.png[]
 
@@ -101,7 +102,7 @@ image:literal.png[]
 == Reduce2One
 image:reduce2One.png[]
 
-The `Reduce2One` reads a message from the output of the `Match` function, and tries to solve the ambiguous match situation to reduce the matched entities to one entity, under these conditions:
+The `Reduce2One` reads a message from the output of the <<match>> function, and tries to solve the ambiguous match situation to reduce the matched entities to one entity, under these conditions:
 
 * If the `matches` element only contains one item, it does nothing and sends the input message as output.
 * If the `matches` element contains no item, it adds a matched entity to the `matches` with an empty `source` element.
