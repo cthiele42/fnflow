@@ -91,6 +91,7 @@ image:trimNormalizer.png[]
 == padNormalizer
 image:padNormalizer.png[]
 
+[#match]
 == Match
 image:Match.png[]
 
@@ -106,7 +107,7 @@ image:MergeCreate.png[]
 
 image:mapping.png[]
 
-The `MergeCreate` function reads a message from the output of the `Match` function, and tries to create elements from the input entity to the source-matched entity, under these conditions:
+The `MergeCreate` function reads a message from the output of the <<match>> function, and tries to create elements from the input entity to the source-matched entity, under these conditions:
 
 * These changes only affect the first item in the `matches` element.
 * The `MergeCreate` configurations determine which element in the input should be mapped to the destination element on the source-matched entity.
