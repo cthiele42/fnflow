@@ -292,7 +292,7 @@ image:padNormalizer.png[]
 Function configuration:
     pad: LEFT
     elementPath: /ean
-    lenght: 8
+    length: 8
     fillerCharacter: 0
 ----
 
@@ -334,7 +334,7 @@ image:padNormalizer-RIGHT.png[]
 Function configuration:
     pad: RIGHT
     elementPath: /ean
-    lenght: 8
+    length: 8
     fillerCharacter: 0
 ----
 
@@ -377,7 +377,9 @@ image:fromInput.png[]
 
 image:literal.png[]
 
-The `Match` function reads a message, could extract some parameters from the Json content of the message,  run an OpenSearch search template with extracted parameters against an index, and creates a matched message with this schema:
+The `Match` function executes a search on an OpenSearch index to find entities in the index matching the function input. +
+The search utilizes an OpenSearch search template. The search template call can get named parameters, either a literal string or a value extracted from functions input. +
+The function result is a list of matched entities and the input used. The result fulfills the following schema:
 
 [source, json]
 ----
@@ -410,15 +412,15 @@ The `Match` function reads a message, could extract some parameters from the Jso
 |paramsFromInput
 |Map
 |No
-|The `paramsFromInput` is a Map between a String and a https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]. The `Match` function extracts elements of the input message from the given path and creates a parameter for running the search template query by the key and the extracted element.
+|The `paramsFromInput` is a Map from parameter name to a value from an input element. Which value has to be taken from the input has to be specified by a https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]. The `Match` function extracts the value on the given path of the input and creates a serch template parameter with given name and extracted value.
 
 Notes: The search template should require these parameters and values.
 
 A sample:
 
-* key: `ids`
-* Value: `/id`
-* That means the `Match` function extracts the Json element from the `/id` path, and creates a search parameter with the `ids` key and value of the Json content of the extracted path.
+* name: `ids`
+* elementPath: `/id`
+* That means the `Match` function extracts the value from the Json element at path `/id`, and creates a search parameter with the name `ids` and value of the elements value at path `/id`.
 
 |literalParams
 |Map
@@ -429,9 +431,9 @@ Notes: The search template should require these parameters and values.
 
 A sample:
 
-* key: `field`
-* Value: `id`
-* That means the `Match` function creates a search parameter with the `field` key and value of `id`
+* name: `field`
+* value: `id`
+* That means the `Match` function creates a search template parameter with the name `field` and value `id`
 
 |===
 
