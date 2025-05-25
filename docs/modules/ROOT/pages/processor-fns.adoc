@@ -695,7 +695,7 @@ image:ChangeEventEmit.png[]
 
 image:topic.png[]
 
-The `ChangeEventEmit` function reads a message from input, could extract content and message key from the Json content of the message, and could emit the extracted message key and content in the normal output topic of the pipeline or a specific configured topic.
+The `ChangeEventEmit` function extracts content and message key from the Json content of the message, and could emit the extracted message key and content in the normal output topic of the pipeline or a specific configured topic.
 
 === Parameters
 [cols="1,1,1,a", options="autowidth"]
@@ -724,12 +724,13 @@ The `ChangeEventEmit` function reads a message from input, could extract content
 
 Notes:
 
-* The `topic` is an optional config. If it is set, the `ChangeEventEmit` function uses this config and emits the messages to this topic, and if it is not set, the `ChangeEventEmit` function emits messages to the normal output topic of pipelines.
+* The `topic` is an optional config. If it is set, the `ChangeEventEmit` function uses this config and emits the messages to this topic. +
+If it is not set, the `ChangeEventEmit` function emits messages to the regular output topic as configured on the processor.
 
 |cleanUpMode
 |enum
 |No
-|Determine the cleanup mode of the `topic`. The validated content for cleanUpMode is:  `COMPACT`, `DELETE`.
+|Determines the cleanup mode of the `topic`. Valid values are:  `COMPACT`, `DELETE`.
 
 Notes:
 
