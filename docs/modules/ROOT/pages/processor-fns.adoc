@@ -597,6 +597,99 @@ image:MergeCreate.png[]
 
 image:mapping.png[]
 
+The `MergeCreate` function usually gets its input from the <<match>> function, and tries to create elements from the input entity in the source-matched entity, under these conditions:
+
+* These changes only affect the first item in the `matches` element.
+* The `MergeCreate` configurations determine which element of the input should be mapped into the source-matched entity.
+* If the source-matched entity contains the mapped element that was determined in the function configuration, the `MergeCreate` function does not touch it.
+* If the source-matched entity does not contain the mapped element that was determined in the function configuration, the `MergeCreate` function creates the element and fills it from the mapped element value of the input entity.
+
+
+=== Parameters
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|mappings
+|List
+|Yes
+|The list of mapping elements from input to the source-matched entity.
+
+Each item of the list contains 2 elements:
+
+* `from`: https://www.rfc-editor.org/rfc/rfc6901[Json Pointer] determining the Json element inside the input.
+* `to`: https://www.rfc-editor.org/rfc/rfc6901[Json Pointer] determining the Json element inside the source-matched entity.
+
+|===
+
+
+=== Example
+==== Configuration
+image:MergeCreate-Configured.png[]
+
+
+----
+Function configuration:
+    mappings: [
+        from: /id, to: /identifier/id
+        from: /id, to: /ID
+        from: /doesNotExist, to: /foo
+    ]
+----
+
+===== Input sample
+[source, json]
+----
+{
+  "input": {
+    "id": "ID1"
+  },
+  "matches": [
+    {
+      "id": "match!",
+      "score": 1.0,
+      "source": {
+        "id": "TARGET_ID",
+        "identifier": {
+          "foo": 42
+        }
+      }
+    }
+  ]
+}
+----
+
+===== Output sample
+[source, json]
+----
+{
+  "input": {
+    "id": "ID1"
+  },
+  "matches": [
+    {
+      "id": "match!",
+      "score": 1.0,
+      "source": {
+        "id": "TARGET_ID",
+        "identifier": {
+          "foo": 42,
+          "id": "ID1"
+        },
+        "ID": "ID1"
+      }
+    }
+  ]
+}
+----
+
+*Note:* As you can see in the Input and Output sample, if the input entity does not contain the `from` configured element, the `MergeCreate` function does nothing.
+
 == ChangeEventEmit
 image:ChangeEventEmit.png[]
 

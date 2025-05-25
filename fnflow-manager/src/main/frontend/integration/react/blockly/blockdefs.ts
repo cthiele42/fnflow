@@ -327,7 +327,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "mergeCreate",
         "tooltip": "merge if target element does not exist",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#mergecreate",
         "message0": "merge mode create\n name %1\n mappings %2",
         "args0": [
             {
