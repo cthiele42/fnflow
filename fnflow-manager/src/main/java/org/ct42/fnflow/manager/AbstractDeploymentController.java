@@ -58,7 +58,7 @@ public abstract class AbstractDeploymentController<DTO, Service extends Deployme
     }
 
     @DeleteMapping(value="/{name}")
-    public ResponseEntity<Void> delete(@PathVariable String name) {
+    public ResponseEntity<Void> delete(@PathVariable String name) throws DeploymentDoesNotExistException {
         service.delete(name);
         return ResponseEntity.noContent().build();
     }
