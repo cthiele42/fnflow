@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @Component("Reduce2One")
 public class Reduce2One extends ConfigurableFunction<JsonNode, JsonNode, NullProperties> {
@@ -42,9 +43,24 @@ public class Reduce2One extends ConfigurableFunction<JsonNode, JsonNode, NullPro
             emptyEntity.set("source", JsonNodeFactory.instance.objectNode());
             ((ArrayNode)matches).add(emptyEntity);
         } else { // ambiguous match
-            ((ObjectNode)input).replace("input", JsonNodeFactory.instance.nullNode());
-            ((ObjectNode)input).replace("matches", JsonNodeFactory.instance.arrayNode());
+            ((ObjectNode)input).replace("matches", JsonNodeFactory.instance.arrayNode().add(findTheFirstHighestScore(matches)));
         }
         return input;
+    }
+
+    private JsonNode findTheFirstHighestScore(JsonNode matches) {
+        JsonNode result = matches.get(0);
+
+        double maxScore = -Double.MAX_VALUE;
+        for (JsonNode match: matches) {
+            double score = match.path("score").asDouble(1.0);
+
+            if(score > maxScore) {
+                result = match;
+                maxScore = score;
+            }
+        }
+
+        return result;
     }
 }

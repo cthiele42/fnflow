@@ -126,7 +126,7 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 	}
 
 	@Test
-	void testDeletePod() {
+	void testDeletePod() throws Exception {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
 		dto.setVersion("0.0.12");
