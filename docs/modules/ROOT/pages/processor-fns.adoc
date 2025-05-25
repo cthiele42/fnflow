@@ -496,10 +496,10 @@ Function configuration:
 == Reduce2One
 image:reduce2One.png[]
 
-The `Reduce2One` reads a message from the output of the <<match>> function, and tries to solve the ambiguous match situation to reduce the matched entities to one entity, under these conditions:
+The `Reduce2One` function usually gets its input from the <<match>> function, and tries to solve the ambiguous match situation to reduce the matched entities to one entity, under these conditions:
 
-* If the `matches` element only contains one item, it does nothing and sends the input message as output.
-* If the `matches` element contains no item, it adds a matched entity to the `matches` with an empty `source` element.
+* If the `matches` element only contains one item, it does nothing and passes the input as result.
+* If the `matches` element contains no item, it adds a matched entity  with an empty `source` element to the `matches`.
 * If the `matches` element contains more than one item, it returns the highest `score` matched entity. (If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
 
 *Note:*
