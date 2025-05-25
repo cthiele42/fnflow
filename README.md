@@ -1,5 +1,6 @@
 # fnflow
-Streamed data processing with Java functions as configurable processors using Spring Boot.
+Streamed data processing with Java functions as configurable processors using Spring Boot.  
+Platform documentation can be found on https://fnflow.ct42.org/.
 
 ## Configurable Functions
 In stream processing, the very same logic would be applied multiple times but differently configured in the same pipeline.
