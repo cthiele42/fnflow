@@ -118,3 +118,7 @@ releases:
         service:
           type: NodePort
           nodePort: 32581
+        {{- if hasKey .Values.manager "probes" }}
+        probes:
+          {{- toYaml .Values.manager.probes | nindent 8 }}
+        {{- end }}

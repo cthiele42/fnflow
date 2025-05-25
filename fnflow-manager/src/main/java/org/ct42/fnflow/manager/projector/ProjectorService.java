@@ -34,6 +34,7 @@ public class ProjectorService extends AbstractDeploymentService<ProjectorConfigD
     private static final String IMAGE = "docker.io/ct42/fnflow-projector";
     private static final String APP_NAME = "fnflow-projector";
     private static final String PROJECTOR_PREFIX = "projector-";
+    private static final String DEPLOYMENT_TYPE = "projector";
 
     public ProjectorService(KubernetesHelperService kubernetesHelperService) {
         super(kubernetesHelperService);
@@ -52,7 +53,7 @@ public class ProjectorService extends AbstractDeploymentService<ProjectorConfigD
 
     @Override
     public ProjectorConfigDTO getConfig(String name) throws DeploymentDoesNotExistException {
-        Container container = kubernetesHelperService.getDeploymentContainer(name, PROJECTOR_PREFIX);
+        Container container = kubernetesHelperService.getDeploymentContainer(name, PROJECTOR_PREFIX, DEPLOYMENT_TYPE);
 
         ProjectorConfigDTO config = new ProjectorConfigDTO();
 
@@ -78,6 +79,11 @@ public class ProjectorService extends AbstractDeploymentService<ProjectorConfigD
     @Override
     public String getDeploymentNamePrefix() {
         return PROJECTOR_PREFIX;
+    }
+
+    @Override
+    public String getDeploymentType() {
+        return DEPLOYMENT_TYPE;
     }
 
 }

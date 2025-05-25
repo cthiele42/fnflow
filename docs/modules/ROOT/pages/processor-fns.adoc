@@ -19,6 +19,7 @@ Having a value means:
 
 === Parameters
 
+[options="autowidth"]
 |===
 |Parameter Name |Type |Required | Description
 
@@ -77,7 +78,7 @@ image:hasValueValidator.png[]
 }
 ----
 
-==== Invalid Input (multivalue with no non empty string)
+==== Invalid Input (multivalue with no nonempty string)
 [source, json]
 ----
 {
@@ -87,6 +88,158 @@ image:hasValueValidator.png[]
 
 == trimNormalizer
 image:trimNormalizer.png[]
+
+If the Json element at the given path is textual or an array containing textual elements, the `trimNormalizer` function will trim the textual content and return the Json content with the textual elements being trimmed. For arrays containing non textual elements beside textual, the non textual elements will be left untouched while textual elements will undergo a trim.
+
+=== Parameters
+
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|elementPath
+|https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]
+|Yes
+|The Pointer to the element to be trimmed
+
+|mode
+|Enum
+|Yes
+| Determining the trim action. The validated content for mode is: `RIGHT`, `LEFT`, and `BOTH`.
+
+* `RIGHT`: trims only the right side
+* `LEFT`: trims only the left side
+* `BOTH`: trims both sides
+
+
+|===
+
+=== Example
+==== Configuration
+image:trimNormalizer.png[]
+----
+Function configuration:
+    mode: LEFT
+    elementPath: /ean
+----
+
+===== Sample input (Single textual content)
+[source, json]
+----
+{
+  "ean": "  12345  "
+}
+----
+
+===== Sample output of `trimNormalizer` function
+[source, json]
+----
+{
+  "ean": "12345  "
+}
+----
+
+===== Sample input (Multiple textual content)
+[source, json]
+----
+{
+  "ean": ["  12345  ", "56789"]
+}
+----
+
+===== Sample output of `trimNormalizer` function
+[source, json]
+----
+{
+  "ean": ["12345  ", "56789"]
+}
+----
+
+
+==== Configuration
+image:trimNormalizer-RIGHT.png[]
+----
+Function configuration:
+    mode: RIGHT
+    elementPath: /ean
+----
+
+===== Sample input (Single textual content)
+[source, json]
+----
+{
+  "ean": "  12345  "
+}
+----
+
+===== Sample output of `trimNormalizer` function
+[source, json]
+----
+{
+  "ean": "  12345"
+}
+----
+
+===== Sample input (Multiple textual content)
+[source, json]
+----
+{
+  "ean": ["  12345  ", "56789"]
+}
+----
+
+===== Sample output of `trimNormalizer` function
+[source, json]
+----
+{
+  "ean": ["  12345", "56789"]
+}
+----
+
+==== Configuration
+image:trimNormalizer-BOTH.png[]
+----
+Function configuration:
+    mode: BOTH
+    elementPath: /ean
+----
+
+===== Sample input (Single textual content)
+[source, json]
+----
+{
+  "ean": "  12345  "
+}
+----
+
+===== Sample output of `trimNormalizer` function
+[source, json]
+----
+{
+  "ean": "12345"
+}
+----
+
+===== Sample input (Multiple textual content)
+[source, json]
+----
+{
+  "ean": ["  12345  ", "56789"]
+}
+----
+
+===== Sample output of `trimNormalizer` function
+[source, json]
+----
+{
+  "ean": ["12345", "56789"]
+}
+----
 
 == padNormalizer
 image:padNormalizer.png[]

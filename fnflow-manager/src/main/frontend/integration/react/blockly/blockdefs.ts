@@ -267,7 +267,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "trim",
         "tooltip": "trim a string left, right or both sides",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#trimnormalizer",
         "message0": "trim %1\n name %2 elementPath %3",
         "args0": [
             {
