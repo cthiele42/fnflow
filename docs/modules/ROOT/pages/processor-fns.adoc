@@ -693,6 +693,124 @@ Function configuration:
 == ChangeEventEmit
 image:ChangeEventEmit.png[]
 
+image:topic.png[]
+
+The `ChangeEventEmit` function extracts content and message key from the Json content of the message, and could emit the extracted message key and content in the normal output topic of the pipeline or a specific configured topic.
+
+=== Parameters
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|eventContent
+|https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]
+|Yes
+|The `ChangeEventEmit` function extracts the content of the emitted message by using this Json Pointer.
+
+|eventKey
+|https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]
+|No
+|The `ChangeEventEmit` function extracts the message key of the emitted message by using this Json Pointer.
+
+|topic
+|String
+|No
+|The destination topic for emitted messages.
+
+Notes:
+
+* The `topic` is an optional config. If it is set, the `ChangeEventEmit` function uses this config and emits the messages to this topic. +
+If it is not set, the `ChangeEventEmit` function emits messages to the regular output topic as configured on the processor.
+
+|cleanUpMode
+|enum
+|No
+|Determines the cleanup mode of the `topic`. Valid values are:  `COMPACT`, `DELETE`.
+
+Notes:
+
+* If the topic is set, the default value for `cleanUpMode` is `COMPACT`
+* For more information, please check these links: https://kafka.apache.org/documentation/#compaction[Log Compaction] (related to the `COMPACT` config) , https://learn.conduktor.io/kafka/kafka-topic-configuration-log-retention[Log Retention] (related to the `DELETE` config)
+
+|cleanUpTimeHours
+|int
+|No
+|Determine the cleanup time in hour of the `topic`.
+
+Notes:
+
+* If the topic is set, the default value for `cleanUpTimeHours` is `336`
+
+|===
+
+=== Example
+==== Configuration
+image:ChangeEventEmit-Configured1.png[]
+
+----
+Function configuration:
+    eventContent: /input
+    topic: source
+    cleanUpMode: DELETE
+    cleanUpTimeHours: 12
+----
+
+===== Sample input
+[source, json]
+----
+{
+    "input": {"foo": "bar"},
+    "matches": [
+      {"id": "0815", "source":{"foo": "baz"}}
+    ]
+}
+----
+
+===== Sample output to the source topic
+[source, json]
+----
+{
+  "foo": "bar"
+}
+----
+
+==== Configuration
+image:ChangeEventEmit-Configured2.png[]
+
+----
+Function configuration:
+    eventContent: /matches/0/source
+    eventKey: /matches/0/id
+----
+
+
+
+===== Sample input
+[source, json]
+----
+{
+    "input": {"foo": "bar"},
+    "matches": [
+      {"id": "0815", "source":{"foo": "baz"}}
+    ]
+}
+----
+
+===== Sample output to the normal pipeline output topic
+[source, json]
+----
+{
+  "foo": "baz"
+}
+----
+
+And the message key for the output message is `0815`
+
 == Multiple Functions
 image:multipleFns.png[]
 

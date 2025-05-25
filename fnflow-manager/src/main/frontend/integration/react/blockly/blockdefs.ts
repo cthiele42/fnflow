@@ -351,7 +351,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "emitter",
         "tooltip": "emitter\n Emit an input message (or selected part of the input message with probable message key to configurable topic) ",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#changeeventemit",
         "message0": "emitter\n name %1 eventContent %2 eventKey %3 topic %4",
         "args0": [
             {
