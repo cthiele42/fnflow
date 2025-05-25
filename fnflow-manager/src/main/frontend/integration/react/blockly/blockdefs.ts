@@ -309,7 +309,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "reduceToOne",
         "tooltip": "reduce match results to one result",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#reduce2one",
         "message0": "reduce to one result\n name %1",
         "args0": [
             {

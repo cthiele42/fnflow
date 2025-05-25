@@ -496,6 +496,102 @@ Function configuration:
 == Reduce2One
 image:reduce2One.png[]
 
+The `Reduce2One` function usually gets its input from the <<match>> function, and tries to solve the ambiguous match situation to reduce the matched entities to one entity, under these conditions:
+
+* If the `matches` element only contains one item, it does nothing and passes the input as result.
+* If the `matches` element contains no item, it adds a matched entity  with an empty `source` element to the `matches`.
+* If the `matches` element contains more than one item, it returns the highest `score` matched entity. (If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
+
+*Note:*
+
+* If the `matches` element does not exist, or is not an array, the `Reduce2One` raises an exception.
+* If the `matches` element contains more than one item, and one of these items does not contain the `score` element, or the `score` element is not numeric, it would be replaced with the default value equal to `1.0`
+
+
+=== Parameters
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|===
+
+=== Example
+
+==== One item in the `matches` element
+===== Input sample
+[source, json]
+----
+{
+    "input": {"id": "ID1"},
+    "matches": [
+        {"id": "match1", "score": 1.0, "source": {"foo": "bar"}}
+    ]
+}
+----
+
+===== Output sample
+[source, json]
+----
+{
+    "input": {"id": "ID1"},
+    "matches": [
+        {"id": "match1", "score": 1.0, "source": {"foo": "bar"}}
+    ]
+}
+----
+
+==== No item in the `matches` element
+===== Input sample
+[source, json]
+----
+{
+    "input": {"id": "ID1"},
+    "matches": []
+}
+----
+
+===== Output sample
+[source, json]
+----
+{
+    "input": {"id": "ID1"},
+    "matches": [
+        {"source":{}}
+    ]
+}
+----
+
+==== More than one item in the `matches` element
+===== Input sample
+[source, json]
+----
+ {
+    "input": {"id": "ID1"},
+    "matches": [
+        {"id": "match1", "score": 0.98, "source": {"foo": "bar"}},
+        {"id": "match2", "score": 0.99, "source": {"foo": "baz"}},
+        {"id": "match3", "score": 0.99, "source": {"foo": "bad"}}
+    ]
+}
+----
+
+===== Output sample
+[source, json]
+----
+{
+    "input": {"id": "ID1"},
+    "matches": [
+        {"id": "match2", "score": 0.99, "source": {"foo": "baz"}}
+    ]
+}
+----
+
+
 == MergeCreate
 image:MergeCreate.png[]
 
