@@ -19,6 +19,9 @@ package org.ct42.fnflow.fnlibtest.reducer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,12 +29,14 @@ import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.context.annotation.ComponentScan;
 
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @SpringBootTest(
         properties = {
@@ -43,6 +48,7 @@ public class Reduce2OneTest {
     FunctionCatalog catalog;
 
     private final ObjectMapper mapper = new ObjectMapper();
+
 
     @Test
     void testReduceOneMatch() throws Exception {
@@ -59,20 +65,134 @@ public class Reduce2OneTest {
                 {"input":{"id":"ID1"},"matches":[{"id":"match!","score":1.0,"source":{"foo":"bar"}}]}""");
     }
 
-    @Test
-    void testReduceOneAmbiguousMatch() throws Exception {
+    @ParameterizedTest
+    @MethodSource("createAmbiguousMatchSamples")
+    void testReduceOneAmbiguousMatch(String inputJson, String expectedJson) throws Exception {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
-        JsonNode input = mapper.readTree("""
-                {
-                    "input": {"id": "ID1"},
-                    "matches": [
-                        {"id": "match1", "score":1.0,"source":{"foo":"bar"}},
-                        {"id": "match2", "score":1.0,"source":{"foo":"baz"}}
-                    ]
-                }""");
+        JsonNode input = mapper.readTree(inputJson);
 
-        then(function.apply(input).toString()).isEqualTo("""
-                {"input":null,"matches":[]}""");
+        then(function.apply(input).toString()).isEqualToIgnoringWhitespace(expectedJson);
+    }
+
+    private static Stream<Arguments> createAmbiguousMatchSamples() {
+        return Stream.of(
+                Arguments.of(
+                    """
+                    {
+                        "input": {"id": "ID1"},
+                        "matches": [
+                            {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                            {"id": "match2", "score":0.97,"source":{"foo":"baz"}}
+                        ]
+                    }
+                    """,
+                    """
+                    {
+                        "input": {"id": "ID1"},
+                        "matches": [
+                            {"id": "match1", "score":0.99,"source":{"foo":"bar"}}
+                        ]
+                    }
+                    """
+                ),
+                Arguments.of(
+                    """
+                    {
+                        "input": {"id": "ID1"},
+                        "matches": [
+                            {"id": "match1", "score":0.98,"source":{"foo":"bar"}},
+                            {"id": "match2", "score":0.99,"source":{"foo":"baz"}},
+                            {"id": "match3", "score":0.99,"source":{"foo":"bad"}}
+                        ]
+                    }
+                    """,
+                    """
+                    {
+                        "input": {"id": "ID1"},
+                        "matches": [
+                            {"id": "match2", "score":0.99,"source":{"foo":"baz"}}
+                        ]
+                    }
+                    """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                                {"id": "match2", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                                {"id": "match2", "score":"", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "score":"", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":0.99,"source":{"foo":"bar"}},
+                                {"id": "match2", "score":"a", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "score":"a", "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                ),
+                Arguments.of(
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match1", "score":-100, "source":{"foo":"bar"}},
+                                {"id": "match2", "score":-99, "source":{"foo":"baz"}},
+                                {"id": "match3", "score":-101, "source":{"foo":"bad"}}
+                            ]
+                        }
+                        """,
+                        """
+                        {
+                            "input": {"id": "ID1"},
+                            "matches": [
+                                {"id": "match2", "score":-99, "source":{"foo":"baz"}}
+                            ]
+                        }
+                        """
+                )
+        );
     }
 
     @Test

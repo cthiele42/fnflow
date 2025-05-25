@@ -217,7 +217,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "pad",
         "tooltip": "fill a string left or right up to a certain length",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#padnormalizer",
         "message0": "pad %1\n name %2 elementPath %3 up to length %4 fill character %5",
         "args0": [
             {
@@ -267,7 +267,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "trim",
         "tooltip": "trim a string left, right or both sides",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#trimnormalizer",
         "message0": "trim %1\n name %2 elementPath %3",
         "args0": [
             {
