@@ -109,7 +109,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "tParamFromInput",
         "tooltip": "Template parameter from input",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "from input  name %1 elementPath %2",
         "args0": [
             {
@@ -133,7 +133,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "tParamLiteral",
         "tooltip": "Template parameter",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "literal  name %1 value %2",
         "args0": [
             {
