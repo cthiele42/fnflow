@@ -292,7 +292,7 @@ image:padNormalizer.png[]
 Function configuration:
     pad: LEFT
     elementPath: /ean
-    lenght: 8
+    length: 8
     fillerCharacter: 0
 ----
 
@@ -334,7 +334,7 @@ image:padNormalizer-RIGHT.png[]
 Function configuration:
     pad: RIGHT
     elementPath: /ean
-    lenght: 8
+    length: 8
     fillerCharacter: 0
 ----
 
@@ -376,6 +376,122 @@ image:Match.png[]
 image:fromInput.png[]
 
 image:literal.png[]
+
+The `Match` function executes a search on an OpenSearch index to find entities in the index matching the function input. +
+The search utilizes an OpenSearch search template. The search template call can get named parameters, either a literal string or a value extracted from functions input. +
+The function result is a list of matched entities and the input used. The result fulfills the following schema:
+
+[source, json]
+----
+{
+  "input": { /* Input Json content */ },
+  "matches": [ /* List of Matched entities */ ]
+}
+----
+
+=== Parameters
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|name
+|String
+|Yes
+|The name of the function instance
+
+|index
+|String
+|Yes
+|The name of the OpenSearch index
+
+|template
+|String
+|Yes
+|The name of the OpenSearch search template
+
+|paramsFromInput
+|Map
+|No
+|The `paramsFromInput` is a Map from parameter name to a value from an input element. Which value has to be taken from the input has to be specified by a https://www.rfc-editor.org/rfc/rfc6901[Json Pointer]. The `Match` function extracts the value on the given path of the input and creates a serch template parameter with given name and extracted value.
+
+Notes: The search template should require these parameters and values.
+
+A sample:
+
+* name: `ids`
+* elementPath: `/id`
+* That means the `Match` function extracts the value from the Json element at path `/id`, and creates a search parameter with the name `ids` and value of the elements value at path `/id`.
+
+|literalParams
+|Map
+|No
+|The `literalParams` is a Map between a String and a String. The `Match` function creates a search parameter for running the search template by the key and the value.
+
+Notes: The search template should require these parameters and values.
+
+A sample:
+
+* name: `field`
+* value: `id`
+* That means the `Match` function creates a search template parameter with the name `field` and value `id`
+
+|===
+
+=== Example
+==== Configuration
+image:Match-Configured.png[]
+
+----
+Function configuration:
+    index: testindex
+    template: testtemplate
+    paramsFromInput: [
+        Key: ids, Value: /id
+    ]
+    literalParams: [
+        Key: field, Value: id
+    ]
+----
+
+===== Search Template Sample:
+[source, json]
+----
+{
+  "script": {
+    "lang": "mustache",
+    "source": "{\"query\":{\"terms\":{\"{{field}}\":{{#toJson}}ids{{/toJson}}}}}"
+  }
+}
+----
+
+===== Sample output of `Match` function
+[source, json]
+----
+{
+  "input": {
+    "id": "1235",
+    "name": "sample-info"
+  },
+  "matches": [
+    {
+      "source": {
+        "id": "1235",
+        "name": "claas"
+      },
+      "id": "lghKxZYBh3Hgc5n0WdDk",
+      "score": 0.18232156
+    },
+    {
+      "source": {
+        "id": "1235",
+        "name": "sabine"
+      },
+      "id": "lwhNxZYBh3Hgc5n0mdA7",
+      "score": 0.18232156
+    }
+  ]
+}
+----
 
 == Reduce2One
 image:reduce2One.png[]

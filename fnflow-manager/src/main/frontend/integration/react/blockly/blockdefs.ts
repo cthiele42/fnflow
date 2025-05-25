@@ -109,7 +109,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "tParamFromInput",
         "tooltip": "Template parameter from input",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "from input  name %1 elementPath %2",
         "args0": [
             {
@@ -133,7 +133,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "tParamLiteral",
         "tooltip": "Template parameter",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "literal  name %1 value %2",
         "args0": [
             {
@@ -181,7 +181,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "Match",
         "tooltip": "Match on entities using a searchtemplate",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "match\n  name %1 index %2 template %3\n parameters %4",
         "args0": [
             {
