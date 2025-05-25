@@ -89,7 +89,7 @@ image:hasValueValidator.png[]
 == trimNormalizer
 image:trimNormalizer.png[]
 
-If the Json element at the given path is textual or an array containing textual elements, the `trimNormalizer` function will trim the textual content and return the trimmed Json content.
+If the Json element at the given path is textual or an array containing textual elements, the `trimNormalizer` function will trim the textual content and return the Json content with the textual elements being trimmed. For arrays containing non textual elements beside textual, the non textual elements will be left untouched while textual elements will undergo a trim.
 
 === Parameters
 
