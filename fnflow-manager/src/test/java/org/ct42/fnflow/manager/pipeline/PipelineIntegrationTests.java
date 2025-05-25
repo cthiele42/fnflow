@@ -51,7 +51,7 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 	void testCreatePod() {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.9");
+		dto.setVersion("0.0.12");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
@@ -129,7 +129,7 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 	void testDeletePod() throws Exception {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.9");
+		dto.setVersion("0.0.12");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
@@ -169,7 +169,7 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 	void testGetDeployment() throws DeploymentDoesNotExistException {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.9");
+		dto.setVersion("0.0.12");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
@@ -246,7 +246,7 @@ class PipelineIntegrationTests extends AbstractIntegrationTests {
 	void getListTest() {
 		//GIVEN
 		PipelineConfigDTO dto = new PipelineConfigDTO();
-		dto.setVersion("0.0.9");
+		dto.setVersion("0.0.12");
 		dto.setSourceTopic("sourceTopic");
 		dto.setEntityTopic("entityTopic");
 		dto.setErrorTopic("errorTopic");
