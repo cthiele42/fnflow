@@ -597,12 +597,12 @@ image:MergeCreate.png[]
 
 image:mapping.png[]
 
-The `MergeCreate` function reads a message from the output of the <<match>> function, and tries to create elements from the input entity to the source-matched entity, under these conditions:
+The `MergeCreate` function usually gets its input from the <<match>> function, and tries to create elements from the input entity in the source-matched entity, under these conditions:
 
 * These changes only affect the first item in the `matches` element.
-* The `MergeCreate` configurations determine which element in the input should be mapped to the destination element on the source-matched entity.
+* The `MergeCreate` configurations determine which element of the input should be mapped into the source-matched entity.
 * If the source-matched entity contains the mapped element that was determined in the function configuration, the `MergeCreate` function does not touch it.
-* If the source-matched entity does not contain the mapped element that was determined in the function configuration, the `MergeCreate` function creates the element and fills it from the mapped element value in the input entity.
+* If the source-matched entity does not contain the mapped element that was determined in the function configuration, the `MergeCreate` function creates the element and fills it from the mapped element value of the input entity.
 
 
 === Parameters
@@ -618,12 +618,12 @@ The `MergeCreate` function reads a message from the output of the <<match>> func
 |mappings
 |List
 |Yes
-|The list of mapping elements between the input and the source-matched entity.
+|The list of mapping elements from input to the source-matched entity.
 
 Each item of the list contains 2 elements:
 
-* `from`: That is a https://www.rfc-editor.org/rfc/rfc6901[Json Pointer] and determines the Json element inside the input.
-* `to`: That is a https://www.rfc-editor.org/rfc/rfc6901[Json Pointer] and determines the Json element inside the source-matched entity.
+* `from`: https://www.rfc-editor.org/rfc/rfc6901[Json Pointer] determining the Json element inside the input.
+* `to`: https://www.rfc-editor.org/rfc/rfc6901[Json Pointer] determining the Json element inside the source-matched entity.
 
 |===
 
