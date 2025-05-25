@@ -109,7 +109,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "tParamFromInput",
         "tooltip": "Template parameter from input",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "from input  name %1 elementPath %2",
         "args0": [
             {
@@ -133,7 +133,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "tParamLiteral",
         "tooltip": "Template parameter",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "literal  name %1 value %2",
         "args0": [
             {
@@ -181,7 +181,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "Match",
         "tooltip": "Match on entities using a searchtemplate",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#match",
         "message0": "match\n  name %1 index %2 template %3\n parameters %4",
         "args0": [
             {
@@ -217,7 +217,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "pad",
         "tooltip": "fill a string left or right up to a certain length",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#padnormalizer",
         "message0": "pad %1\n name %2 elementPath %3 up to length %4 fill character %5",
         "args0": [
             {
@@ -267,7 +267,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "trim",
         "tooltip": "trim a string left, right or both sides",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#trimnormalizer",
         "message0": "trim %1\n name %2 elementPath %3",
         "args0": [
             {
@@ -309,7 +309,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "reduceToOne",
         "tooltip": "reduce match results to one result",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#reduce2one",
         "message0": "reduce to one result\n name %1",
         "args0": [
             {
@@ -327,7 +327,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "mergeCreate",
         "tooltip": "merge if target element does not exist",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#mergecreate",
         "message0": "merge mode create\n name %1\n mappings %2",
         "args0": [
             {

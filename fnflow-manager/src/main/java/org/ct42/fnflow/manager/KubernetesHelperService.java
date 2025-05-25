@@ -99,12 +99,13 @@ public class KubernetesHelperService {
                 .forceConflicts().serverSideApply();
     }
 
-    public DeploymentStatusDTO getDeploymentStatus(String deploymentName, String deploymentNamePrefix)
+    public DeploymentStatusDTO getDeploymentStatus(String deploymentName, String deploymentNamePrefix, String deploymentType)
             throws DeploymentDoesNotExistException {
 
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(deploymentNamePrefix + deploymentName).get();
-        if(deployment == null) throw new DeploymentDoesNotExistException(deploymentName);
+        if(deployment == null)
+            throw new DeploymentDoesNotExistException(deploymentName, deploymentType);
         return getDeploymentStatus(deployment);
     }
 
@@ -153,12 +154,13 @@ public class KubernetesHelperService {
                 .withName(deploymentNamePrefix + deploymentName).delete();
     }
 
-    public Container getDeploymentContainer(String deploymentName, String deploymentNamePrefix)
+    public Container getDeploymentContainer(String deploymentName, String deploymentNamePrefix, String deploymentType)
             throws DeploymentDoesNotExistException {
 
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(deploymentNamePrefix + deploymentName).get();
-        if(deployment == null) throw new DeploymentDoesNotExistException(deploymentName);
+        if(deployment == null)
+            throw new DeploymentDoesNotExistException(deploymentName, deploymentType);
 
         return deployment.getSpec().getTemplate().getSpec().getContainers().getFirst();
     }
