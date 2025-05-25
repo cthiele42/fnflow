@@ -16,10 +16,7 @@
 
 package org.ct42.fnflow.manager;
 
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
@@ -43,6 +40,12 @@ public class KubernetesHelperService {
     private static final String NAMESPACE = "default";
     private static final String APP_LABEL_KEY = "app.kubernetes.io/name";
     private static final String INSTANCE_LABEL_KEY = "app.kubernetes.io/instance";
+
+    private static final String HTTP_SCHEMA = "HTTP";
+    private static final String STARTUP_PATH = "/actuator/health/liveness";
+    private static final String LIVENESS_PATH = "/actuator/health/liveness";
+    private static final String READINESS_PATH = "/actuator/health/readiness";
+    private static final Integer ACTUATOR_PORT = 8079;
 
     private final KubernetesClient k8sClient;
     private final ManagerProperties cfgProps;
@@ -77,27 +80,32 @@ public class KubernetesHelperService {
                                 .withImage(image + ":" + imageVersion)
                                 .withImagePullPolicy("IfNotPresent")
                                 .withPorts(new ContainerPortBuilder()
-                                        .withName("http")
-                                        .withContainerPort(8080).build())
+                                        .withName("actuator")
+                                        .withContainerPort(ACTUATOR_PORT).build())
                                 .withEnv(new EnvVarBuilder()
                                                 .withName("OPENSEARCH_URIS")
                                                 .withValue(cfgProps.getOsUris()).build(),
                                         new EnvVarBuilder()
                                                 .withName("SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS")
                                                 .withValue(cfgProps.getKafkaBrokers()).build())
-                                .withArgs(args).build())
+                                .withArgs(args)
+                                .withStartupProbe(httpProbeCreator(STARTUP_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 0, 1, 180))
+                                .withLivenessProbe(httpProbeCreator(LIVENESS_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 0, 10, 1))
+                                .withReadinessProbe(httpProbeCreator(READINESS_PATH, ACTUATOR_PORT, HTTP_SCHEMA, 0, 1, 3))
+                                .build())
                         .endSpec()
                         .endTemplate()
                         .endSpec().build())
                 .forceConflicts().serverSideApply();
     }
 
-    public DeploymentStatusDTO getDeploymentStatus(String deploymentName, String deploymentNamePrefix)
+    public DeploymentStatusDTO getDeploymentStatus(String deploymentName, String deploymentNamePrefix, String deploymentType)
             throws DeploymentDoesNotExistException {
 
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(deploymentNamePrefix + deploymentName).get();
-        if(deployment == null) throw new DeploymentDoesNotExistException(deploymentName);
+        if(deployment == null)
+            throw new DeploymentDoesNotExistException(deploymentName, deploymentType);
         return getDeploymentStatus(deployment);
     }
 
@@ -146,12 +154,13 @@ public class KubernetesHelperService {
                 .withName(deploymentNamePrefix + deploymentName).delete();
     }
 
-    public Container getDeploymentContainer(String deploymentName, String deploymentNamePrefix)
+    public Container getDeploymentContainer(String deploymentName, String deploymentNamePrefix, String deploymentType)
             throws DeploymentDoesNotExistException {
 
         Deployment deployment = k8sClient.apps().deployments().inNamespace(NAMESPACE)
                 .withName(deploymentNamePrefix + deploymentName).get();
-        if(deployment == null) throw new DeploymentDoesNotExistException(deploymentName);
+        if(deployment == null)
+            throw new DeploymentDoesNotExistException(deploymentName, deploymentType);
 
         return deployment.getSpec().getTemplate().getSpec().getContainers().getFirst();
     }
@@ -176,5 +185,19 @@ public class KubernetesHelperService {
      */
     public SharedIndexInformer<Deployment> createDeploymentInformer(String appName) {
         return k8sClient.apps().deployments().inNamespace(NAMESPACE).withLabel(APP_LABEL_KEY, appName).inform(null, 10_000);
+    }
+
+    private Probe httpProbeCreator(String path, int port, String schema, int initialDelay, int period, int failure) {
+        HTTPGetActionBuilder httpGetActionBuilder = new HTTPGetActionBuilder()
+                .withPath(path)
+                .withNewPort(port)
+                .withScheme(schema);
+
+        return new ProbeBuilder()
+                .withHttpGet(httpGetActionBuilder.build())
+                .withInitialDelaySeconds(initialDelay)
+                .withPeriodSeconds(period)
+                .withFailureThreshold(failure)
+                .build();
     }
 }
