@@ -55,11 +55,12 @@ public abstract class AbstractDeploymentService<DTO> implements DeploymentServic
 
     @Override
     public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
-        return kubernetesHelperService.getDeploymentStatus(name, getDeploymentNamePrefix());
+        return kubernetesHelperService.getDeploymentStatus(name, getDeploymentNamePrefix(), getDeploymentType());
     }
 
     @Override
-    public void delete(String name) {
+    public void delete(String name) throws DeploymentDoesNotExistException {
+        getStatus(name);
         kubernetesHelperService.deleteDeployment(name, getDeploymentNamePrefix());
     }
 
