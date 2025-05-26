@@ -363,13 +363,14 @@ Function configuration:
 ----
 
 ===== Sample output of `padNormalizer` function
-[source, json]
+[source,json]
 ----
 {
   "ean": ["12345000", "123456789"]
 }
 ----
 
+[#match]
 == Match
 image:Match.png[]
 
@@ -378,8 +379,8 @@ image:fromInput.png[]
 image:literal.png[]
 
 The `Match` function executes a search on an OpenSearch index to find entities in the index matching the function input. +
-The search utilizes an OpenSearch search template. The search template call can get named parameters, either a literal string or a value extracted from functions input. +
-The function result is a list of matched entities and the input used. The result fulfills the following schema:
+The search utilizes an OpenSearch search template.The search template call can get named parameters, either a literal string or a value extracted from functions input. +
+The function result is a list of matched entities and the input used.The result fulfills the following schema:
 
 [source, json]
 ----
@@ -690,6 +691,7 @@ Function configuration:
 
 *Note:* As you can see in the Input and Output sample, if the input entity does not contain the `from` configured element, the `MergeCreate` function does nothing.
 
+[#changeeventemit]
 == ChangeEventEmit
 image:ChangeEventEmit.png[]
 
@@ -698,7 +700,7 @@ image:topic.png[]
 The `ChangeEventEmit` function extracts content and message key from the Json content of the message, and could emit the extracted message key and content in the normal output topic of the pipeline or a specific configured topic.
 
 === Parameters
-[cols="1,1,1,a", options="autowidth"]
+[cols="1,1,1,a",options="autowidth"]
 |===
 |Parameter Name |Type |Required | Description
 
@@ -788,8 +790,6 @@ Function configuration:
     eventKey: /matches/0/id
 ----
 
-
-
 ===== Sample input
 [source, json]
 ----
@@ -814,3 +814,73 @@ And the message key for the output message is `0815`
 == Multiple Functions
 image:multipleFns.png[]
 
+The `Multiple Functions` actually is an Operator. Normally, in the FnFlow DSL (Domain Specific Language), the `|` (pipe) character is used to combine functions, and it means each function's output will be used as the next function's input; please pay attention to the below sample:
+
+----
+idExist|idTrim|nameTrim
+----
+
+In this sample, `idExist` reads messages from input, processes them, and sends them to the next function in the pipeline (that is, the `idTrim` in this example). The `idTrim` also does the same thing, and so on until the last function in the pipeline.
+
+But the `Multiple Functions` uses the `\+` character to create a fork inside a pipeline. That means between two `|` it is possible to join functions by using `+` and each function of these joined functions will receive the same message separately. Combining this functionality with the <<changeeventemit>> function will help the FnFlow users to create forks inside the pipelines and have multiple output topics; please pay attention to the below sample:
+
+----
+idExist+validateEmitter|idTrim+trimEmitter|nameTrim
+----
+
+In this sample, `idExist` and `validateEmitter` will receive the same messages from the input topic, process them, and send the result to the next functions in the pipeline.
+
+=== Example
+==== Configuration
+image:multipleFns-Configured.png[]
+
+===== Sample input messages in the `input-topic`
+----
+1: {"id":[], "name":"name0"}
+
+2: {"id":["  ID1  "], "name":"  name1  "}
+
+3: {"id":["ID2"], "name":"name2"}
+----
+
+===== Sample output messages to the `output-topic`
+----
+1: {"id":["ID1"],"name":"name1"}
+
+2: {"id":["ID2"],"name":"name2"}
+----
+
+===== Sample output messages to the `error-topic`
+----
+1: {"id":[], "name":"name0"}
+----
+
+===== Sample output messages to the `validate-topic`
+----
+1: {"id":[],"name":"name0"}
+
+2: {"id":["ID1"],"name":"name1"}
+
+3: {"id":["ID2"],"name":"name2"}
+----
+
+===== Sample output messages to the `trim-topic`
+----
+1: {"id":[],"name":"name0"}
+
+2: {"id":["  ID1  "],"name":"name1"}
+
+3: {"id":["ID2"],"name":"name2"}
+
+4: {"id":["  ID1  "],"name":"name1"}
+
+5: {"id":["ID2"],"name":"name2"}
+----
+
+And in the diagram below, you can see the state of messages in these three paths:
+
+* Main Route: Between `input-topic` and `output-topic`, and error pushed to the `error-topic`
+* Validate Route: created by `validateEmitter` and messages pushed to the `validate-topic`
+* Trim Route: created by `trimEmitter` and messages pushed to the `trim-topic`
+
+image:pipeline-fork.svg[]
