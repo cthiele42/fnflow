@@ -5,7 +5,7 @@ pipeline {
             steps {
                 dir('fnlib') {
                     sh '''
-                        ${WORKSPACE}/gradlew clean jar
+                        ${WORKSPACE}/gradlew clean test
                     '''
                 }
             }
