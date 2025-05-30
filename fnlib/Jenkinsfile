@@ -1,0 +1,14 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                dir('fnlib') {
+                    sh '''
+                        ${WORKSPACE}/gradlew clean jar
+                    '''
+                }
+            }
+        }
+    }
+}
