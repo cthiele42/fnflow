@@ -1,6 +1,6 @@
 export const FnFlowToolbox =  {
         kind: 'flyoutToolbox',
-            contents: [
+        contents: [
             {
                 kind: 'block',
                 type: 'text'

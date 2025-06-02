@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.deployment;
 
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  * @author Sajjad Safaeian
  */
 @RequiredArgsConstructor
-public abstract class AbstractDeploymentService<DTO> implements DeploymentService<DTO> {
+public abstract class AbstractDeploymentService<DTO extends AbstractConfigDTO> implements DeploymentService<DTO> {
 
     protected final KubernetesHelperService kubernetesHelperService;
     private SharedIndexInformer<Deployment> deploymentInformer;
@@ -54,6 +54,11 @@ public abstract class AbstractDeploymentService<DTO> implements DeploymentServic
     }
 
     @Override
+    public void createOrUpdateAbstractConfig(String name, AbstractConfigDTO config) {
+        createOrUpdate(name, (DTO)config);
+    }
+
+    @Override
     public DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException {
         return kubernetesHelperService.getDeploymentStatus(name, getDeploymentNamePrefix(), getDeploymentType());
     }
@@ -69,6 +74,7 @@ public abstract class AbstractDeploymentService<DTO> implements DeploymentServic
         return kubernetesHelperService.getDeploymentsByLabel(getAppName(), getDeploymentNamePrefix());
     }
 
+    @Override
     public void addDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
         if(!handlerLookup.containsKey(listener)) {
             DeploymentInfoHandler handler = new DeploymentInfoHandler(listener);
@@ -78,6 +84,7 @@ public abstract class AbstractDeploymentService<DTO> implements DeploymentServic
         }
     }
 
+    @Override
     public void removeDeploymentInfoListener(Consumer<DeploymentInfo> listener) {
         handlerLookup.computeIfPresent(listener, (l, h) -> {
             deploymentInformer.removeEventHandler(h);
