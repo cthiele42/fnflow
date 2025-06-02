@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.pipeline;
+package org.ct42.fnflow.manager.deployment.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ct42.fnflow.manager.DeploymentDTO;
+import org.ct42.fnflow.manager.deployment.DeploymentDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

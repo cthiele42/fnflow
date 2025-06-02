@@ -14,31 +14,19 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.deployment;
 
-import java.util.List;
+import lombok.Data;
 
 /**
- *
- * @param <DTO>
- *
- * @author Sajjad Safaeian
+ * @author Claas Thiele
  */
-public interface DeploymentService<DTO> {
+@Data
+public class DeploymentStatusDTO {
+    public enum Status {
+        COMPLETED, PROGRESSING, FAILED, UNKNOWN
+    }
 
-    void createOrUpdate(String name, DTO config);
-
-    DeploymentStatusDTO getStatus(String name) throws DeploymentDoesNotExistException;
-
-    void delete(String name) throws DeploymentDoesNotExistException;
-
-    DTO getConfig(String name) throws DeploymentDoesNotExistException;
-
-    List<DeploymentDTO> getList();
-
-    String getAppName();
-
-    String getDeploymentNamePrefix();
-
-    String getDeploymentType();
+    private Status status = Status.UNKNOWN;
+    private String message = "Waiting for deployment spec update to be observed...";
 }

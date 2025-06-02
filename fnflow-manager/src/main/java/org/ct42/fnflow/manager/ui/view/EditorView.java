@@ -18,17 +18,28 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import lombok.Getter;
-import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
-import org.ct42.fnflow.manager.pipeline.PipelineConfigDTO;
-import org.ct42.fnflow.manager.pipeline.PipelineService;
+import lombok.RequiredArgsConstructor;
+import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
+import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.deployment.DeploymentService;
 import org.ct42.fnflow.manager.ui.Blockly;
+import org.ct42.fnflow.manager.ui.DeploymentServiceUtil;
 import org.ct42.fnflow.manager.ui.Tree;
 
+import java.util.Map;
+
+import static org.ct42.fnflow.manager.ui.DeploymentServiceUtil.getDeploymentServiceInfoBasedOnKey;
+
+/**
+ * @author Claas Thiele
+ * @author Sajjad Safaeian
+ */
 @Route("")
 public class EditorView extends VerticalLayout {
     private static final String ID_PREFIX = "editor-";
 
-    private final PipelineService pipelineService;
+    private final Map<String, DeploymentService<?>> deploymentServices;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private Registration registration;
@@ -44,8 +55,8 @@ public class EditorView extends VerticalLayout {
         }
     }
 
-    public EditorView(PipelineService pipelineService) {
-        this.pipelineService = pipelineService;
+    public EditorView(Map<String, DeploymentService<?>> deploymentServices) {
+        this.deploymentServices = deploymentServices;
 
         tabSheet.setWidth("100%");
         tabSheet.setMaxWidth("100%");
@@ -76,11 +87,12 @@ public class EditorView extends VerticalLayout {
                                 }
                             }
                             if(!tabExists) {
+                                DeploymentServiceUtil.DeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(event.getKey());
                                 try {
-                                    PipelineConfigDTO config = pipelineService.getConfig(event.getName());
+                                    AbstractConfigDTO config = deploymentServices.get(serviceInfo.getServiceName()).getConfig(event.getName());
                                     openTab(event.getName(), event.getKey(), config);
                                 } catch (DeploymentDoesNotExistException e) {
-                                    Notification notification = Notification.show("Deployment of processor " + event.getName() + " does not exist");
+                                    Notification notification = Notification.show(String.format("Deployment of %s %s does not exist", serviceInfo.getType(), event.getName()));
                                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                                     notification.setPosition(Notification.Position.BOTTOM_END);
                                     notification.setDuration(0);
@@ -88,14 +100,15 @@ public class EditorView extends VerticalLayout {
                             }
                         }
                         case "new" -> {
-                            Dialog dialog = new Dialog();
+                            CreateDialog dialog = new CreateDialog(getKeyPrefixBasedOnEvent(event));
                             dialog.setHeaderTitle("Name");
                             TextField nameField = new TextField();
+
                             nameField.addKeyPressListener(e -> {
                                 if(e.getKey().equals(Key.ENTER)) {
                                     dialog.close();
                                     String name = nameField.getValue();
-                                    String key = "proc-" + name;
+                                    String key = dialog.getKeyPrefix() + name;
                                     openTab(name, key, null);
                                 } else if(e.getKey().equals(Key.ESCAPE)) {
                                     dialog.close();
@@ -110,7 +123,7 @@ public class EditorView extends VerticalLayout {
         );
     }
 
-    private void openTab(String name, String key, PipelineConfigDTO config) {
+    private void openTab(String name, String key, AbstractConfigDTO config) {
         try {
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.addItem("Create/Update").addClickListener(event ->
@@ -128,7 +141,8 @@ public class EditorView extends VerticalLayout {
             Tab tab = new Tab(new Span(name), icon);
             tab.setId(ID_PREFIX + key);
 
-            Tab newTab = tabSheet.add(tab, new Blockly(config != null ? objectMapper.writeValueAsString(config) : null, pipelineService));
+            String configContent = config != null ? objectMapper.writeValueAsString(config) : null;
+            Tab newTab = tabSheet.add(tab, new Blockly(configContent, key, deploymentServices));
             tabSheet.setSelectedTab(newTab);
         } catch (JsonProcessingException e) {
             Notification notification = Notification.show("Loading of deployment of processor " + name + " failed due to format errors");
@@ -143,4 +157,19 @@ public class EditorView extends VerticalLayout {
         super.onDetach(detachEvent);
         registration.remove();
     }
+
+    private String getKeyPrefixBasedOnEvent(Tree.TreeActionEvent event) {
+        return switch (event.getKey()) {
+            case "procs" -> "proc-";
+            case "projs" -> "projector-";
+            default -> throw new IllegalStateException("Unexpected value: " + event.getKey());
+        };
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    private static class CreateDialog extends Dialog {
+        private final String keyPrefix;
+    }
+
 }

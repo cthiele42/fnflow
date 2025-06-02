@@ -4,11 +4,17 @@ import {ReactElement, useCallback, useRef} from "react";
 import './blockly.css';
 import * as Blockly from 'blockly/core';
 import * as En from 'blockly/msg/en';
-import {FnFlowToolbox} from "./toolbox";
 import {FnFlowBlockDefinitions} from "./blockdefs";
-import {loadPipelineConfig} from "./load"
-import {createGenerator} from "./generator";
 import type {BlocklyCbStateType} from "@react-blockly/core/lib/typescript/src/types/BlocklyStateType";
+
+import * as processorImports from './processor';
+import * as projectorImports from './projector';
+
+const imports = {
+    processor: processorImports,
+    projector: projectorImports,
+} as const;
+type KeyType = keyof typeof imports;
 
 function showHelp(this: any) {
     window.open(this.helpUrl, 'helpview');
@@ -65,10 +71,14 @@ class BlocklyElement extends ReactAdapterElement {
     protected override render(hooks: RenderHooks): ReactElement | null {
         const [wsState, setWsState] = hooks.useState<string>('wsState');
         const wsStateRef = useRef(wsState)
+
+        const [wsType, setWsType] = hooks.useState<string>('wsType');
+        const wsTypeRef = useRef(wsType)
+
         const ref = useRef(null);
 
         const workspaceConfiguration: any = {
-            toolbox: FnFlowToolbox,
+            toolbox: imports[String(wsTypeRef.current) as KeyType].FnFlowToolbox,
             collapse: true,
             scrollbars: true,
             comments: true,
@@ -81,7 +91,7 @@ class BlocklyElement extends ReactAdapterElement {
         // @ts-ignore
         const onInject = useCallback((state: BlocklyCbStateType) => {
             // @ts-ignore
-            Blockly.serialization.workspaces.load(loadPipelineConfig(wsStateRef.current), state.workspace);
+            Blockly.serialization.workspaces.load(imports[String(wsTypeRef.current) as KeyType].loadConfig(wsStateRef.current), state.workspace);
             // @ts-ignore
             state.workspace.addChangeListener(Blockly.Events.disableOrphans);
 
@@ -92,7 +102,7 @@ class BlocklyElement extends ReactAdapterElement {
                 Blockly.Events.BLOCK_MOVE,
             ]);
 
-            const generator = createGenerator();
+            let generator = imports[String(wsTypeRef.current) as KeyType].createGenerator();
             // @ts-ignore
             function updateCode(event) {
                 // @ts-ignore

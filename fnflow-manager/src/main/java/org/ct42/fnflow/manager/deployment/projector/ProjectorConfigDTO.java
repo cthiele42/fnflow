@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.projector;
+package org.ct42.fnflow.manager.deployment.projector;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
 
 /**
  * @author Sajjad Safaeian
  */
 @Data
-public class ProjectorConfigDTO {
-    private String version;
+@EqualsAndHashCode(callSuper = true)
+public class ProjectorConfigDTO extends AbstractConfigDTO {
     private String topic;
     private String index;
 }

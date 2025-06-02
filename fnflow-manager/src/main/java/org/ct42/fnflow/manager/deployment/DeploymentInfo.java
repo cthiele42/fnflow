@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.deployment;
 
 import lombok.Data;
 
@@ -22,11 +22,15 @@ import lombok.Data;
  * @author Claas Thiele
  */
 @Data
-public class DeploymentStatusDTO {
-    public enum Status {
-        COMPLETED, PROGRESSING, FAILED, UNKNOWN
-    }
+public class DeploymentInfo {
+    private Action action;
+    private String internalName;
+    private String name;
+    private DeploymentStatusDTO status;
+    private Long generation;
+    private String creationTimestamp;
 
-    private Status status = Status.UNKNOWN;
-    private String message = "Waiting for deployment spec update to be observed...";
+    public static enum Action {
+        ADD, UPDATE, DELETE
+    }
 }

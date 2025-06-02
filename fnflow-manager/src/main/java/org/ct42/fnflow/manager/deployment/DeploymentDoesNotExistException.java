@@ -1,4 +1,4 @@
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.deployment;
 
 import lombok.Getter;
 

@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.deployment;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * @author Claas Thiele
+ * @author Sajjad Safaeoan
  */
 @Data
-public class DeploymentInfo {
-    private Action action;
-    private String internalName;
+@AllArgsConstructor
+public class DeploymentDTO {
     private String name;
-    private DeploymentStatusDTO status;
-    private Long generation;
-    private String creationTimestamp;
-
-    public static enum Action {
-        ADD, UPDATE, DELETE
-    }
 }

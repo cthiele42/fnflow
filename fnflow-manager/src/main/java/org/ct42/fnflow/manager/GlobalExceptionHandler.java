@@ -16,6 +16,7 @@
 
 package org.ct42.fnflow.manager;
 
+import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;

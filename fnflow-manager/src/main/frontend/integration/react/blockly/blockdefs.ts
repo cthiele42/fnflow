@@ -401,5 +401,33 @@ export const FnFlowBlockDefinitions = [
         "nextStatement": "function",
         "colour": 565,
         "inputsInline": false
+    },
+    {
+        "type": "projector",
+        "tooltip": "A FnFlow projector",
+        "helpUrl": "",
+        "message0": "projector\n version %1 topic %2 index %3",
+        "args0": [
+            {
+                "type": "input_value",
+                "name": "version",
+                "align": "RIGHT",
+                "check": "String"
+            },
+            {
+                "type": "input_value",
+                "name": "topic",
+                "align": "RIGHT",
+                "check": "String"
+            },
+            {
+                "type": "input_value",
+                "name": "index",
+                "align": "RIGHT",
+                "check": "String"
+            }
+        ],
+        "colour": 210,
+        "inputsInline": false
     }
 ];

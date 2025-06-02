@@ -16,21 +16,34 @@
 
 package org.ct42.fnflow.manager.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 import com.vaadin.flow.shared.Registration;
-import org.ct42.fnflow.manager.pipeline.PipelineConfigDTO;
-import org.ct42.fnflow.manager.pipeline.PipelineService;
+import org.apache.commons.lang3.StringUtils;
+import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
+import org.ct42.fnflow.manager.deployment.DeploymentService;
+import org.ct42.fnflow.manager.deployment.pipeline.PipelineConfigDTO;
+import org.ct42.fnflow.manager.deployment.projector.ProjectorConfigDTO;
 import org.ct42.fnflow.manager.ui.view.EditorView;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.ct42.fnflow.manager.ui.DeploymentServiceUtil.DEPLOYMENT_SERVICE_INFOS;
+import static org.ct42.fnflow.manager.ui.DeploymentServiceUtil.getDeploymentServiceInfoBasedOnKey;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @NpmPackage(value="@react-blockly/web", version="1.7.7")
 @JsModule("Frontend/integration/react/blockly/blockly.tsx")
@@ -38,7 +51,7 @@ import org.ct42.fnflow.manager.ui.view.EditorView;
 public class Blockly extends ReactAdapterComponent {
     private static final String INITIAL_PROCESSOR_STATE = """
         {
-          "version": "0.0.11",
+          "version": "0.0.13",
           "sourceTopic": "input",
           "entityTopic": "output",
           "cleanUpMode": "COMPACT",
@@ -50,23 +63,37 @@ public class Blockly extends ReactAdapterComponent {
           ]
         }""";
 
-    private final PipelineService pipelineService;
+    private static final String INITIAL_PROJECTOR_STATE = """
+        {
+          "version": "0.0.3",
+          "topic": "output",
+          "index": "test-index"
+        }""";
+
+    private final List<BlocklyDeploymentServiceInfo> BLOCKLY_DEPLOYMENT_SERVICE_INFOS =  List.of(
+            new BlocklyDeploymentServiceInfo(DEPLOYMENT_SERVICE_INFOS.getFirst(), INITIAL_PROCESSOR_STATE, PipelineConfigDTO.class),
+            new BlocklyDeploymentServiceInfo(DEPLOYMENT_SERVICE_INFOS.get(1), INITIAL_PROJECTOR_STATE, ProjectorConfigDTO.class)
+    );
+
+    private final Map<String, DeploymentService<?>> deploymentServices;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final String key;
 
     private Registration registration;
 
-    public void setWorkspaceState(String state) {
+    public void setWorkspaceState(String state, String type) {
         setState("wsState", state);
+        setState("wsType", type);
     }
 
-    public Blockly(String initialState, PipelineService pipelineService) {
-        this.pipelineService = pipelineService;
+    public Blockly(String initialState, String key, Map<String, DeploymentService<?>> deploymentServices) {
+        this.deploymentServices = deploymentServices;
+        this.key = key;
 
-        if (initialState != null) {
-            setWorkspaceState(initialState);
-        } else {
-            setWorkspaceState(INITIAL_PROCESSOR_STATE);
-        }
+        BlocklyDeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key, BLOCKLY_DEPLOYMENT_SERVICE_INFOS);
+
+        String state = Objects.requireNonNullElse(initialState, serviceInfo.initialState);
+        setWorkspaceState(state, serviceInfo.getType());
     }
 
     @Override
@@ -78,16 +105,19 @@ public class Blockly extends ReactAdapterComponent {
                 event -> {
                     String name = event.getName();
                     getElement().executeJs("return this.firstChild.getAttribute('data-code')").then(String.class, code -> {
+                        BlocklyDeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key, BLOCKLY_DEPLOYMENT_SERVICE_INFOS);
                         try {
-                            PipelineConfigDTO configDTO = objectMapper.readValue(code, PipelineConfigDTO.class);
-                            pipelineService.createOrUpdate(name, configDTO);
-                            Notification notification = Notification.show("Processor " + name + " successfully deployed");
+                            AbstractConfigDTO configDTO = objectMapper.readValue(code, serviceInfo.dtoClass);
+                            deploymentServices.get(serviceInfo.getServiceName()).createOrUpdateAbstractConfig(name, configDTO);
+                            Notification notification = Notification.show(
+                                    String.format("%s %s successfully deployed", StringUtils.capitalize(serviceInfo.getType()), name)
+                            );
                             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                             notification.setPosition(Notification.Position.BOTTOM_END);
                             notification.setDuration(5000);
 
-                        } catch (JsonProcessingException e) {
-                            Notification notification = Notification.show("Deployment of processor " + name + " failed");
+                        } catch (Exception e) {
+                            Notification notification = Notification.show(String.format("Deployment of %s %s failed", serviceInfo.getType(), name));
                             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                             notification.setPosition(Notification.Position.BOTTOM_END);
                             notification.setDuration(0);
@@ -101,4 +131,18 @@ public class Blockly extends ReactAdapterComponent {
         super.onDetach(detachEvent);
         registration.remove();
     }
+
+    public static class BlocklyDeploymentServiceInfo extends DeploymentServiceUtil.DeploymentServiceInfo {
+        private final String initialState;
+        private final Class<? extends AbstractConfigDTO> dtoClass;
+
+        public BlocklyDeploymentServiceInfo(DeploymentServiceUtil.DeploymentServiceInfo serviceInfo,
+                                            String initialState, Class<? extends AbstractConfigDTO> dtoClass) {
+            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName());
+
+            this.initialState = initialState;
+            this.dtoClass = dtoClass;
+        }
+    }
+
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager;
+package org.ct42.fnflow.manager.deployment;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ import java.util.Map;
  * @author Sajjad Safaiean
  */
 @AllArgsConstructor
-public abstract class AbstractDeploymentController<DTO, Service extends DeploymentService<DTO>> {
+public abstract class AbstractDeploymentController<DTO extends AbstractConfigDTO, Service extends DeploymentService<DTO>> {
     private Service service;
 
     protected abstract String getApptype();

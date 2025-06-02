@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly/core';
 
-export function loadPipelineConfig(configString: string) {
+export function loadConfig(configString: string) {
     const pipelineConfig = JSON.parse(configString);
     let state =
         {

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.projector;
+package org.ct42.fnflow.manager.deployment.projector;
 
 import io.fabric8.kubernetes.api.model.Container;
-import org.ct42.fnflow.manager.AbstractDeploymentService;
-import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
-import org.ct42.fnflow.manager.KubernetesHelperService;
+import org.ct42.fnflow.manager.deployment.AbstractDeploymentService;
+import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.deployment.KubernetesHelperService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
