@@ -363,7 +363,7 @@ Function configuration:
 ----
 
 ===== Sample output of `padNormalizer` function
-[source,json]
+[source, json]
 ----
 {
   "ean": ["12345000", "123456789"]
@@ -379,8 +379,8 @@ image:fromInput.png[]
 image:literal.png[]
 
 The `Match` function executes a search on an OpenSearch index to find entities in the index matching the function input. +
-The search utilizes an OpenSearch search template.The search template call can get named parameters, either a literal string or a value extracted from functions input. +
-The function result is a list of matched entities and the input used.The result fulfills the following schema:
+The search utilizes an OpenSearch search template. The search template call can get named parameters, either a literal string or a value extracted from functions input. +
+The function result is a list of matched entities and the input used. The result fulfills the following schema:
 
 [source, json]
 ----
@@ -700,7 +700,7 @@ image:topic.png[]
 The `ChangeEventEmit` function extracts content and message key from the Json content of the message, and could emit the extracted message key and content in the normal output topic of the pipeline or a specific configured topic.
 
 === Parameters
-[cols="1,1,1,a",options="autowidth"]
+[cols="1,1,1,a", options="autowidth"]
 |===
 |Parameter Name |Type |Required | Description
 
@@ -814,24 +814,57 @@ And the message key for the output message is `0815`
 == Multiple Functions
 image:multipleFns.png[]
 
-The `Multiple Functions` actually is an Operator. Normally, in the FnFlow DSL (Domain Specific Language), the `|` (pipe) character is used to combine functions, and it means each function's output will be used as the next function's input; please pay attention to the below sample:
+The `Multiple Functions` actually is an Operator, and it is not a real function. The `Multiple Functions` gets an input message and broadcasts it to each function inside the `Multiple Functions`. So the result would be similar to creating a fork in the pipeline.
 
-----
-idExist|idTrim|nameTrim
-----
-
-In this sample, `idExist` reads messages from input, processes them, and sends them to the next function in the pipeline (that is, the `idTrim` in this example). The `idTrim` also does the same thing, and so on until the last function in the pipeline.
-
-But the `Multiple Functions` uses the `\+` character to create a fork inside a pipeline. That means between two `|` it is possible to join functions by using `+` and each function of these joined functions will receive the same message separately. Combining this functionality with the <<changeeventemit>> function will help the FnFlow users to create forks inside the pipelines and have multiple output topics; please pay attention to the below sample:
-
-----
-idExist+validateEmitter|idTrim+trimEmitter|nameTrim
-----
-
-In this sample, `idExist` and `validateEmitter` will receive the same messages from the input topic, process them, and send the result to the next functions in the pipeline.
+Normally, the combination of `Multiple Functions` with <<changeeventemit>> uses at the end of the pipeline for emitting different parts of input messages to different topics (please check the first example). However, the `Multiple Functions` can be used in more complicated scenarios throughout each part of the pipeline (please refer to the second example).
 
 === Example
-==== Configuration
+
+==== Using a single `Multiple Functions` at the end of a pipeline
+image:multipleFns-Configured1.png[]
+
+===== Sample input of `Multiple Functions`
+[source, json]
+----
+{
+  "input": {
+    "id": "1235",
+    "name": "sabine"
+  },
+  "matches": [
+    {
+      "source": {
+        "id": "1235",
+        "name": "claas"
+      },
+      "id": "lghKxZYBh3Hgc5n0WdDk",
+      "score": 0.18232156
+    }
+  ]
+}
+----
+
+===== Sample output messages to the `source-topic`
+[source, json]
+----
+{
+  "id": "1235",
+  "name": "sabine"
+}
+----
+
+===== Sample output messages to the `output-topic`
+[source, json]
+----
+{
+  "id": "1235",
+  "name": "claas"
+}
+----
+
+And the message key will be equal to `lghKxZYBh3Hgc5n0WdDk`
+
+==== Using several `Multiple Functions` in different parts of a pipeline
 image:multipleFns-Configured.png[]
 
 ===== Sample input messages in the `input-topic`
