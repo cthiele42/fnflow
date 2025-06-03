@@ -387,7 +387,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "multipleFunctions",
         "tooltip": "multipleFunctions combine multiple functions together.",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/processor-fns.html#multiple-functions",
         "message0": "multipleFunctions\n functions %1",
         "args0": [
             {

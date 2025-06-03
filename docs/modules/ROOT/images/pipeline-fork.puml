@@ -1,0 +1,21 @@
+@startuml
+left to right direction
+
+
+[input-topic] --> idExist : Main Route
+[input-topic] --> validateEmitter : Validate Rout
+
+idExist --> idTrim : Main Route
+idTrim --> nameTrim : Main Route
+nameTrim --> [output-topic] : Main Route
+
+validateEmitter --> idTrim : Validate Rout
+idTrim --> nameTrim : Validate Rout
+nameTrim --> [validate-topic] : Validate Rout
+
+idExist --> trimEmitter : Trim Route
+validateEmitter --> trimEmitter : Trim Route
+trimEmitter --> nameTrim : Trim Route
+nameTrim --> [trim-topic] : Trim Route
+
+@enduml
