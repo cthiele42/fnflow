@@ -18,6 +18,7 @@ package org.ct42.fnflow.manager.ui.view;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
@@ -27,21 +28,21 @@ import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ct42.fnflow.manager.pipeline.PipelineService;
-import org.ct42.fnflow.manager.projector.ProjectorService;
+import org.ct42.fnflow.manager.deployment.DeploymentService;
 import org.ct42.fnflow.manager.ui.Tree;
-import com.vaadin.flow.component.applayout.DrawerToggle;
+
+import java.util.Map;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @RequiredArgsConstructor
 @Layout
 @Slf4j
 @JsModule("@vaadin/vaadin-lumo-styles/presets/compact.js")
 public class RootLayout extends AppLayout implements AfterNavigationObserver {
-    private final PipelineService pipelineService;
-    private final ProjectorService projectorService;
+    private final Map<String, DeploymentService<?>> deploymentServices;
 
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
@@ -52,11 +53,11 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
                 .set("margin", "0");
 
         addToNavbar(toggle, title);
-        Tree tree = new Tree(pipelineService, projectorService);
+        Tree tree = new Tree(deploymentServices);
 
         addToDrawer(tree);
 
-        SplitLayout splitLayout = new SplitLayout(new EditorView(pipelineService), new LogView());
+        SplitLayout splitLayout = new SplitLayout(new EditorView(deploymentServices), new LogView());
         splitLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
         splitLayout.addThemeVariants(SplitLayoutVariant.LUMO_MINIMAL);
         splitLayout.setSplitterPosition(70);

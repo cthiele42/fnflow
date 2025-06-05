@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.pipeline;
+package org.ct42.fnflow.manager.deployment.pipeline;
 
 import org.ct42.fnflow.manager.AbstractIntegrationTests;
-import org.ct42.fnflow.manager.DeploymentDTO;
-import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
-import org.ct42.fnflow.manager.DeploymentService;
+import org.ct42.fnflow.manager.deployment.DeploymentDTO;
+import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.deployment.DeploymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

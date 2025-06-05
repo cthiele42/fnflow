@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.pipeline;
+package org.ct42.fnflow.manager.deployment.pipeline;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -27,6 +27,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,8 +42,8 @@ import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
  * @author Sajjad Safaeian
  */
 @Data
-public class PipelineConfigDTO {
-    private String version;
+@EqualsAndHashCode(callSuper = true)
+public class PipelineConfigDTO extends AbstractConfigDTO {
     private String sourceTopic;
     private String entityTopic;
     private String errorTopic;

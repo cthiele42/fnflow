@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.manager.pipeline;
+package org.ct42.fnflow.manager.deployment.pipeline;
 
-import org.ct42.fnflow.manager.AbstractDeploymentController;
-import org.ct42.fnflow.manager.DeploymentDTO;
-import org.ct42.fnflow.manager.DeploymentStatusDTO;
+import org.ct42.fnflow.manager.deployment.AbstractDeploymentController;
+import org.ct42.fnflow.manager.deployment.DeploymentDTO;
+import org.ct42.fnflow.manager.deployment.DeploymentStatusDTO;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
