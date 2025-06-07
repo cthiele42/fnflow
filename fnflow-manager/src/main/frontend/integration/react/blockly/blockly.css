@@ -21,3 +21,10 @@ fnflow-blockly {
     width: 100%;
     height:100%;
 }
+
+.toolbox-label {
+  position: absolute;
+  padding: 12px;
+  font-weight: bold;
+  font-size: 15px;
+}

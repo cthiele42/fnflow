@@ -29,3 +29,11 @@
 .pi-spinner-dotted.p-treenode-icon {
     color: darkgoldenrod;
 }
+
+.menu-title {
+    background-color: #bbdef1;
+    padding: 12px;
+    font-weight: bold;
+    font-size: 15px;
+    border-radius: 6px;
+}
