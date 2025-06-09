@@ -28,8 +28,8 @@ import java.util.Optional;
 public class DeploymentServiceUtil {
 
     public static final List<DeploymentServiceInfo> DEPLOYMENT_SERVICE_INFOS =  List.of(
-            new DeploymentServiceInfo("proc-", "processor", "pipelineService"),
-            new DeploymentServiceInfo("projector-", "projector", "projectorService")
+            new DeploymentServiceInfo("proc-", "processor", "pipelineService", "pi pi-cog"),
+            new DeploymentServiceInfo("projector-", "projector", "projectorService", "pi pi-video")
     );
 
     public static DeploymentServiceInfo getDeploymentServiceInfoBasedOnKey(String key) {
@@ -52,5 +52,6 @@ public class DeploymentServiceUtil {
         private final String keyPrefix;
         private final String type;
         private final String serviceName;
+        private final String icon;
     }
 }

@@ -138,7 +138,7 @@ public class Blockly extends ReactAdapterComponent {
 
         public BlocklyDeploymentServiceInfo(DeploymentServiceUtil.DeploymentServiceInfo serviceInfo,
                                             String initialState, Class<? extends AbstractConfigDTO> dtoClass) {
-            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName());
+            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName(), serviceInfo.getIcon());
 
             this.initialState = initialState;
             this.dtoClass = dtoClass;
