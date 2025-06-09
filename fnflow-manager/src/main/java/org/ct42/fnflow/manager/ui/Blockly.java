@@ -104,7 +104,7 @@ public class Blockly extends ReactAdapterComponent {
                 EditorView.CreateUpdateInitEvent.class, // event class
                 event -> {
                     String name = event.getName();
-                    getElement().executeJs("return this.firstChild.getAttribute('data-code')").then(String.class, code -> {
+                    getElement().executeJs("return this.firstChild.firstChild.getAttribute('data-code')").then(String.class, code -> {
                         BlocklyDeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key, BLOCKLY_DEPLOYMENT_SERVICE_INFOS);
                         try {
                             AbstractConfigDTO configDTO = objectMapper.readValue(code, serviceInfo.dtoClass);
@@ -138,7 +138,7 @@ public class Blockly extends ReactAdapterComponent {
 
         public BlocklyDeploymentServiceInfo(DeploymentServiceUtil.DeploymentServiceInfo serviceInfo,
                                             String initialState, Class<? extends AbstractConfigDTO> dtoClass) {
-            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName());
+            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName(), serviceInfo.getIcon());
 
             this.initialState = initialState;
             this.dtoClass = dtoClass;
