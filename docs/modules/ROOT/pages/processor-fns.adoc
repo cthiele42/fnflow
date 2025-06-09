@@ -816,7 +816,7 @@ image:multipleFns.png[]
 
 The `Multiple Functions` actually is an Operator, and it is not a real function. The `Multiple Functions` gets an input message and broadcasts it to each function inside the `Multiple Functions`. So the result would be similar to creating a fork in the pipeline.
 
-Normally, the combination of `Multiple Functions` with <<changeeventemit>> uses at the end of the pipeline for emitting different parts of input messages to different topics (please check the first example). However, the `Multiple Functions` can be used in more complicated scenarios throughout each part of the pipeline (please refer to the second example).
+Normally, `Multiple Functions` combined with <<changeeventemit>> is used at the end of the pipeline for emitting different parts of input messages to different topics (please check the first example). However, the `Multiple Functions` can be used in more complicated scenarios throughout each part of the pipeline (please refer to the second example).
 
 === Example
 
