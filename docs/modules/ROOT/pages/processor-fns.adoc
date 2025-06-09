@@ -370,6 +370,7 @@ Function configuration:
 }
 ----
 
+[#match]
 == Match
 image:Match.png[]
 
@@ -690,6 +691,7 @@ Function configuration:
 
 *Note:* As you can see in the Input and Output sample, if the input entity does not contain the `from` configured element, the `MergeCreate` function does nothing.
 
+[#changeeventemit]
 == ChangeEventEmit
 image:ChangeEventEmit.png[]
 
@@ -788,8 +790,6 @@ Function configuration:
     eventKey: /matches/0/id
 ----
 
-
-
 ===== Sample input
 [source, json]
 ----
@@ -814,3 +814,106 @@ And the message key for the output message is `0815`
 == Multiple Functions
 image:multipleFns.png[]
 
+The `Multiple Functions` actually is an Operator, and it is not a real function. The `Multiple Functions` gets an input message and broadcasts it to each function inside the `Multiple Functions`. So the result would be similar to creating a fork in the pipeline.
+
+Normally, `Multiple Functions` combined with <<changeeventemit>> is used at the end of the pipeline for emitting different parts of input messages to different topics (please check the first example). However, the `Multiple Functions` can be used in more complicated scenarios throughout each part of the pipeline (please refer to the second example).
+
+=== Example
+
+==== Using a single `Multiple Functions` at the end of a pipeline
+image:multipleFns-Configured1.png[]
+
+===== Sample input of `Multiple Functions`
+[source, json]
+----
+{
+  "input": {
+    "id": "1235",
+    "name": "sabine"
+  },
+  "matches": [
+    {
+      "source": {
+        "id": "1235",
+        "name": "claas"
+      },
+      "id": "lghKxZYBh3Hgc5n0WdDk",
+      "score": 0.18232156
+    }
+  ]
+}
+----
+
+===== Sample output messages to the `source-topic`
+[source, json]
+----
+{
+  "id": "1235",
+  "name": "sabine"
+}
+----
+
+===== Sample output messages to the `output-topic`
+[source, json]
+----
+{
+  "id": "1235",
+  "name": "claas"
+}
+----
+
+And the message key will be equal to `lghKxZYBh3Hgc5n0WdDk`
+
+==== Using several `Multiple Functions` in different parts of a pipeline
+image:multipleFns-Configured.png[]
+
+===== Sample input messages in the `input-topic`
+----
+1: {"id":[], "name":"name0"}
+
+2: {"id":["  ID1  "], "name":"  name1  "}
+
+3: {"id":["ID2"], "name":"name2"}
+----
+
+===== Sample output messages to the `output-topic`
+----
+1: {"id":["ID1"],"name":"name1"}
+
+2: {"id":["ID2"],"name":"name2"}
+----
+
+===== Sample output messages to the `error-topic`
+----
+1: {"id":[], "name":"name0"}
+----
+
+===== Sample output messages to the `validate-topic`
+----
+1: {"id":[],"name":"name0"}
+
+2: {"id":["ID1"],"name":"name1"}
+
+3: {"id":["ID2"],"name":"name2"}
+----
+
+===== Sample output messages to the `trim-topic`
+----
+1: {"id":[],"name":"name0"}
+
+2: {"id":["  ID1  "],"name":"name1"}
+
+3: {"id":["ID2"],"name":"name2"}
+
+4: {"id":["  ID1  "],"name":"name1"}
+
+5: {"id":["ID2"],"name":"name2"}
+----
+
+And in the diagram below, you can see the state of messages in these three paths:
+
+* Main Route: Between `input-topic` and `output-topic`, and error pushed to the `error-topic`
+* Validate Route: created by `validateEmitter` and messages pushed to the `validate-topic`
+* Trim Route: created by `trimEmitter` and messages pushed to the `trim-topic`
+
+image:pipeline-fork.svg[]
