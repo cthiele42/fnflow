@@ -27,27 +27,33 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.ct42.fnflow.manager.DeploymentDoesNotExistException;
-import org.ct42.fnflow.manager.DeploymentInfo;
-import org.ct42.fnflow.manager.pipeline.PipelineService;
-import org.ct42.fnflow.manager.projector.ProjectorService;
+import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
+import org.ct42.fnflow.manager.deployment.DeploymentInfo;
+import org.ct42.fnflow.manager.deployment.DeploymentService;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+
+import static org.ct42.fnflow.manager.ui.DeploymentServiceUtil.DEPLOYMENT_SERVICE_INFOS;
+import static org.ct42.fnflow.manager.ui.DeploymentServiceUtil.getDeploymentServiceInfoBasedOnKey;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @NpmPackage(value="primereact", version="10.9.5")
 @NpmPackage(value="primeicons", version="7.0.0")
 @JsModule("Frontend/integration/react/tree/primereact-tree.tsx")
 @Tag("pr-tree")
 public class Tree extends ReactAdapterComponent {
-    private final PipelineService pipelineService;
-    private DeploymentChangeHandler pipelineChangeHandler;
+    private final List<TreeDeploymentServiceInfo> TREE_DEPLOYMENT_SERVICE_INFOS =  List.of(
+        new TreeDeploymentServiceInfo(DEPLOYMENT_SERVICE_INFOS.getFirst(), 0),
+        new TreeDeploymentServiceInfo(DEPLOYMENT_SERVICE_INFOS.get(1), 1)
+    );
 
-    private final ProjectorService projectorService;
-    private DeploymentChangeHandler projectorChangeHandler;
+    private final Map<String, DeploymentService<?>> deploymentServices;
 
     @Getter
     public class TreeActionEvent extends ComponentEvent<Tree> {
@@ -63,9 +69,8 @@ public class Tree extends ReactAdapterComponent {
         }
     }
 
-    public Tree(PipelineService pipelineService, ProjectorService projectorService) {
-        this.pipelineService = pipelineService;
-        this.projectorService = projectorService;
+    public Tree(Map<String, DeploymentService<?>> deploymentServices) {
+        this.deploymentServices = deploymentServices;
 
         TreeNode processors = new TreeNode();
         processors.setLabel("Processors");
@@ -174,61 +179,46 @@ public class Tree extends ReactAdapterComponent {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        if(pipelineChangeHandler == null) {
-            pipelineChangeHandler = new DeploymentChangeHandler(0);
-            pipelineService.addDeploymentInfoListener(pipelineChangeHandler);
-        }
-        if(projectorChangeHandler == null) {
-            projectorChangeHandler = new DeploymentChangeHandler(1);
-            projectorService.addDeploymentInfoListener(projectorChangeHandler);
-        }
+
+        TREE_DEPLOYMENT_SERVICE_INFOS.forEach(serviceInfo -> {
+            if(serviceInfo.changeHandler == null) {
+                serviceInfo.changeHandler = new DeploymentChangeHandler(serviceInfo.changeHandlerPosition);
+                deploymentServices.get(serviceInfo.serviceInfo.getServiceName()).addDeploymentInfoListener(serviceInfo.changeHandler);
+            }
+        });
+
         getElement().addEventListener("execute", event -> {
             JsonObject cmd = event.getEventData().getObject("event.detail");
             String key = cmd.getString("key");
             String type = cmd.getString("type");
-            if(key.startsWith("proc-")) {
-                String name = key.replaceFirst("proc-", "");
-                switch (type) {
-                    case "delete" -> {
-                        try {
-                            pipelineService.delete(name);
-                        } catch (DeploymentDoesNotExistException e) {
-                            Notification notification = Notification.show("Deployment of processor " + name + " does not exist");
-                            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            notification.setPosition(Notification.Position.BOTTOM_END);
-                            notification.setDuration(0);
-                        }
-                    }
-                    case "load" -> ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("load", key, name));
-                }
-            } else if(key.startsWith("projector-")) {
-                String name = key.replaceFirst("projector-", "");
-                switch(type) {
-                    case "delete" -> {
-                        try {
-                            projectorService.delete(name);
-                        } catch (DeploymentDoesNotExistException e) {
-                            Notification notification = Notification.show("Deployment of projector " + name + " does not exist");
-                            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            notification.setPosition(Notification.Position.BOTTOM_END);
-                            notification.setDuration(0);
-                        }
+
+            DeploymentServiceUtil.DeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key);
+            String name = key.replaceFirst(serviceInfo.getKeyPrefix(), "");
+
+            switch (type) {
+                case "delete" -> {
+                    try {
+                        deploymentServices.get(serviceInfo.getServiceName()).delete(name);
+                    } catch (DeploymentDoesNotExistException e) {
+                        Notification notification = Notification.show(String.format("Deployment of %s %s does not exist", serviceInfo.getType(), name));
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        notification.setPosition(Notification.Position.BOTTOM_END);
+                        notification.setDuration(0);
                     }
                 }
-            } else if("procs".equals(key) && "new".equals(type)) {
-                ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("new", key, ""));
+                case "load" -> ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("load", key, name));
+                case "new" -> ComponentUtil.fireEvent(UI.getCurrent(), new TreeActionEvent("new", key, ""));
             }
         }).addEventData("event.detail");
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
-        if(pipelineChangeHandler != null) {
-            pipelineService.removeDeploymentInfoListener(pipelineChangeHandler);
-        }
-        if(projectorChangeHandler != null) {
-            projectorService.removeDeploymentInfoListener(projectorChangeHandler);
-        }
+        TREE_DEPLOYMENT_SERVICE_INFOS.forEach(serviceInfo -> {
+            if(serviceInfo.changeHandler != null) {
+                deploymentServices.get(serviceInfo.serviceInfo.getServiceName()).removeDeploymentInfoListener(serviceInfo.changeHandler);
+            }
+        });
     }
 
     private String formatDurationWordsShort(
@@ -273,5 +263,12 @@ public class Tree extends ReactAdapterComponent {
             }
         }
         return duration.trim();
+    }
+
+    @RequiredArgsConstructor
+    private static class TreeDeploymentServiceInfo {
+        private final DeploymentServiceUtil.DeploymentServiceInfo serviceInfo;
+        private final int changeHandlerPosition;
+        private DeploymentChangeHandler changeHandler;
     }
 }

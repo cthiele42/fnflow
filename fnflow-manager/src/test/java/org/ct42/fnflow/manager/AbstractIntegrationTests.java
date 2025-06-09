@@ -19,6 +19,8 @@ package org.ct42.fnflow.manager;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import org.ct42.fnflow.manager.deployment.DeploymentService;
+import org.ct42.fnflow.manager.deployment.DeploymentStatusDTO;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.k3s.K3sContainer;
