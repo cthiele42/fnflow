@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                dir('fnlib') {
+                    sh '''
+                        ${WORKSPACE}/gradlew clean test
+                    '''
+                }
+            }
+        }
+    }
+    post {
+        always {
+            publishHTML (target: [
+                  allowMissing: false,
+                  alwaysLinkToLastBuild: false,
+                  keepAll: true,
+                  reportDir: 'fnlib/build/reports/tests/test',
+                  reportFiles: 'index.html',
+                  reportName: "JUnit Report"
+                ])
+        }
+    }
+}
