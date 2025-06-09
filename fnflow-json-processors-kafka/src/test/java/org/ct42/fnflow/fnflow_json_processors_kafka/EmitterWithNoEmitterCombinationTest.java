@@ -120,9 +120,9 @@ public class EmitterWithNoEmitterCombinationTest {
                 1={"id":[], "name":"name0"}
                 2={"id":["  ID1  "], "name":"  name1  "}
                 3={"id":["ID2"], "name":"name2"}
-            WHEN the events are metted to the input of the pipeline
+            WHEN the events are meted to the input of the pipeline
             THEN event 1 is landing in the error topic
-            AND  event 1 and 3 are landing int the output topic
+            AND  event 2 and 3 are landing int the output topic
             AND  event 1,2,3 are landing in the validate topic
             AND  event 1, two times event 2 and two time event 3 are landing in the trim topic
             """)
