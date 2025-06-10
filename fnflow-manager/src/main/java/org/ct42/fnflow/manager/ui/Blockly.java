@@ -17,16 +17,14 @@
 package org.ct42.fnflow.manager.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.ComponentUtil;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Tag;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 import com.vaadin.flow.shared.Registration;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
 import org.ct42.fnflow.manager.deployment.DeploymentService;
@@ -96,6 +94,11 @@ public class Blockly extends ReactAdapterComponent {
         setWorkspaceState(state, serviceInfo.getType());
     }
 
+    @ClientCallable
+    public void showHelp(String type, String helpUrl) {
+        ComponentUtil.fireEvent(UI.getCurrent(), new LogEvent(type, helpUrl));
+    }
+
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -104,7 +107,7 @@ public class Blockly extends ReactAdapterComponent {
                 EditorView.CreateUpdateInitEvent.class, // event class
                 event -> {
                     String name = event.getName();
-                    getElement().executeJs("return this.firstChild.getAttribute('data-code')").then(String.class, code -> {
+                    getElement().executeJs("return this.firstChild.firstChild.getAttribute('data-code')").then(String.class, code -> {
                         BlocklyDeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key, BLOCKLY_DEPLOYMENT_SERVICE_INFOS);
                         try {
                             AbstractConfigDTO configDTO = objectMapper.readValue(code, serviceInfo.dtoClass);
@@ -138,11 +141,23 @@ public class Blockly extends ReactAdapterComponent {
 
         public BlocklyDeploymentServiceInfo(DeploymentServiceUtil.DeploymentServiceInfo serviceInfo,
                                             String initialState, Class<? extends AbstractConfigDTO> dtoClass) {
-            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName());
+            super(serviceInfo.getKeyPrefix(), serviceInfo.getType(), serviceInfo.getServiceName(), serviceInfo.getIcon());
 
             this.initialState = initialState;
             this.dtoClass = dtoClass;
         }
     }
 
+    @Getter
+    public class LogEvent extends ComponentEvent<Blockly> {
+        private final String name;
+        private final String content;
+
+        public LogEvent(String name, String content) {
+            super(Blockly.this, false);
+
+            this.name = name;
+            this.content = content;
+        }
+    }
 }
