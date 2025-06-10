@@ -16,10 +16,6 @@ const imports = {
 } as const;
 type KeyType = keyof typeof imports;
 
-function showHelp(this: any) {
-    window.open(this.helpUrl, 'helpview');
-};
-
 // @ts-ignore
 Blockly.setLocale(En)
 Blockly.defineBlocksWithJsonArray(FnFlowBlockDefinitions);
@@ -28,10 +24,6 @@ Blockly.Blocks['multipleFunctions'].onchange = function(e:any) {
     if (this.workspace.isDragging()) return;
     if (e.type !== Blockly.Events.BLOCK_MOVE) return;
     if (this.getSurroundParent() !== null && this.getSurroundParent().type === 'multipleFunctions') this.previousConnection.disconnect();
-}
-
-for(const block in Blockly.Blocks) {
-    Blockly.Blocks[block].showHelp = showHelp;
 }
 
 class FixedEdgesMetricsManager extends Blockly.MetricsManager {
@@ -142,6 +134,8 @@ class BlocklyElement extends ReactAdapterElement {
 
         // @ts-ignore
         const onInject = useCallback((state: BlocklyCbStateType) => {
+                addHelpListener(state);
+
                 // @ts-ignore
                 workspaceRef.current = state.workspace;
 
@@ -173,6 +167,33 @@ class BlocklyElement extends ReactAdapterElement {
 
                 addLabel(state);
         }, []);
+
+        function addHelpListener(state: BlocklyCbStateType) {
+            // @ts-ignore
+            const workspace = state.workspace;
+
+            const vaadinElement = containerRef.current?.closest('fnflow-blockly') as any;
+
+            // @ts-ignore
+            workspace.addChangeListener((event) => {
+                if (event.type === Blockly.Events.CREATE) {
+                    // @ts-ignore
+                    for (const id of event.ids || []) {
+                        // @ts-ignore
+                        const block = workspace.getBlockById(id);
+                        if (block) {
+                            block.showHelp = function (this: any) {
+                                const helpUrl = this.helpUrl;
+                                const type = this.type;
+                                if (vaadinElement?.$server?.showHelp) {
+                                    vaadinElement.$server.showHelp(type, helpUrl);
+                                }
+                            };
+                        }
+                    }
+                }
+            });
+        }
 
         function addLabel(state: BlocklyCbStateType) {
             // @ts-ignore

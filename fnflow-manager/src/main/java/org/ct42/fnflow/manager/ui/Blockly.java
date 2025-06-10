@@ -17,16 +17,14 @@
 package org.ct42.fnflow.manager.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.ComponentUtil;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Tag;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 import com.vaadin.flow.shared.Registration;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
 import org.ct42.fnflow.manager.deployment.DeploymentService;
@@ -96,6 +94,11 @@ public class Blockly extends ReactAdapterComponent {
         setWorkspaceState(state, serviceInfo.getType());
     }
 
+    @ClientCallable
+    public void showHelp(String type, String helpUrl) {
+        ComponentUtil.fireEvent(UI.getCurrent(), new LogEvent(type, helpUrl));
+    }
+
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -145,4 +148,16 @@ public class Blockly extends ReactAdapterComponent {
         }
     }
 
+    @Getter
+    public class LogEvent extends ComponentEvent<Blockly> {
+        private final String name;
+        private final String content;
+
+        public LogEvent(String name, String content) {
+            super(Blockly.this, false);
+
+            this.name = name;
+            this.content = content;
+        }
+    }
 }
