@@ -3,8 +3,9 @@ package org.ct42.fnflow.manager.ui.view;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.html.IFrame;
+import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -14,6 +15,9 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.tabs.TabSheetVariant;
 import com.vaadin.flow.shared.Registration;
 import org.ct42.fnflow.manager.ui.Blockly;
+import org.ct42.fnflow.manager.ui.PrimeIcon;
+
+import static org.ct42.fnflow.manager.ui.DeploymentServiceUtil.getDeploymentServiceInfoBasedOnKey;
 
 public class LogView extends VerticalLayout {
 
@@ -25,10 +29,7 @@ public class LogView extends VerticalLayout {
         tabSheet.setMaxWidth("100%");
         tabSheet.setHeightFull();
         tabSheet.addThemeVariants(TabSheetVariant.LUMO_TABS_SMALL);
-        tabSheet.addSelectedChangeListener(event -> {
-            //trigger resizing and repainting of blockly editors as editors in hidden tabs were resized to 0
-            UI.getCurrent().getPage().executeJs("window.dispatchEvent(new Event('resize'));");
-        });
+
         add(tabSheet);
 
         this.setVisible(false);
@@ -42,11 +43,6 @@ public class LogView extends VerticalLayout {
             attachEvent.getUI(),
                 Blockly.LogEvent.class,
                 event -> {
-                    IFrame helpView = new IFrame();
-                    helpView.setSrc(event.getContent());
-                    helpView.setHeightFull();
-                    helpView.setWidthFull();
-
                     Icon icon = new Icon(VaadinIcon.CLOSE);
                     icon.addClickListener(iconEvent -> {
                         iconEvent.getSource().getParent().ifPresent(component -> {
@@ -58,9 +54,39 @@ public class LogView extends VerticalLayout {
                             }
                         });
                     });
-                    Tab tab = new Tab(new Span(event.getName() + " Help"), icon);
 
-                    Tab newTab = tabSheet.add(tab, helpView);
+                    Tab newTab = switch (event.getType()) {
+                        case "help" -> {
+                            IFrame helpView = new IFrame();
+                            helpView.setSrc(event.getContent());
+                            helpView.setHeightFull();
+                            helpView.setWidthFull();
+
+                            PrimeIcon typeIcon = new PrimeIcon("pi pi-question-circle");
+
+                            Tab tab = new Tab(typeIcon, new Span(event.getName() + " Help"), icon);
+                            yield tabSheet.add(tab, helpView);
+                        }
+                        default -> {
+                            Pre pre = new Pre();
+                            String htmlContent =
+                                    "<code style=\"font-family: monospace;\">" +
+                                        event.getContent()
+                                            .replace("&", "&amp;")
+                                            .replace("<", "&lt;")
+                                            .replace(">", "&gt;") +
+                                    "</code>";
+
+                            Html codeBlock = new Html(htmlContent);
+                            pre.add(codeBlock);
+
+                            PrimeIcon typeIcon = new PrimeIcon(getDeploymentServiceInfoBasedOnKey(event.getType()).getIcon());
+
+                            Tab tab = new Tab(typeIcon, new Span(event.getName() + " JSON"), icon);
+                            yield tabSheet.add(tab, pre);
+                        }
+                    };
+
                     tabSheet.setSelectedTab(newTab);
                     this.setVisible(true);
                 }

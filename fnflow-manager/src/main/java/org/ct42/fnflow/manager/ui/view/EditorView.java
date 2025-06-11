@@ -46,13 +46,19 @@ public class EditorView extends VerticalLayout {
     private Registration registration;
     private final TabSheet tabSheet = new TabSheet();
 
+    public enum DeploymentEventAction {
+        SAVE, GENERATE_JSON
+    }
+
     @Getter
     public class CreateUpdateInitEvent extends ComponentEvent<EditorView> {
         private final String name;
+        private final DeploymentEventAction action;
 
-        public CreateUpdateInitEvent(String name) {
+        public CreateUpdateInitEvent(String name, DeploymentEventAction action) {
             super(EditorView.this, false);
             this.name = name;
+            this.action = action;
         }
     }
 
@@ -128,7 +134,13 @@ public class EditorView extends VerticalLayout {
         try {
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.addItem("Create/Update").addClickListener(event ->
-                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name)));
+                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name, DeploymentEventAction.SAVE))
+            );
+
+            contextMenu.addItem("Show JSON Config").addClickListener(event ->
+                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name, DeploymentEventAction.GENERATE_JSON))
+            );
+
             contextMenu.addItem("Close", event -> {
                 Component c = contextMenu.getTarget();
                 if(c instanceof Tab t) {
@@ -142,6 +154,12 @@ public class EditorView extends VerticalLayout {
             tab.setId(ID_PREFIX + key);
 
             contextMenu.setTarget(tab);
+
+            contextMenu.addOpenedChangeListener(e -> {
+                if (e.isOpened()) {
+                    tabSheet.setSelectedTab(tab);
+                }
+            });
 
             String configContent = config != null ? objectMapper.writeValueAsString(config) : null;
             Tab newTab = tabSheet.add(tab, new Blockly(configContent, key, deploymentServices));
