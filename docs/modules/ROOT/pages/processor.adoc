@@ -1,0 +1,90 @@
+= Processor
+
+image:processor.png[]
+
+image:topic.png[]
+
+The Processor helps to create a pipeline of functions. The processor reads inputs from the `input` topic, sends inputs to the first function of the pipeline, grab the output of the first function and send them as input of the second function, and continues these steps to the last function in the pipeline, then write the outputs of the last function inside the `output` topic. If, during the running of each function, an error occurs, the input message of the function will be written inside the `error` topic.
+
+== Parameters
+
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|version
+|String
+|Yes
+|The version of the processor application that is used. To check the available processor application versions, you can check the https://hub.docker.com/r/ct42/fnflow-json-processors-kafka/tags[Docker Hub]
+
+|sourceTopic
+|String
+|Yes
+|The input topic of the processor pipeline.
+
+|entityTopic
+|String
+|Yes
+|The output topic of the processor pipeline.
+
+|cleanUpMode
+|String
+|No
+|Determines the cleanup mode of the `entityTopic`. Valid values are:  `COMPACT`, `DELETE`.
+
+Notes:
+
+* The default value for `cleanUpMode` is `COMPACT`
+* For more information, please check these links: https://kafka.apache.org/documentation/#compaction[Log Compaction] (related to the `COMPACT` config) , https://learn.conduktor.io/kafka/kafka-topic-configuration-log-retention[Log Retention] (related to the `DELETE` config)
+
+|cleanUpTimeHours
+|String
+|No
+|Determine the cleanup time in hour of the `entityTopic`.
+
+Note: The default value for `cleanUpTimeHours` is `336`
+
+|errorTopic
+|String
+|Yes
+|The error topic of the processor pipeline. If, during the running of each function, an error occurs, the input message of the function will be written inside the `errorTopic` topic.
+
+|errRetentionHours
+|String
+|No
+|Determine the cleanup time in hour of the `errorTopic`.
+
+* The default value for `errRetentionHours` is `336`
+* The cleanup mode for the `errorTopic` is `DELETE`, and it is not configurable.
+
+|pipeline
+|List
+|Yes
+|Determine the list of functions inside the pipeline.
+
+For access to the list of functions and documentation, please check the xref:processor-fns.adoc#processor-functions[Processor Functions]
+
+|===
+
+== Example
+image:multipleFns-Configured1.png[]
+
+In this example, the processor pipeline parameters are:
+
+* `version`: `0.0.13`
+* `sourceTopic`: `input-topic`
+* `entityTopic`: `output-topic`
+    ** `cleanUpMode`:  `COMPACT`
+    ** `cleanUpTimeHours`: `1`
+* `errorTopic`: `error-topic`
+    ** `errRetentionHours`: `1`
+* `pipeline`:
+    ** xref:processor-fns.adoc#hasvaluevalidator[hasValueValidator] function
+    ** xref:processor-fns.adoc#match[Match] function
+    ** xref:processor-fns.adoc#reduce2one[Reduce2One] function
+    ** xref:processor-fns.adoc#mergecreate[MergeCreate] function
+    ** xref:processor-fns.adoc#multiple-functions[Multiple Functions]
+        *** xref:processor-fns.adoc#changeeventemit[ChangeEventEmit] function (`inputEmitter`)
+        *** xref:processor-fns.adoc#changeeventemit[ChangeEventEmit] function (`outputEmitter`)
+
+

@@ -1,11 +1,13 @@
+[#processor-functions]
 = Processor Functions
 
-Processor functions can be composed to a pipeline. Each function in a pipeline has to have a unique name. +
-If an error occurs during function execution or a validation fails, the unchanged input from the pipeline will be sent to the error topic. The message sent to the error topic will take two headers:
+Processor functions can be composed to a pipeline.Each function in a pipeline has to have a unique name. +
+If an error occurs during function execution or a validation fails, the unchanged input from the pipeline will be sent to the error topic.The message sent to the error topic will take two headers:
 
 - x-exception-message: The message text of the exception
 - x-exception-fqcn: The full qualified classname of the exception
 
+[#hasvaluevalidator]
 == hasValueValidator
 image:hasValueValidator.png[]
 
@@ -494,14 +496,15 @@ Function configuration:
 }
 ----
 
+[#reduce2one]
 == Reduce2One
 image:reduce2One.png[]
 
 The `Reduce2One` function usually gets its input from the <<match>> function, and tries to solve the ambiguous match situation to reduce the matched entities to one entity, under these conditions:
 
 * If the `matches` element only contains one item, it does nothing and passes the input as result.
-* If the `matches` element contains no item, it adds a matched entity  with an empty `source` element to the `matches`.
-* If the `matches` element contains more than one item, it returns the highest `score` matched entity. (If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
+* If the `matches` element contains no item, it adds a matched entity with an empty `source` element to the `matches`.
+* If the `matches` element contains more than one item, it returns the highest `score` matched entity.(If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
 
 *Note:*
 
@@ -593,6 +596,7 @@ The `Reduce2One` function usually gets its input from the <<match>> function, an
 ----
 
 
+[#mergecreate]
 == MergeCreate
 image:MergeCreate.png[]
 
@@ -802,7 +806,7 @@ Function configuration:
 ----
 
 ===== Sample output to the normal pipeline output topic
-[source, json]
+[source,json]
 ----
 {
   "foo": "baz"
@@ -811,12 +815,13 @@ Function configuration:
 
 And the message key for the output message is `0815`
 
+[#multiple-functions]
 == Multiple Functions
 image:multipleFns.png[]
 
-The `Multiple Functions` actually is an Operator, and it is not a real function. The `Multiple Functions` gets an input message and broadcasts it to each function inside the `Multiple Functions`. So the result would be similar to creating a fork in the pipeline.
+The `Multiple Functions` actually is an Operator, and it is not a real function.The `Multiple Functions` gets an input message and broadcasts it to each function inside the `Multiple Functions`.So the result would be similar to creating a fork in the pipeline.
 
-Normally, `Multiple Functions` combined with <<changeeventemit>> is used at the end of the pipeline for emitting different parts of input messages to different topics (please check the first example). However, the `Multiple Functions` can be used in more complicated scenarios throughout each part of the pipeline (please refer to the second example).
+Normally, `Multiple Functions` combined with <<changeeventemit>> is used at the end of the pipeline for emitting different parts of input messages to different topics (please check the first example).However, the `Multiple Functions` can be used in more complicated scenarios throughout each part of the pipeline (please refer to the second example).
 
 === Example
 
