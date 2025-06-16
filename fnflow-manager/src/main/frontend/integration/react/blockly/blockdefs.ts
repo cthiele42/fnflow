@@ -405,7 +405,7 @@ export const FnFlowBlockDefinitions = [
     {
         "type": "projector",
         "tooltip": "A FnFlow projector",
-        "helpUrl": "",
+        "helpUrl": "https://fnflow.ct42.org/fnflow/projector.html",
         "message0": "projector\n version %1 topic %2 index %3",
         "args0": [
             {

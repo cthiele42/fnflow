@@ -2,4 +2,5 @@
 * xref:quickstart.adoc[]
 * xref:programming-model.adoc[]
 * xref:processor.adoc[]
-** xref:processor-fns.adoc[]
+  ** xref:processor-fns.adoc[]
+* xref:projector.adoc[]
