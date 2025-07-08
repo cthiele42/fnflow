@@ -1,8 +1,8 @@
 [#processor-functions]
 = Processor Functions
 
-Processor functions can be composed to a pipeline.Each function in a pipeline has to have a unique name. +
-If an error occurs during function execution or a validation fails, the unchanged input from the pipeline will be sent to the error topic.The message sent to the error topic will take two headers:
+Processor functions can be composed to a pipeline. Each function in a pipeline has to have a unique name. +
+If an error occurs during function execution or a validation fails, the unchanged input from the pipeline will be sent to the error topic. The message sent to the error topic will take two headers:
 
 - x-exception-message: The message text of the exception
 - x-exception-fqcn: The full qualified classname of the exception
@@ -504,7 +504,7 @@ The `Reduce2One` function usually gets its input from the <<match>> function, an
 
 * If the `matches` element only contains one item, it does nothing and passes the input as result.
 * If the `matches` element contains no item, it adds a matched entity with an empty `source` element to the `matches`.
-* If the `matches` element contains more than one item, it returns the highest `score` matched entity.(If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
+* If the `matches` element contains more than one item, it returns the highest `score` matched entity. (If the `matches` element contains more than one item with the highest score, it returns the first matched with the highest score.)
 
 *Note:*
 
