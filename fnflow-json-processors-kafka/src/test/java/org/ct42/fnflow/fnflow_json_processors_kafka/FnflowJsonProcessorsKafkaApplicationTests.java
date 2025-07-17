@@ -17,29 +17,15 @@ import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
-import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -53,16 +39,13 @@ import static org.assertj.core.api.BDDAssertions.then;
 		"cfgfns.Match.idMatch.literalParams.field=id",
 		"org.ct42.fnflow.function.definition=idExist|idMatch"
 })
-class FnflowJsonProcessorsKafkaApplicationTests {
+class FnflowJsonProcessorsKafkaApplicationTests extends AbstractKafkaTest {
 	public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
 	public static final String OUT_TOPIC = "fnFlowComposedFnBean-out-0";
 	public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
 
 	@Container
 	static final OpensearchContainer<?> container = new OpensearchContainer<>("opensearchproject/opensearch:2.19.0");
-
-	@Container
-	static KafkaContainer kafkaContainer = new KafkaContainer("apache/kafka-native:3.8.1");
 
 	@Autowired
 	private OpenSearchClient client;
@@ -73,12 +56,8 @@ class FnflowJsonProcessorsKafkaApplicationTests {
 		registry.add("spring.cloud.stream.kafka.binder.brokers", kafkaContainer::getBootstrapServers);
 	}
 
-	@Autowired
-	private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
-	private KafkaTemplate<String, String> template;
-	private final BlockingQueue<ConsumerRecord<String, String>> inRecords = new LinkedBlockingQueue<>();
-	private final BlockingQueue<ConsumerRecord<String, String>> errRecords = new LinkedBlockingQueue<>();
+	private final BlockingQueue<ConsumerRecord<byte[], String>> inRecords = new LinkedBlockingQueue<>();
+	private final BlockingQueue<ConsumerRecord<byte[], String>> errRecords = new LinkedBlockingQueue<>();
 
 	@BeforeEach
 	void setup() throws Exception{
@@ -134,7 +113,7 @@ class FnflowJsonProcessorsKafkaApplicationTests {
 
 		Thread.sleep(1000);
 
-		setupProducer();
+		setupProducer(IN_TOPIC);
 		setupConsumer(inRecords, OUT_TOPIC);
 		setupConsumer(errRecords, DLT_TOPIC);
 	}
@@ -148,74 +127,11 @@ class FnflowJsonProcessorsKafkaApplicationTests {
 				template.sendDefault("{\"id\": [\"T" + i + "\"]}");
 			}
 		}
-		List<ConsumerRecord<String, String>> results = new ArrayList<>();
-		while (true) {
-			ConsumerRecord<String, String> received =
-					inRecords.poll(2000, TimeUnit.MILLISECONDS);
-			if (received == null) {
-				break;
-			}
-			results.add(received);
-		}
-		List<ConsumerRecord<String, String>> errors = new ArrayList<>();
-		while (true) {
-			ConsumerRecord<String, String> received =
-					errRecords.poll(200, TimeUnit.MILLISECONDS);
-			if (received == null) {
-				break;
-			}
-			errors.add(received);
-		}
+		List<ConsumerRecord<byte[], String>> results = getConsumerRecords(inRecords, 2000);
+		List<ConsumerRecord<byte[], String>> errors = getConsumerRecords(errRecords, 200);
 
 		then(results).hasSize(666);
 		then(errors).hasSize(334);
 	}
 
-	private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
-		// set up the Kafka consumer properties
-		Map<String, Object> consumerProperties =
-				KafkaTestUtils.consumerProps(kafkaContainer.getBootstrapServers(), "sender");
-
-		// create a Kafka consumer factory
-		DefaultKafkaConsumerFactory<String, String> consumerFactory =
-				new DefaultKafkaConsumerFactory<>(consumerProperties);
-
-		// set the topic that needs to be consumed
-		ContainerProperties containerProperties =
-				new ContainerProperties(topic);
-
-		// create a Kafka MessageListenerContainer
-		KafkaMessageListenerContainer<String, String> inContainer =
-				new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-
-		// setup a Kafka message listener
-		inContainer.setupMessageListener((MessageListener<String, String>) queue::add);
-
-		// start the container and underlying message listener
-		inContainer.start();
-
-		// wait until the container has the required number of assigned partitions
-		ContainerTestUtils.waitForAssignment(inContainer, 1);
-	}
-
-	private void setupProducer() {
-		// set up the Kafka producer properties
-		Map<String, Object> senderProperties = KafkaTestUtils.producerProps(kafkaContainer.getBootstrapServers());
-
-		// create a Kafka producer factory
-		ProducerFactory<String, String> producerFactory =
-				new DefaultKafkaProducerFactory<>(
-						senderProperties);
-
-		// create a Kafka template
-		template = new KafkaTemplate<>(producerFactory);
-		// set the default topic to send to
-		template.setDefaultTopic(IN_TOPIC);
-
-		// wait until the partitions are assigned
-		for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
-				.getListenerContainers()) {
-			ContainerTestUtils.waitForAssignment(messageListenerContainer, 1);
-		}
-	}
 }
