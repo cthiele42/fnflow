@@ -34,6 +34,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers

@@ -5,6 +5,17 @@ plugins {
 
 tasks.named("bootBuildImage") {
     imageName.set("ct42/${project.name}:${version}")
+
+    buildpacks = ["docker.io/paketobuildpacks/oracle", "urn:cnb:builder:paketo-buildpacks/java-native-image"]
+
+    environment = [
+            "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
+            --no-fallback
+            --initialize-at-build-time=com.oracle.truffle.js.runtime
+            -H:+ReportExceptionStackTraces
+        """
+    ]
+
     docker {
         publishRegistry {
             username = "$usr"
@@ -12,4 +23,3 @@ tasks.named("bootBuildImage") {
         }
     }
 }
-
