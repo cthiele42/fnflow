@@ -48,7 +48,7 @@ public class ScriptRunner extends ConfigurableFunction<List<BatchElement>, List<
                 try {
                     int currentInput = index.getAndIncrement();
                     context.getBindings("js").putMember("input", batchElement.getInput().toString());
-                    Value evaluationResult = context.eval("js", properties.getScript());
+                    Value evaluationResult = context.eval(properties.getScript());
 
                     ObjectMapper mapper = new ObjectMapper();
                     List<JsonNode> evaluatedJsons = new ArrayList<>();

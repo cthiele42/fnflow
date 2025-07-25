@@ -16,18 +16,22 @@
 
 package org.ct42.fnflow.batchfnlib.script;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.graalvm.polyglot.Source;
 import org.springframework.validation.annotation.Validated;
 
 /**
  * @author Sajjad Safaeian
  */
-@Data
+@Getter
 @Validated
 public class ScriptProperties {
 
-    @NotEmpty
-    private String script;
+    @NotNull
+    private Source script;
 
+    public void setScript(String source) {
+        script = Source.create("js", source);
+    }
 }
