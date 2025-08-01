@@ -43,7 +43,7 @@ public class ScriptRunnerTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Nested
-    @TestPropertySource(locations = "classpath:/normal-script.properties")
+    @TestPropertySource(locations = "classpath:/normal-js-script.properties")
     protected class NormalJSScript {
         @Autowired
         FunctionCatalog catalog;
@@ -141,6 +141,38 @@ public class ScriptRunnerTest {
             then(result).hasSize(1);
             then(result.getFirst().getOutput()).isNull();
             then(result.getFirst().getError().getMessage()).isNotBlank();
+        }
+    }
+
+    @Nested
+    @TestPropertySource(locations = "classpath:/normal-python-script.properties")
+    protected class NormalPythonScript {
+        @Autowired
+        FunctionCatalog catalog;
+
+        @Test
+        @DisplayName("""
+                Given a 'ScripRunner' function with a Python script to extract 'records'
+                And an input message with 'records' property
+                When the 'ScriptRunner' function is executed
+                Then the output should contain 2 records
+                """)
+        void normalScriptTest() throws Exception {
+            JsonNode input = mapper.readTree("""
+                    {
+                      "records": [
+                        {"id": 1, "value": "A"},
+                        {"id": 2, "value": "B"}
+                      ]
+                    }
+                    """);
+
+            Function<List<BatchElement>, List<BatchElement>> script = catalog.lookup(Function.class, "pythonScript");
+
+            List<BatchElement> result = script.apply(List.of(new BatchElement(input)));
+
+            then(result).hasSize(2);
+            then(result.getFirst().getOutput().at("/id").asInt()).isEqualTo(1);
         }
     }
 

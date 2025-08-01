@@ -17,7 +17,9 @@
 package org.ct42.fnflow.batchfnlib.script;
 
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -29,5 +31,15 @@ public class ScriptProperties {
 
     @NotEmpty
     private String script;
+
+    private ScriptLanguage scriptLanguage = ScriptLanguage.JS;
+
+    @AllArgsConstructor
+    public enum ScriptLanguage {
+        JS("js"), PYTHON("python");
+
+        @Getter
+        private final String name;
+    }
 
 }

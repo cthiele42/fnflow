@@ -12,6 +12,7 @@ tasks.named("bootBuildImage") {
             "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
             --no-fallback
             --initialize-at-build-time=com.oracle.truffle.js.runtime
+            --initialize-at-build-time=com.oracle.graal.python.runtime
             -H:+ReportExceptionStackTraces
         """
     ]

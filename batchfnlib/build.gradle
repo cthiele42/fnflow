@@ -4,8 +4,9 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.6-SNAPSHOT'
+version = '0.0.7-SNAPSHOT'
 description = 'Function library with functions utilizing batches'
+
 
 dependencies {
     implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
@@ -18,6 +19,7 @@ dependencies {
 
     implementation 'org.graalvm.polyglot:polyglot:23.1.8'
     runtimeOnly 'org.graalvm.polyglot:js-community:23.1.8'
+    runtimeOnly "org.graalvm.polyglot:python-community:23.1.8"
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
