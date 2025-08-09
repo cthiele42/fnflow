@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlib.script;
+package org.ct42.fnflow.fnlib.script;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

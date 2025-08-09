@@ -31,7 +31,6 @@ import java.util.function.Function;
  * Wrapper function for functions of type Function&gt;JsonNode, JsonNode&gt;.
  *
  * @author Claas Thiele
- * @author Sajjad Safaeian
  */
 public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<Throwable>>, Flux<Message<JsonNode>>> {
     private final Function<JsonNode, JsonNode> target;
@@ -43,24 +42,21 @@ public class FunctionWrapper implements BiFunction<Flux<Message<JsonNode>>, Sink
     @Override
     public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
         return messageFlux.mapNotNull(m -> {
-                Map<String, Object> headersToBeAdded = new HashMap<>(0);
-                if(target instanceof HeaderAware headerAware) {
-                    headersToBeAdded = headerAware.headersToBeAdded(m.getPayload());
-                }
-                JsonNode result = target.apply(m.getPayload());
-                if(result == null) return null; // if the function is resulting to null, message is discarded
-                MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
-                        .copyHeaders(m.getHeaders());
-                headersToBeAdded.forEach(builder::setHeader);
-                return builder.build();
+            Map<String, Object> headersToBeAdded = new HashMap<>(0);
+            if(target instanceof HeaderAware headerAware) {
+                headersToBeAdded = headerAware.headersToBeAdded(m.getPayload());
             }
-        ).onErrorContinue((throwable, m) ->
-            error.tryEmitNext(
-                    MessageBuilder
-                            .withPayload(throwable)
-                            .copyHeaders(((Message<JsonNode>) m).getHeaders())
-                            .build()
-            )
-        );
+            JsonNode result = target.apply(m.getPayload());
+            if(result == null) return null; // if the function is resulting to null, message is discarded
+            MessageBuilder<JsonNode> builder = MessageBuilder.withPayload(result)
+                    .copyHeaders(m.getHeaders());
+            headersToBeAdded.forEach(builder::setHeader);
+            return builder.build();
+        }).onErrorContinue((throwable, m) -> error.tryEmitNext(
+                            MessageBuilder
+                                    .withPayload(throwable)
+                                    .copyHeaders(((Message<JsonNode>)m).getHeaders())
+                                    .build()
+                        ));
     }
 }
