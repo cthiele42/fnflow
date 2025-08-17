@@ -16,39 +16,20 @@
 
 package org.ct42.fnflow.fnflow_json_processors_kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
-import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -70,15 +51,13 @@ import static org.assertj.core.api.BDDAssertions.then;
         "cfgfns.ChangeEventEmit.trimEmitter.topic=trim-topic",
         "org.ct42.fnflow.function.definition=idExist+validateEmitter|idTrim+trimEmitter|nameTrim"
 })
-public class EmitterWithNoEmitterCombinationTest {
+public class EmitterWithNoEmitterCombinationTest extends AbstractKafkaTest {
     public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
     public static final String OUTPUT_TOPIC = "fnFlowComposedFnBean-out-0";
     public static final String ERROR_TOPIC = "fnFlowComposedFnBean-out-1";
     public static final String TRIM_TOPIC = "trim-topic";
     public static final String VALIDATE_TOPIC = "validate-topic";
 
-    @Container
-    static KafkaContainer kafkaContainer = new KafkaContainer("apache/kafka-native:3.8.1");
     private final BlockingQueue<ConsumerRecord<byte[], String>> outputRecords = new LinkedBlockingQueue<>();
     private final BlockingQueue<ConsumerRecord<byte[], String>> errorRecords = new LinkedBlockingQueue<>();
     private final BlockingQueue<ConsumerRecord<byte[], String>> trimRecords = new LinkedBlockingQueue<>();
@@ -89,14 +68,9 @@ public class EmitterWithNoEmitterCombinationTest {
         registry.add("spring.cloud.stream.kafka.binder.brokers", kafkaContainer::getBootstrapServers);
     }
 
-    @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
-    private KafkaTemplate<String, String> template;
-
     @BeforeEach
     void setup() {
-        setupProducer();
+        setupProducer(IN_TOPIC);
         setupConsumer(outputRecords, OUTPUT_TOPIC);
         setupConsumer(errorRecords, ERROR_TOPIC);
         setupConsumer(trimRecords, TRIM_TOPIC);
@@ -159,65 +133,4 @@ public class EmitterWithNoEmitterCombinationTest {
                 "{\"id\":[\"ID2\"],\"name\":\"name2\"}");
     }
 
-    private @NotNull List<ConsumerRecord<byte[], String>> getConsumerRecords(BlockingQueue<ConsumerRecord<byte[], String>> outputRecords, int timeout) throws InterruptedException {
-        List<ConsumerRecord<byte[], String>> outputEvents = new ArrayList<>();
-        while (true) {
-            ConsumerRecord<byte[], String> received =
-                    outputRecords.poll(timeout, TimeUnit.MILLISECONDS);
-            if (received == null) {
-                break;
-            }
-            outputEvents.add(received);
-        }
-        return outputEvents;
-    }
-
-    private void setupProducer() {
-        // set up the Kafka producer properties
-        Map<String, Object> senderProperties = KafkaTestUtils.producerProps(kafkaContainer.getBootstrapServers());
-
-        // create a Kafka producer factory
-        ProducerFactory<String, String> producerFactory =
-                new DefaultKafkaProducerFactory<>(
-                        senderProperties);
-
-        // create a Kafka template
-        template = new KafkaTemplate<>(producerFactory);
-        // set the default topic to send to
-        template.setDefaultTopic(IN_TOPIC);
-
-        // wait until the partitions are assigned
-        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
-                .getListenerContainers()) {
-            ContainerTestUtils.waitForAssignment(messageListenerContainer, 1);
-        }
-    }
-
-    private void setupConsumer(BlockingQueue<ConsumerRecord<byte[], String>> queue, String topic) {
-        // set up the Kafka consumer properties
-        Map<String, Object> consumerProperties =
-                KafkaTestUtils.consumerProps(kafkaContainer.getBootstrapServers(), "sender");
-        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-
-        // create a Kafka consumer factory
-        DefaultKafkaConsumerFactory<byte[], String> consumerFactory =
-                new DefaultKafkaConsumerFactory<>(consumerProperties);
-
-        // set the topic that needs to be consumed
-        ContainerProperties containerProperties =
-                new ContainerProperties(topic);
-
-        // create a Kafka MessageListenerContainer
-        KafkaMessageListenerContainer<byte[], String> inContainer =
-                new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-
-        // setup a Kafka message listener
-        inContainer.setupMessageListener((MessageListener<byte[], String>) queue::add);
-
-        // start the container and underlying message listener
-        inContainer.start();
-
-        // wait until the container has the required number of assigned partitions
-        ContainerTestUtils.waitForAssignment(inContainer, 1);
-    }
 }

@@ -12,4 +12,3 @@ tasks.named("bootBuildImage") {
         }
     }
 }
-

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.8'
+version = '0.0.9'
 description= 'Function library with configurable functions for Json processing'
 
 
@@ -13,8 +13,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
 	implementation 'org.apache.commons:commons-lang3'
-	compileOnly 'org.projectlombok:lombok'
+
+    implementation 'org.graalvm.polyglot:polyglot:23.1.8'
+    runtimeOnly 'org.graalvm.polyglot:js-community:23.1.8'
+
+    compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
