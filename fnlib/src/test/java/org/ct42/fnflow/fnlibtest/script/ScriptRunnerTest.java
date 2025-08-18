@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlibtest.script;
+package org.ct42.fnflow.fnlibtest.script;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ct42.fnflow.batchdlt.BatchElement;
+import org.ct42.fnflow.fnlib.script.ScriptRunnerException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,10 +29,10 @@ import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.List;
 import java.util.function.Function;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
 /**
  * @author Sajjad Safaeian
@@ -50,27 +50,29 @@ public class ScriptRunnerTest {
 
         @Test
         @DisplayName("""
-                Given a 'ScripRunner' function with a JS script to extract 'records'
+                Given a 'ScripRunner' function with a JS script to extract 'records' and duplicate the 'value' of each item
                 And an input message with 'records' property
                 When the 'ScriptRunner' function is executed
-                Then the output should contain 2 records
+                Then the output should contain records content with duplicated the 'value' of each item
                 """)
         void normalScriptTest() throws Exception {
             JsonNode input = mapper.readTree("""
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"}
-                      ]
+                      "records": {
+                        "id": 1,
+                        "items": [
+                          {"id": 1, "value": "AB"},
+                          {"id": 2, "value": "B"}
+                        ]
+                      }
                     }
                     """);
 
-            Function<List<BatchElement>, List<BatchElement>> script = catalog.lookup(Function.class, "jsScript");
+            Function<JsonNode, JsonNode> script = catalog.lookup(Function.class, "jsScript");
 
-            List<BatchElement> result = script.apply(List.of(new BatchElement(input)));
+            JsonNode result = script.apply(input);
 
-            then(result).hasSize(2);
-            then(result.getFirst().getOutput().at("/id").asInt()).isEqualTo(1);
+            then(result.at("/items/0/value").asText()).isEqualTo("ABAB");
         }
     }
 
@@ -87,60 +89,58 @@ public class ScriptRunnerTest {
                 Given a 'ScripRunner' function with a non-executable JS script
                 And an input message
                 When the 'ScriptRunner' function is executed
-                Then the output should contain 1 error message
+                Then the output should raises the 'ScriptRunnerException' exception
                 """)
         void wrongScriptTest() throws Exception {
             JsonNode input = mapper.readTree("""
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"}
-                      ]
+                      "records": {
+                        "id": 1,
+                        "items": [
+                          {"id": 1, "value": "AB"},
+                          {"id": 2, "value": "B"}
+                        ]
+                      }
                     }
                     """);
 
-            Function<List<BatchElement>, List<BatchElement>> script = catalog.lookup(Function.class, "jsScript");
+            Function<JsonNode, JsonNode> script = catalog.lookup(Function.class, "jsScript");
 
-            List<BatchElement> result = script.apply(List.of(new BatchElement(input)));
-
-            then(result).hasSize(1);
-            then(result.getFirst().getOutput()).isNull();
-            then(result.getFirst().getError().getMessage()).contains("test is not defined");
+            thenThrownBy(() -> script.apply(input))
+                    .isInstanceOf(ScriptRunnerException.class);
         }
     }
 
     @Nested
-    @TestPropertySource(properties = {
-        "cfgfns.ScriptRunner.jsScript.script='test'",
-    })
+    @TestPropertySource(locations = "classpath:/normal-script.properties")
     protected class WrongResultJSScript {
         @Autowired
         FunctionCatalog catalog;
 
         @Test
         @DisplayName("""
-                Given a 'ScripRunner' function with an executable JS script that returns a non-array result
-                And an input message
+                Given a 'ScripRunner' function with a JS script to extract 'records' and duplicate the 'value' of each item
+                And an input message with 'none-records' property
                 When the 'ScriptRunner' function is executed
-                Then the output should contain 1 error message
+                Then the output should raises the 'ScriptRunnerException' exception
                 """)
         void wrongResultScriptTest() throws Exception {
             JsonNode input = mapper.readTree("""
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"}
-                      ]
+                      "none-records": {
+                        "id": 1,
+                        "items": [
+                          {"id": 1, "value": "AB"},
+                          {"id": 2, "value": "B"}
+                        ]
+                      }
                     }
                     """);
 
-            Function<List<BatchElement>, List<BatchElement>> script = catalog.lookup(Function.class, "jsScript");
+            Function<JsonNode, JsonNode> script = catalog.lookup(Function.class, "jsScript");
 
-            List<BatchElement> result = script.apply(List.of(new BatchElement(input)));
-
-            then(result).hasSize(1);
-            then(result.getFirst().getOutput()).isNull();
-            then(result.getFirst().getError().getMessage()).isNotBlank();
+            thenThrownBy(() -> script.apply(input))
+                    .isInstanceOf(ScriptRunnerException.class);
         }
     }
 

@@ -34,7 +34,6 @@ import java.util.function.Function;
  * Is mapping the input from Message and the result back to Message.
  *
  * @author Claas Thiele
- * @author Sajjad Safaeian
  */
 public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks.Many<Message<Throwable>>, Flux<Message<JsonNode>>> {
         public final int defaultBatchSize;
@@ -56,10 +55,9 @@ public class BatchFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
                 for(int i = 0; i < results.size(); i++) {
                     BatchElement result = results.get(i);
                     if(result.getOutput() != null) {
-                        int inputIndex = null != result.getInputIndex() ? result.getInputIndex() : i;
                         MessageBuilder<JsonNode> builder = MessageBuilder
                             .withPayload(result.getOutput())
-                            .copyHeaders(b.get(inputIndex).getHeaders());
+                            .copyHeaders(b.get(i).getHeaders());
                         if(target instanceof HeaderAware headerAware) {
                             headerAware.headersToBeAdded(result.getInput())
                                 .forEach(builder::setHeader);

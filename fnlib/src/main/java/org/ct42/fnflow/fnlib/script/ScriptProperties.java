@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 
-package org.ct42.fnflow.batchfnlib.script;
+package org.ct42.fnflow.fnlib.script;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.graalvm.polyglot.Source;
 import org.springframework.validation.annotation.Validated;
 
 /**
  * @author Sajjad Safaeian
  */
-@Data
+@Getter
 @Validated
 public class ScriptProperties {
 
-    @NotEmpty
-    private String script;
+    @NotNull
+    private Source script;
 
-    private ScriptLanguage scriptLanguage = ScriptLanguage.JS;
-
-    @AllArgsConstructor
-    public enum ScriptLanguage {
-        JS("js"), PYTHON("python");
-
-        @Getter
-        private final String name;
+    public void setScript(String source) {
+        script = Source.create("js", source);
     }
-
 }

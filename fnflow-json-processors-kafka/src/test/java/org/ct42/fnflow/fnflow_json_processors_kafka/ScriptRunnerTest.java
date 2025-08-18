@@ -39,7 +39,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers
 @SpringBootTest(properties = {
-    "cfgfns.ScriptRunner.jsScript.script=var inputJson = JSON.parse(input);\\nvar result = [];\\nif (inputJson.records && Array.isArray(inputJson.records)) {\\n    for (var i = 0; i < inputJson.records.length; i++) {\\n        result.push(inputJson.records[i]);\\n    }\\n}\\nresult;",
+    "cfgfns.ScriptRunner.jsScript.script=var inputJson = JSON.parse(input);\\nconst records = inputJson.records;\\nrecords.items = records.items.map(item => ({\\n  ...item,\\n  value: item.value + item.value\\n}));\\nrecords;",
     "cfgfns.hasValueValidator.idExist.elementPath=/id",
     "org.ct42.fnflow.function.definition=jsScript|idExist"
 })
@@ -69,53 +69,65 @@ public class ScriptRunnerTest extends AbstractKafkaTest {
             GIVEN following pipeline configuration:
                 "cfgfns.ScriptRunner.jsScript.script=
                     var inputJson = JSON.parse(input);
-                    var result = [];
-                    if (inputJson.records && Array.isArray(inputJson.records)) {
-                        for (var i = 0; i < inputJson.records.length; i++) {
-                            result.push(inputJson.records[i]);
-                        }
-                    }
-                    result;
+
+                    const records = inputJson.records;
+
+                    records.items = records.items.map(item => ({
+                      ...item,
+                      value: item.value + item.value
+                    }));
+
+                    records;
                 ",
                 "cfgfns.hasValueValidator.idExist.elementPath=/id",
                 "org.ct42.fnflow.function.definition=jsScript|idExist"
             AND following input events
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"},
-                        {"id": "", "value": "C"}
-                      ]
+                      "records": {
+                        "id": 1,
+                        "items": [
+                          {"id": 1, "value": "AB"},
+                          {"id": 2, "value": "B"}
+                        ]
+                      }
                     }
                     {
-                      "records": [
-                        {"id": 4, "value": "D"},
-                        {"id": "", "value": "E"}
-                      ]
+                      "records": {
+                        "id": "",
+                        "items": [
+                          {"id": 3, "value": E"},
+                          {"id": 4, "value": "D"}
+                        ]
+                      }
                     }
             WHEN the events are meted to the input of the pipeline
-            THEN jsScript extracts 3 records from event 1, and 2 records from event 2
-            AND  idExist reject 2 records
-            AND  the output topic contains 4 records with ID
-            AND  error topic contains 2 input events because of records without an ID
+            THEN jsScript extracts records from event 1, and 2
+            AND  idExist reject the second records
+            AND  the output topic contains 1 records with ID
+            AND  error topic contains 1 input events because of records without an ID
             """)
     void scriptRunnerTest() throws Exception {
         template.sendDefault("""
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"},
-                        {"id": "", "value": "C"}
-                      ]
+                      "records": {
+                        "id": 1,
+                        "items": [
+                          {"id": 1, "value": "AB"},
+                          {"id": 2, "value": "B"}
+                        ]
+                      }
                     }
                 """);
 
         template.sendDefault("""
                     {
-                      "records": [
-                        {"id": 4, "value": "D"},
-                        {"id": "", "value": "E"}
-                      ]
+                      "records": {
+                        "id": "",
+                        "items": [
+                          {"id": 3, "value": "E"},
+                          {"id": 4, "value": "D"}
+                        ]
+                      }
                     }
                 """);
 
@@ -124,27 +136,19 @@ public class ScriptRunnerTest extends AbstractKafkaTest {
 
         then(outputEvents)
                 .extracting("value")
-                .containsExactly("{\"id\":1,\"value\":\"A\"}",
-                        "{\"id\":2,\"value\":\"B\"}",
-                        "{\"id\":4,\"value\":\"D\"}");
+                .containsExactly("{\"id\":1,\"items\":[{\"id\":1,\"value\":\"ABAB\"},{\"id\":2,\"value\":\"BB\"}]}");
 
         then(errorEvents)
                 .extracting("value")
                 .containsExactly("""
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"},
-                        {"id": "", "value": "C"}
-                      ]
-                    }
-                """,
-                """
-                    {
-                      "records": [
-                        {"id": 4, "value": "D"},
-                        {"id": "", "value": "E"}
-                      ]
+                      "records": {
+                        "id": "",
+                        "items": [
+                          {"id": 3, "value": "E"},
+                          {"id": 4, "value": "D"}
+                        ]
+                      }
                     }
                 """);
     }
