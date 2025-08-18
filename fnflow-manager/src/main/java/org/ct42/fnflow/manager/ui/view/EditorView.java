@@ -24,6 +24,7 @@ import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.deployment.DeploymentService;
 import org.ct42.fnflow.manager.ui.Blockly;
 import org.ct42.fnflow.manager.ui.DeploymentServiceUtil;
+import org.ct42.fnflow.manager.ui.PrimeIcon;
 import org.ct42.fnflow.manager.ui.Tree;
 
 import java.util.Map;
@@ -128,18 +129,19 @@ public class EditorView extends VerticalLayout {
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.addItem("Create/Update").addClickListener(event ->
                     ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name)));
-            contextMenu.addItem("Close", event ->
-                    contextMenu.getTarget().getParent().ifPresent(c -> {
-                        if(c instanceof Tab t) {
-                            tabSheet.remove(tabSheet.getComponent(t));
-                        }
-                    }));
+            contextMenu.addItem("Close", event -> {
+                Component c = contextMenu.getTarget();
+                if(c instanceof Tab t) {
+                    tabSheet.remove(tabSheet.getComponent(t));
+                }
+            });
 
             Icon icon = new Icon(VaadinIcon.ELLIPSIS_V);
-            contextMenu.setTarget(icon);
-
-            Tab tab = new Tab(new Span(name), icon);
+            PrimeIcon typeIcon = new PrimeIcon(getDeploymentServiceInfoBasedOnKey(key).getIcon());
+            Tab tab = new Tab(typeIcon, new Span(name), icon);
             tab.setId(ID_PREFIX + key);
+
+            contextMenu.setTarget(tab);
 
             String configContent = config != null ? objectMapper.writeValueAsString(config) : null;
             Tab newTab = tabSheet.add(tab, new Blockly(configContent, key, deploymentServices));
