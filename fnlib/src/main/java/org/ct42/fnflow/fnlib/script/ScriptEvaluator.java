@@ -16,32 +16,13 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import org.springframework.validation.annotation.Validated;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Sajjad Safaeian
  */
-@Data
-@Validated
-public class ScriptProperties {
+public interface ScriptEvaluator {
 
-    @NotEmpty
-    private String script;
-
-    private ScriptLanguage scriptLanguage = ScriptLanguage.JS;
-
-    @Getter
-    @AllArgsConstructor
-    public enum ScriptLanguage {
-        JS("js", "JavaScriptEvaluator"), PYTHON("python", "PythonEvaluator");
-
-        private final String name;
-
-        private final String beanName;
-    }
+    JsonNode evaluate(String script, JsonNode input);
 
 }

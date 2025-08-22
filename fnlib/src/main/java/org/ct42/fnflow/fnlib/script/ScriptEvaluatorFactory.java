@@ -16,32 +16,22 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import org.springframework.validation.annotation.Validated;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * @author Sajjad Safaeian
  */
-@Data
-@Validated
-public class ScriptProperties {
+@Component
+@RequiredArgsConstructor
+public class ScriptEvaluatorFactory {
 
-    @NotEmpty
-    private String script;
+    private final Map<String, ScriptEvaluator> evaluators;
 
-    private ScriptLanguage scriptLanguage = ScriptLanguage.JS;
-
-    @Getter
-    @AllArgsConstructor
-    public enum ScriptLanguage {
-        JS("js", "JavaScriptEvaluator"), PYTHON("python", "PythonEvaluator");
-
-        private final String name;
-
-        private final String beanName;
+    public ScriptEvaluator createScriptEvaluator(ScriptProperties.ScriptLanguage language) {
+        return evaluators.get("org.ct42.fnflow.fnlib.script." + language.getBeanName());
     }
 
 }

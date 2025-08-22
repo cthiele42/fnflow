@@ -112,7 +112,7 @@ public class ScriptRunnerTest {
     }
 
     @Nested
-    @TestPropertySource(locations = "classpath:/normal-script.properties")
+    @TestPropertySource(locations = "classpath:/normal-js-script.properties")
     protected class WrongResultJSScript {
         @Autowired
         FunctionCatalog catalog;
@@ -144,6 +144,7 @@ public class ScriptRunnerTest {
         }
     }
 
+
     @Nested
     @TestPropertySource(locations = "classpath:/normal-python-script.properties")
     protected class NormalPythonScript {
@@ -152,29 +153,32 @@ public class ScriptRunnerTest {
 
         @Test
         @DisplayName("""
-                Given a 'ScripRunner' function with a Python script to extract 'records'
+                Given a 'ScripRunner' function with a Python script to extract 'records' and duplicate the 'value' of each item
                 And an input message with 'records' property
                 When the 'ScriptRunner' function is executed
-                Then the output should contain 2 records
+                Then the output should contain records content with duplicated the 'value' of each item
                 """)
         void normalScriptTest() throws Exception {
             JsonNode input = mapper.readTree("""
                     {
-                      "records": [
-                        {"id": 1, "value": "A"},
-                        {"id": 2, "value": "B"}
-                      ]
+                      "records": {
+                        "id": 1,
+                        "items": [
+                          {"id": 1, "value": "AB"},
+                          {"id": 2, "value": "B"}
+                        ]
+                      }
                     }
                     """);
 
-            Function<List<BatchElement>, List<BatchElement>> script = catalog.lookup(Function.class, "pythonScript");
+            Function<JsonNode, JsonNode> script = catalog.lookup(Function.class, "pythonScript");
 
-            List<BatchElement> result = script.apply(List.of(new BatchElement(input)));
+            JsonNode result = script.apply(input);
 
-            then(result).hasSize(2);
-            then(result.getFirst().getOutput().at("/id").asInt()).isEqualTo(1);
+            then(result.at("/items/0/value").asText()).isEqualTo("ABAB");
         }
     }
+
 
     @SpringBootApplication
     @ComponentScan

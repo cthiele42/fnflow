@@ -16,32 +16,22 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import org.springframework.validation.annotation.Validated;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.graalvm.polyglot.Context;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Sajjad Safaeian
  */
-@Data
-@Validated
-public class ScriptProperties {
+@Component
+public class JavaScriptEvaluator extends AbstractScriptEvaluator {
 
-    @NotEmpty
-    private String script;
+    @Override
+    public JsonNode evaluate(String script, JsonNode input) {
+        try (Context context = Context.create()) {
+            String language = ScriptProperties.ScriptLanguage.JS.getName();
 
-    private ScriptLanguage scriptLanguage = ScriptLanguage.JS;
-
-    @Getter
-    @AllArgsConstructor
-    public enum ScriptLanguage {
-        JS("js", "JavaScriptEvaluator"), PYTHON("python", "PythonEvaluator");
-
-        private final String name;
-
-        private final String beanName;
+            return evaluate(script, input, language, context);
+        }
     }
-
 }
