@@ -4,3 +4,6 @@ org.ct42.fnflow.fnlib.normalizer.pad.PadNormalizer
 org.ct42.fnflow.fnlib.reducer.Reduce2One
 org.ct42.fnflow.fnlib.merger.MergeCreate
 org.ct42.fnflow.fnlib.script.ScriptRunner
+org.ct42.fnflow.fnlib.script.ScriptEvaluatorFactory
+org.ct42.fnflow.fnlib.script.JavaScriptEvaluator
+org.ct42.fnflow.fnlib.script.PythonEvaluator

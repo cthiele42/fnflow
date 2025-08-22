@@ -17,34 +17,27 @@
 package org.ct42.fnflow.fnlib.script;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Sajjad Safaeian
  */
 @Component("ScriptRunner")
+@RequiredArgsConstructor
 public class ScriptRunner extends ConfigurableFunction<JsonNode, JsonNode, ScriptProperties>  {
 
-    ObjectMapper mapper = new ObjectMapper();
+    private final ScriptEvaluatorFactory scriptEvaluatorFactory;
 
     @Override
     public JsonNode apply(JsonNode input) {
-        try (Context context = Context.create()) {
-            try {
-                context.getBindings("js").putMember("input", input.toString());
-                Value evaluationResult = context.eval(properties.getScript());
+        try {
+            ScriptEvaluator evaluator = scriptEvaluatorFactory.createScriptEvaluator(properties.getScriptLanguage());
 
-                Object raw = evaluationResult.as(Object.class);
-                String json = mapper.writeValueAsString(raw);
-                return mapper.readTree(json);
-
-            } catch (Exception e) {
-                throw new ScriptRunnerException("Script: " + properties.getScript().getCharacters().toString(), e);
-            }
+            return evaluator.evaluate(properties.getScript(), input);
+        } catch (Exception e) {
+            throw new ScriptRunnerException("Script: " + properties.getScript(), e);
         }
     }
 
