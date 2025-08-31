@@ -63,6 +63,7 @@ class TreeElement extends ReactAdapterElement {
             <ContextMenu model={deplContainerMenu} ref={cmContainer}/>
             <ContextMenu model={deplMenu} ref={cmDepl}/>
 
+            <div className="menu-title">Deployments</div>
             <Tree value={nodes} nodeTemplate={nodeTemplate}
                 selectionMode="single"
                 selectionKeys={selectedKey}
