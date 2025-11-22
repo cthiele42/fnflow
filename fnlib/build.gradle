@@ -4,14 +4,13 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.9'
 description= 'Function library with configurable functions for Json processing'
 
 
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-function-context'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.ct42.fnflow:configurablefunctions:0.0.6'
+	implementation project(':configurablefunctions')
 	implementation 'org.apache.commons:commons-lang3'
 
     implementation 'org.graalvm.polyglot:polyglot:23.1.8'
