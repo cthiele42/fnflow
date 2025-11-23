@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - 'configurablefunctions/**'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,7 +25,7 @@ jobs:
     - name: Set up JDK GraalVM 23
       uses: actions/setup-java@v4
       with:
-        java-version: '23'
+        java-version: '21'
         distribution: 'graalvm'
 
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
