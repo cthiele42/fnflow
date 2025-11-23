@@ -1,5 +1,5 @@
 plugins {
-    id 'fnflow-library-conventions'
+    id 'fnflow-java-conventions'
     id 'fnflow-spring-cloud-conventions'
 }
 
