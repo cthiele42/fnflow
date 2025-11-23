@@ -6,6 +6,7 @@ plugins {
 group = 'org.ct42.fnflow'
 description = 'Make Spring Cloud Functions configurable'
 
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-autoconfigure'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
