@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.15'
+version = '0.0.16' + "$ext.versionSuffix"
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -16,8 +16,8 @@ dependencies {
 		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
 		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
 	}
-	implementation 'org.ct42.fnflow:fnlib:0.0.9'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.5'
+	implementation project(':fnlib')
+	implementation project(':batchfnlib')
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

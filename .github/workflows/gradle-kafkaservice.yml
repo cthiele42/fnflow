@@ -9,7 +9,8 @@ name: Kafkaservice test
 
 on:
   push:
-    paths: ['fnflow-kafkaservice']
+    paths:
+      - 'fnflow-kafkaservice/**'
 
 jobs:
   build:

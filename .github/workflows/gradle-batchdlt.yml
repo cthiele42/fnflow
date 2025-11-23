@@ -9,7 +9,8 @@ name: BatchDLT test
 
 on:
   push:
-    paths: ['batchdlt']
+    paths:
+      - 'batchdlt/**'
 
 jobs:
   build:
