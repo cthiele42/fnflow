@@ -9,7 +9,8 @@ name: FnLib test
 
 on:
   push:
-    paths: ['fnlib']
+    paths:
+      - 'fnlib/**'
 
 jobs:
   build:
