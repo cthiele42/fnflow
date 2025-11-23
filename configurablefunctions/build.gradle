@@ -3,7 +3,6 @@ plugins {
 	id 'fnflow-spring-cloud-conventions'
 }
 
-
 group = 'org.ct42.fnflow'
 description = 'Make Spring Cloud Functions configurable'
 
