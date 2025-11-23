@@ -9,7 +9,8 @@ name: ConfigFunctions test
 
 on:
   push:
-    paths: ['configurablefunctions']
+    paths:
+      - 'configurablefunctions/**'
 
 jobs:
   build:
