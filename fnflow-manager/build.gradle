@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.20' + "$ext.versionSuffix"
+version = '0.0.21' + "$ext.versionSuffix"
 
 ext {
 	set('vaadinVersion', "24.7.2")
