@@ -3,6 +3,11 @@ plugins {
     id 'org.graalvm.buildtools.native'
 }
 
+
+def kindLoadImage = tasks.register('kindLoadImage', Exec) {
+    commandLine 'kind', 'load', 'docker-image', "docker.io/ct42/${project.name}:${version}"
+}
+
 tasks.named("bootBuildImage") {
     imageName.set("ct42/${project.name}:${version}")
     docker {
@@ -11,5 +16,5 @@ tasks.named("bootBuildImage") {
             password = "$pwd"
         }
     }
+    finalizedBy  kindLoadImage
 }
-

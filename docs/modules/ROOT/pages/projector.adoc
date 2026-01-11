@@ -1,0 +1,36 @@
+= Projector
+
+image:projector.png[]
+
+The projector reads the result entities of the xref:processor.adoc[] pipeline topic, based on the message key of the pipeline`s result entity and the same value for the ID of entities stored in the configured OpenSearch index, will create or update entities.
+
+== Parameters
+
+[cols="1,1,1,a", options="autowidth"]
+|===
+|Parameter Name |Type |Required | Description
+
+|version
+|String
+|Yes
+|The version of the projector application that is used. To check the available projector application versions, you can check the https://hub.docker.com/r/ct42/fnflow-projector/tags[Docker Hub]
+
+|topic
+|String
+|Yes
+|The name of the Kafka topic from which the projector reads the entities.
+
+Note:
+
+* Entities should contain the message key.
+* Entities that do not contain the message key will be ignored.
+* The entity message key will be used as the entity ID inside the configured OpenSearch index.
+
+|index
+|String
+|Yes
+|The name of the OpenSearch index.
+
+The projector uses this index for updating or creating entities inside the OpenSearch.
+
+|===

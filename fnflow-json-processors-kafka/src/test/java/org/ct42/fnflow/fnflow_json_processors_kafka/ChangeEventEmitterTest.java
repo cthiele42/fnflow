@@ -16,42 +16,25 @@
 
 package org.ct42.fnflow.fnflow_json_processors_kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
-import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * @author Claas Thiele
+ * @author Sajjad Safaeian
  */
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers
@@ -62,31 +45,24 @@ import static org.assertj.core.api.BDDAssertions.then;
         "cfgfns.ChangeEventEmit.entity.eventKey=/matches/0/id",
         "org.ct42.fnflow.function.definition=input+entity"
 })
-public class ChangeEventEmitterTest {
+public class ChangeEventEmitterTest extends AbstractKafkaTest {
     public static final String IN_TOPIC = "fnFlowComposedFnBean-in-0";
     public static final String ENTITY_TOPIC = "fnFlowComposedFnBean-out-0";
     public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
     public static final String SOURCE_TOPIC = "source";
-
-    @Container
-    static KafkaContainer kafkaContainer = new KafkaContainer("apache/kafka-native:3.8.1");
 
     @DynamicPropertySource
     static void brokerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.cloud.stream.kafka.binder.brokers", kafkaContainer::getBootstrapServers);
     }
 
-    @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
-    private KafkaTemplate<String, String> template;
     private final BlockingQueue<ConsumerRecord<byte[], String>> inRecords = new LinkedBlockingQueue<>();
     private final BlockingQueue<ConsumerRecord<byte[], String>> errRecords = new LinkedBlockingQueue<>();
     private final BlockingQueue<ConsumerRecord<byte[], String>> srcRecords = new LinkedBlockingQueue<>();
 
     @BeforeEach
     void setup() throws Exception {
-        setupProducer();
+        setupProducer(IN_TOPIC);
         setupConsumer(inRecords, ENTITY_TOPIC);
         setupConsumer(errRecords, DLT_TOPIC);
         setupConsumer(srcRecords, SOURCE_TOPIC);
@@ -110,33 +86,9 @@ public class ChangeEventEmitterTest {
                     "matches": [{"id": "givenID", "source": {"text": "Result with ID"}}]
                 }""");
 
-        List<ConsumerRecord<byte[], String>> entityEvents = new ArrayList<>();
-        while (true) {
-            ConsumerRecord<byte[], String> received =
-                    inRecords.poll(2000, TimeUnit.MILLISECONDS);
-            if (received == null) {
-                break;
-            }
-            entityEvents.add(received);
-        }
-        List<ConsumerRecord<byte[], String>> sourceEvents = new ArrayList<>();
-        while (true) {
-            ConsumerRecord<byte[], String> received =
-                    srcRecords.poll(200, TimeUnit.MILLISECONDS);
-            if (received == null) {
-                break;
-            }
-            sourceEvents.add(received);
-        }
-        List<ConsumerRecord<byte[], String>> errors = new ArrayList<>();
-        while (true) {
-            ConsumerRecord<byte[], String> received =
-                    errRecords.poll(200, TimeUnit.MILLISECONDS);
-            if (received == null) {
-                break;
-            }
-            errors.add(received);
-        }
+        List<ConsumerRecord<byte[], String>> entityEvents = getConsumerRecords(inRecords, 2000);
+        List<ConsumerRecord<byte[], String>> sourceEvents = getConsumerRecords(srcRecords, 2000);
+        List<ConsumerRecord<byte[], String>> errors = getConsumerRecords(errRecords, 200);
 
         then(errors).isEmpty();
 
@@ -157,52 +109,4 @@ public class ChangeEventEmitterTest {
                 {"foo":"bar2"}""");
     }
 
-    private void setupConsumer(BlockingQueue<ConsumerRecord<byte[], String>> queue, String topic) {
-        // set up the Kafka consumer properties
-        Map<String, Object> consumerProperties =
-                KafkaTestUtils.consumerProps(kafkaContainer.getBootstrapServers(), "sender");
-        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-
-        // create a Kafka consumer factory
-        DefaultKafkaConsumerFactory<byte[], String> consumerFactory =
-                new DefaultKafkaConsumerFactory<>(consumerProperties);
-
-        // set the topic that needs to be consumed
-        ContainerProperties containerProperties =
-                new ContainerProperties(topic);
-
-        // create a Kafka MessageListenerContainer
-        KafkaMessageListenerContainer<byte[], String> inContainer =
-                new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-
-        // setup a Kafka message listener
-        inContainer.setupMessageListener((MessageListener<byte[], String>) queue::add);
-
-        // start the container and underlying message listener
-        inContainer.start();
-
-        // wait until the container has the required number of assigned partitions
-        ContainerTestUtils.waitForAssignment(inContainer, 1);
-    }
-
-    private void setupProducer() {
-        // set up the Kafka producer properties
-        Map<String, Object> senderProperties = KafkaTestUtils.producerProps(kafkaContainer.getBootstrapServers());
-
-        // create a Kafka producer factory
-        ProducerFactory<String, String> producerFactory =
-                new DefaultKafkaProducerFactory<>(
-                        senderProperties);
-
-        // create a Kafka template
-        template = new KafkaTemplate<>(producerFactory);
-        // set the default topic to send to
-        template.setDefaultTopic(IN_TOPIC);
-
-        // wait until the partitions are assigned
-        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
-                .getListenerContainers()) {
-            ContainerTestUtils.waitForAssignment(messageListenerContainer, 1);
-        }
-    }
 }

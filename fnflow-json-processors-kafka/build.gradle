@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.13'
+version = '0.0.16' + "$ext.versionSuffix"
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -16,8 +16,8 @@ dependencies {
 		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
 		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
 	}
-	implementation 'org.ct42.fnflow:fnlib:0.0.8'
-	implementation 'org.ct42.fnflow:batchfnlib:0.0.5'
+	implementation project(':fnlib')
+	implementation project(':batchfnlib')
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -27,4 +27,16 @@ dependencies {
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
 	testImplementation 'org.testcontainers:kafka'
+}
+
+bootBuildImage {
+	buildpacks = ["docker.io/paketobuildpacks/oracle", "urn:cnb:builder:paketo-buildpacks/java-native-image"]
+
+	environment = [
+			"BP_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
+            --no-fallback
+            --initialize-at-build-time=com.oracle.truffle.js.runtime
+            -H:+ReportExceptionStackTraces
+        """
+	]
 }
