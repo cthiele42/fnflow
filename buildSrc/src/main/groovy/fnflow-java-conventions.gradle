@@ -12,7 +12,6 @@ java {
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 idea {
@@ -29,4 +28,27 @@ configurations {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+def getVersionSuffix() {
+    def suffix = "-UNKNOWN"
+    try {
+        def workingDir = new File("${project.projectDir}")
+        def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+        result.waitFor()
+        if (result.exitValue() == 0) {
+            suffix = result.text.trim()
+            if (suffix == 'main') {
+                suffix = ''
+            } else {
+                suffix = '-BRANCH_' + suffix.find( /^\d+/ )
+            }
+        }
+    } catch (e) {
+    }
+    return suffix
+}
+
+ext {
+    versionSuffix = getVersionSuffix()
 }
