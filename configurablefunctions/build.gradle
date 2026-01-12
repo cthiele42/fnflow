@@ -1,10 +1,9 @@
 plugins {
-	id 'fnflow-library-conventions'
+	id 'fnflow-java-conventions'
 	id 'fnflow-spring-cloud-conventions'
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.6'
 description = 'Make Spring Cloud Functions configurable'
 
 dependencies {
