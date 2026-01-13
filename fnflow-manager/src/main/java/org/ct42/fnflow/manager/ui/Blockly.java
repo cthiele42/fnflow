@@ -95,8 +95,8 @@ public class Blockly extends ReactAdapterComponent {
     }
 
     @ClientCallable
-    public void showHelp(String type, String helpUrl) {
-        ComponentUtil.fireEvent(UI.getCurrent(), new LogEvent(type, helpUrl));
+    public void showHelp(String functionType, String helpUrl) {
+        ComponentUtil.fireEvent(UI.getCurrent(), new LogEvent("help", functionType, helpUrl));
     }
 
     @Override
@@ -107,24 +107,32 @@ public class Blockly extends ReactAdapterComponent {
                 EditorView.CreateUpdateInitEvent.class, // event class
                 event -> {
                     String name = event.getName();
+                    EditorView.DeploymentEventAction action = event.getAction();
                     getElement().executeJs("return this.firstChild.firstChild.getAttribute('data-code')").then(String.class, code -> {
-                        BlocklyDeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key, BLOCKLY_DEPLOYMENT_SERVICE_INFOS);
-                        try {
-                            AbstractConfigDTO configDTO = objectMapper.readValue(code, serviceInfo.dtoClass);
-                            deploymentServices.get(serviceInfo.getServiceName()).createOrUpdateAbstractConfig(name, configDTO);
-                            Notification notification = Notification.show(
-                                    String.format("%s %s successfully deployed", StringUtils.capitalize(serviceInfo.getType()), name)
-                            );
-                            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                            notification.setPosition(Notification.Position.BOTTOM_END);
-                            notification.setDuration(5000);
+                        switch (action) {
+                            case SAVE -> {
+                                BlocklyDeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key, BLOCKLY_DEPLOYMENT_SERVICE_INFOS);
+                                try {
+                                    AbstractConfigDTO configDTO = objectMapper.readValue(code, serviceInfo.dtoClass);
+                                    deploymentServices.get(serviceInfo.getServiceName()).createOrUpdateAbstractConfig(name, configDTO);
+                                    Notification notification = Notification.show(
+                                            String.format("%s %s successfully deployed", StringUtils.capitalize(serviceInfo.getType()), name)
+                                    );
+                                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                    notification.setPosition(Notification.Position.BOTTOM_END);
+                                    notification.setDuration(5000);
 
-                        } catch (Exception e) {
-                            Notification notification = Notification.show(String.format("Deployment of %s %s failed", serviceInfo.getType(), name));
-                            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            notification.setPosition(Notification.Position.BOTTOM_END);
-                            notification.setDuration(0);
+                                } catch (Exception e) {
+                                    Notification notification = Notification.show(String.format("Deployment of %s %s failed", serviceInfo.getType(), name));
+                                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                    notification.setPosition(Notification.Position.BOTTOM_END);
+                                    notification.setDuration(0);
+                                }
+                            }
+                            case GENERATE_JSON ->
+                                ComponentUtil.fireEvent(UI.getCurrent(), new LogEvent(key, name, code));
                         }
+
                     });
                 });
     }
@@ -150,12 +158,14 @@ public class Blockly extends ReactAdapterComponent {
 
     @Getter
     public class LogEvent extends ComponentEvent<Blockly> {
+        private final String type;
         private final String name;
         private final String content;
 
-        public LogEvent(String name, String content) {
+        public LogEvent(String type, String name, String content) {
             super(Blockly.this, false);
 
+            this.type = type;
             this.name = name;
             this.content = content;
         }
