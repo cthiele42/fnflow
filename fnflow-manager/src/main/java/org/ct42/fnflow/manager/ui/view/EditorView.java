@@ -24,6 +24,7 @@ import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.deployment.DeploymentService;
 import org.ct42.fnflow.manager.ui.Blockly;
 import org.ct42.fnflow.manager.ui.DeploymentServiceUtil;
+import org.ct42.fnflow.manager.ui.PrimeIcon;
 import org.ct42.fnflow.manager.ui.Tree;
 
 import java.util.Map;
@@ -45,13 +46,19 @@ public class EditorView extends VerticalLayout {
     private Registration registration;
     private final TabSheet tabSheet = new TabSheet();
 
+    public enum DeploymentEventAction {
+        SAVE, GENERATE_JSON
+    }
+
     @Getter
     public class CreateUpdateInitEvent extends ComponentEvent<EditorView> {
         private final String name;
+        private final DeploymentEventAction action;
 
-        public CreateUpdateInitEvent(String name) {
+        public CreateUpdateInitEvent(String name, DeploymentEventAction action) {
             super(EditorView.this, false);
             this.name = name;
+            this.action = action;
         }
     }
 
@@ -127,19 +134,32 @@ public class EditorView extends VerticalLayout {
         try {
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.addItem("Create/Update").addClickListener(event ->
-                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name)));
-            contextMenu.addItem("Close", event ->
-                    contextMenu.getTarget().getParent().ifPresent(c -> {
-                        if(c instanceof Tab t) {
-                            tabSheet.remove(tabSheet.getComponent(t));
-                        }
-                    }));
+                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name, DeploymentEventAction.SAVE))
+            );
+
+            contextMenu.addItem("Show JSON Config").addClickListener(event ->
+                    ComponentUtil.fireEvent(UI.getCurrent(), new CreateUpdateInitEvent(name, DeploymentEventAction.GENERATE_JSON))
+            );
+
+            contextMenu.addItem("Close", event -> {
+                Component c = contextMenu.getTarget();
+                if(c instanceof Tab t) {
+                    tabSheet.remove(tabSheet.getComponent(t));
+                }
+            });
 
             Icon icon = new Icon(VaadinIcon.ELLIPSIS_V);
-            contextMenu.setTarget(icon);
-
-            Tab tab = new Tab(new Span(name), icon);
+            PrimeIcon typeIcon = new PrimeIcon(getDeploymentServiceInfoBasedOnKey(key).getIcon());
+            Tab tab = new Tab(typeIcon, new Span(name), icon);
             tab.setId(ID_PREFIX + key);
+
+            contextMenu.setTarget(tab);
+
+            contextMenu.addOpenedChangeListener(e -> {
+                if (e.isOpened()) {
+                    tabSheet.setSelectedTab(tab);
+                }
+            });
 
             String configContent = config != null ? objectMapper.writeValueAsString(config) : null;
             Tab newTab = tabSheet.add(tab, new Blockly(configContent, key, deploymentServices));
