@@ -1,8 +1,9 @@
 {
   "resources":{
-  "includes":[
-    {
-      "pattern":"\\Qnet/jpountz/util/linux/amd64/liblz4-java.so\\E"
-    }
-  ]}
+    "includes":[
+      {
+        "pattern":"\\Qnet/jpountz/util/linux/amd64/liblz4-java.so\\E"
+      }
+    ]
+  }
 }
