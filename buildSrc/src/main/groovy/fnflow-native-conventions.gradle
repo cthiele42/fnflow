@@ -9,6 +9,16 @@ def kindLoadImage = tasks.register('kindLoadImage', Exec) {
 }
 
 tasks.named("bootBuildImage") {
+    buildCache {
+        volume {
+            name = "cache-${project.name}.build"
+        }
+    }
+    launchCache {
+        volume {
+            name = "cache-${project.name}.launch"
+        }
+    }
     imageName.set("ct42/${project.name}:${version}")
     docker {
         publishRegistry {
