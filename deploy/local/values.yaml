@@ -12,7 +12,7 @@ akhq:
 
 kafkaservice:
   chartVersion: 0.0.1
-  appVersion: 0.0.8
+  appVersion: 0.0.9
   spring:
     kafka:
       producer:
@@ -23,4 +23,4 @@ kafkaservice:
 
 manager:
   chartVersion: 0.0.1
-  appVersion: 0.0.24
+  appVersion: 0.0.25
