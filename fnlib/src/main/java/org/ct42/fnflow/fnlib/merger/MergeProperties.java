@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnlib.merger;
 
-import com.fasterxml.jackson.core.JsonPointer;
+import tools.jackson.core.JsonPointer;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.Getter;

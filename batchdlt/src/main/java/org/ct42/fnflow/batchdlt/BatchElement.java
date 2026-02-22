@@ -16,7 +16,8 @@
 
 package org.ct42.fnflow.batchdlt;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Getter;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Holds all data of one element of a batch.
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author Claas Thiele
  */
+@Getter
 public class BatchElement {
     private final JsonNode input;
     private JsonNode output;
@@ -31,10 +33,6 @@ public class BatchElement {
 
     public BatchElement(JsonNode input) {
         this.input = input;
-    }
-
-    public JsonNode getInput() {
-        return input;
     }
 
     public void processWithOutput(JsonNode output) {
@@ -45,11 +43,4 @@ public class BatchElement {
         this.error = error;
     }
 
-    public JsonNode getOutput() {
-        return output;
-    }
-
-    public Throwable getError() {
-        return error;
-    }
 }

@@ -16,8 +16,12 @@
 
 package org.ct42.fnflow.kafkaservice;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,19 +31,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.util.MultiValueMap;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -52,6 +51,7 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 @RegisterReflectionForBinding(classes = KafkaMessageListenerContainer.class)
 @Testcontainers
+@AutoConfigureRestTestClient
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 properties = {
 	"spring.kafka.producer.batch-size=131072",
@@ -62,7 +62,7 @@ class KafkaserviceReadTests {
 	public static final String READTOPIC = "testreadtopic";
 
 	@Autowired
-	private TestRestTemplate restTemplate;
+	private RestTestClient restClient;
 
 	@Container
 	@ServiceConnection
@@ -79,9 +79,13 @@ class KafkaserviceReadTests {
 					IntStream.range(0, 300)
 							.mapToObj(i -> "{\"key\": \"key" + i + "\", \"value\": \"val" + i + "\"}")
 							.collect(Collectors.joining(",")) + "]}";
-			HttpEntity<String> httpEntity = new HttpEntity<>(batch1, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
-			ResponseEntity<Void> response = restTemplate.postForEntity("/" + READTOPIC, httpEntity, Void.class);
-			then(response.getStatusCode().is2xxSuccessful()).isTrue();
+			restClient.post()
+					.uri("/" + READTOPIC)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(batch1)
+					.exchange()
+					.expectStatus().is2xxSuccessful()
+					.expectBody(Void.class);
 			Thread.sleep(1000);
 			GAPTS = System.currentTimeMillis();
 
@@ -89,14 +93,22 @@ class KafkaserviceReadTests {
 					IntStream.range(300, 510)
 							.mapToObj(i -> "{\"key\": \"key" + i + "\", \"value\": \"val" + i + "\"}")
 							.collect(Collectors.joining(",")) + "]}";
-			httpEntity = new HttpEntity<>(batch2, MultiValueMap.fromSingleValue(Map.of("Content-Type", "application/json")));
-			response = restTemplate.postForEntity("/" + READTOPIC, httpEntity, Void.class);
-			then(response.getStatusCode().is2xxSuccessful()).isTrue();
+			restClient.post()
+					.uri("/" + READTOPIC)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(batch2)
+					.exchange()
+					.expectStatus().is2xxSuccessful()
+					.expectBody(Void.class);
 			Thread.sleep(100);
 
-			ResponseEntity<TopicInfoDTO> infoResponse = restTemplate.getForEntity("/" + READTOPIC, TopicInfoDTO.class);
-			then(infoResponse.getStatusCode().is2xxSuccessful()).isTrue();
-			then(infoResponse.getBody().getMessageCount()).isEqualTo(510);
+			EntityExchangeResult<TopicInfoDTO> infoResult = restClient.get()
+					.uri("/" + READTOPIC)
+					.exchange()
+					.expectStatus().is2xxSuccessful()
+					.expectBody(TopicInfoDTO.class)
+					.returnResult();
+			then(infoResult.getResponseBody().getMessageCount()).isEqualTo(510);
 
 			INITIALIZED = true;
 		}
@@ -105,28 +117,47 @@ class KafkaserviceReadTests {
 	@Test
 	@DisplayName("read all (two batches 500 + 10)")
 	void testReadAll()  {
-		ResponseEntity<ReadBatchDTO> allBatch1 = restTemplate.getForEntity("/" + READTOPIC + "/0", ReadBatchDTO.class);
-		then(allBatch1.getStatusCode().is2xxSuccessful()).isTrue();
-		ReadMessage[] messages = allBatch1.getBody().getMessages();
+		EntityExchangeResult<ReadBatchDTO> readResult = restClient.get()
+				.uri("/" + READTOPIC + "/0")
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+
+		ReadMessage[] messages = readResult.getResponseBody().getMessages();
 		then(messages).hasSize(500);
 		long lastOffset = messages[499].getOffset();
 		then(lastOffset).isEqualTo(499);
 
-		ResponseEntity<ReadBatchDTO> allBatch2 = restTemplate.getForEntity("/" + READTOPIC + "/0/500", ReadBatchDTO.class);
-		then(allBatch2.getStatusCode().is2xxSuccessful()).isTrue();
-		then(allBatch2.getBody().getMessages()).hasSize(10);
+		EntityExchangeResult<ReadBatchDTO> readResult2 = restClient.get()
+				.uri("/" + READTOPIC + "/0/500")
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
 
-		ResponseEntity<ReadBatchDTO> allBatch3 = restTemplate.getForEntity("/" + READTOPIC + "/0/510", ReadBatchDTO.class);
-		then(allBatch3.getStatusCode().is2xxSuccessful()).isTrue();
-		then(allBatch3.getBody().getMessages()).isEmpty();
+		then(readResult2.getResponseBody().getMessages()).hasSize(10);
+
+		EntityExchangeResult<ReadBatchDTO> readResult3 = restClient.get()
+				.uri("/" + READTOPIC + "/0/510")
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+
+		then(readResult3.getResponseBody().getMessages()).isEmpty();
 	}
 
 	@Test
 	@DisplayName("read from offset 100")
 	void testReadFromOffset100() {
-		ResponseEntity<ReadBatchDTO> from100 = restTemplate.getForEntity("/" + READTOPIC + "/0/100", ReadBatchDTO.class);
-		then(from100.getStatusCode().is2xxSuccessful()).isTrue();
-		ReadMessage[] messages = from100.getBody().getMessages();
+		EntityExchangeResult<ReadBatchDTO> from100 = restClient.get()
+				.uri("/" + READTOPIC + "/0/100")
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+		ReadMessage[] messages = from100.getResponseBody().getMessages();
 		then(messages).hasSize(410);
 		long firstOffset = messages[0].getOffset();
 		long lastOffset = messages[409].getOffset();
@@ -137,9 +168,14 @@ class KafkaserviceReadTests {
 	@Test
 	@DisplayName("read from timestamp gapTS")
 	void testReadFromTSGapTS() {
-		ResponseEntity<ReadBatchDTO> fromGapTS = restTemplate.getForEntity("/" + READTOPIC + "/0/ts" + (GAPTS - 10), ReadBatchDTO.class);
-		then(fromGapTS.getStatusCode().is2xxSuccessful()).isTrue();
-		ReadMessage[] messages = fromGapTS.getBody().getMessages();
+		EntityExchangeResult<ReadBatchDTO> fromGapTS = restClient.get()
+				.uri("/" + READTOPIC + "/0/ts" + (GAPTS - 10))
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+
+		ReadMessage[] messages = fromGapTS.getResponseBody().getMessages();
 		then(messages).hasSize(210);
 		long firstOffset = messages[0].getOffset();
 		long lastOffset = messages[209].getOffset();
@@ -151,9 +187,14 @@ class KafkaserviceReadTests {
 	@DisplayName("read from iso timestamp of gapTS")
 	void testReadFromIsoOfGapTS() {
 		String isoDate = Instant.ofEpochMilli(GAPTS - 10).toString();
-		ResponseEntity<ReadBatchDTO> fromGapIso = restTemplate.getForEntity("/" + READTOPIC + "/0/" + isoDate, ReadBatchDTO.class);
-		then(fromGapIso.getStatusCode().is2xxSuccessful()).isTrue();
-		ReadMessage[] messages = fromGapIso.getBody().getMessages();
+		EntityExchangeResult<ReadBatchDTO> fromGapIso = restClient.get()
+				.uri("/" + READTOPIC + "/0/" + isoDate)
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+
+		ReadMessage[] messages = fromGapIso.getResponseBody().getMessages();
 		then(messages).hasSize(210);
 		long firstOffset = messages[0].getOffset();
 		long lastOffset = messages[209].getOffset();
@@ -164,9 +205,14 @@ class KafkaserviceReadTests {
 	@Test
 	@DisplayName("read from offset 0 to timestamp of gapTS")
 	void testReadFromOffset0ToTSGapTS() {
-		ResponseEntity<ReadBatchDTO> from0ToGapIso = restTemplate.getForEntity("/" + READTOPIC + "/0/0/ts" + (GAPTS - 10), ReadBatchDTO.class);
-		then(from0ToGapIso.getStatusCode().is2xxSuccessful()).isTrue();
-		ReadMessage[] messages = from0ToGapIso.getBody().getMessages();
+		EntityExchangeResult<ReadBatchDTO> from0ToGapIso = restClient.get()
+				.uri("/" + READTOPIC + "/0/0/ts" + (GAPTS - 10))
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+
+		ReadMessage[] messages = from0ToGapIso.getResponseBody().getMessages();
 		then(messages).hasSize(300);
 		long firstOffset = messages[0].getOffset();
 		long lastOffset = messages[299].getOffset();
@@ -178,9 +224,14 @@ class KafkaserviceReadTests {
 	@DisplayName("read from timestamp of gapTS to future date (after tomorrow of gapTS) as iso")
 	void testReadFromTSGapTSToFuture() {
 		String isoAfterTomorrow = Instant.ofEpochMilli(GAPTS + 2*24*3600*1000).toString();
-		ResponseEntity<ReadBatchDTO> fromGapTSToFutureDate = restTemplate.getForEntity("/" + READTOPIC + "/0/ts"  + (GAPTS - 10) + "/" + isoAfterTomorrow, ReadBatchDTO.class);
-		then(fromGapTSToFutureDate.getStatusCode().is2xxSuccessful()).isTrue();
-		ReadMessage[] messages = fromGapTSToFutureDate.getBody().getMessages();
+		EntityExchangeResult<ReadBatchDTO> fromGapTSToFutureDate = restClient.get()
+				.uri("/" + READTOPIC + "/0/ts"  + (GAPTS - 10) + "/" + isoAfterTomorrow)
+				.exchange()
+				.expectStatus().is2xxSuccessful()
+				.expectBody(ReadBatchDTO.class)
+				.returnResult();
+
+		ReadMessage[] messages = fromGapTSToFutureDate.getResponseBody().getMessages();
 		then(messages).hasSize(210);
 		long firstOffset = messages[0].getOffset();
 		long lastOffset = messages[209].getOffset();
@@ -191,14 +242,18 @@ class KafkaserviceReadTests {
 	@ParameterizedTest
 	@MethodSource("prepareTopicNotExistSamples")
 	void topicIsNotExistTest(String url, HttpMethod httpMethod) {
-		ResponseEntity<JsonNode> response = restTemplate.exchange(url, httpMethod, null, JsonNode.class);
-		then(response.getStatusCode().is4xxClientError()).isTrue();
+		EntityExchangeResult<JsonNode> result = restClient.method(httpMethod)
+				.uri(url)
+				.exchange()
+				.expectStatus().is4xxClientError()
+				.expectBody(JsonNode.class)
+				.returnResult();
 
-		JsonNode message = response.getBody();
+		JsonNode message = result.getResponseBody();
         then(message).isNotNull();
 
 		JsonPointer p = JsonPointer.compile("/detail");
-		then(message.at(p).asText()).isEqualTo("The topic: not-exist-topic does not exist.");
+		then(message.at(p).asString()).isEqualTo("The topic: not-exist-topic does not exist.");
 	}
 
 	private static Stream<Arguments> prepareTopicNotExistSamples() {

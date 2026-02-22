@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.fnlib.validator.hasvalue;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.ct42.fnflow.fnlib.validator.ValidationException;
@@ -44,14 +44,14 @@ public class HasValueValidator extends ConfigurableFunction<JsonNode, JsonNode, 
             throw new ValidationException("The element is not Exist.");
         }
 
-        if(resultNode.isTextual() && StringUtils.isEmpty(resultNode.asText())) {
+        if(resultNode.isString() && StringUtils.isEmpty(resultNode.asString())) {
             throw new ValidationException("The value is empty text.");
         }
 
         if(resultNode.isArray()) {
             boolean hasValue = false;
             for (JsonNode node: resultNode) {
-                if(node.isNumber() || (node.isTextual() && StringUtils.isNotEmpty(node.asText()))) {
+                if(node.isNumber() || (node.isString() && StringUtils.isNotEmpty(node.asString()))) {
                     hasValue = true;
                     break;
                 }

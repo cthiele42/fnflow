@@ -16,40 +16,29 @@
 
 package org.ct42.fnflow.manager.deployment.pipeline;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.manager.deployment.DeploymentDTO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Sajjad Safaeian
  */
-@WebMvcTest
+@SpringBootTest
 @ContextConfiguration(classes = {PipelineController.class})
 public class PipelineControllerTest {
-
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    ObjectMapper objectMapper;
+    private RestTestClient client;
 
     @MockitoBean
     PipelineService pipelineService;
@@ -98,16 +87,21 @@ public class PipelineControllerTest {
     }
     """;
 
+    @BeforeEach
+    public void initializeClient() {
+     client = RestTestClient.bindToController(new PipelineController(pipelineService)).baseUrl("/pipelines").build();
+    }
+
     @Test
-    void createPipelineTest() throws Exception {
+    void createPipelineTest() {
         doNothing().when(pipelineService).createOrUpdate(any(), any());
 
-        mockMvc.perform(
-            post("/pipelines/{name}", "sample-name")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(PIPELINE_CONFIG)
-        )
-        .andExpect(status().is2xxSuccessful());
+        client.post()
+            .uri("/{name}", "sample-name")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(PIPELINE_CONFIG)
+            .exchange()
+            .expectStatus().is2xxSuccessful();
     }
 
     @Test
@@ -169,14 +163,17 @@ public class PipelineControllerTest {
 
         when(pipelineService.getConfig(any())).thenReturn(dto);
 
-        mockMvc.perform(get("/pipelines/{name}", "sample-name"))
-        .andExpect(status().is2xxSuccessful())
-        .andExpect(jsonPath("$.version", is("0.0.9")))
-        .andExpect(jsonPath("$.pipeline[0][0].name", is("idExist")));
+        client.get()
+                .uri("/{name}", "sample-name")
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                    .jsonPath("$.version").isEqualTo("0.0.9")
+                    .jsonPath("$.pipeline[0][0].name").isEqualTo("idExist");
     }
 
     @Test
-    void getPipelineListTest() throws Exception {
+    void getPipelineListTest() {
         when(pipelineService.getList()).thenReturn(
             List.of(
                 new DeploymentDTO("pipeline-name-1"),
@@ -184,8 +181,11 @@ public class PipelineControllerTest {
             )
         );
 
-        mockMvc.perform(get("/pipelines"))
-        .andExpect(status().is2xxSuccessful())
-        .andExpect(jsonPath("$.pipelines[0].name", is("pipeline-name-1")));
+        client.get()
+                .uri("")
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                    .jsonPath("$.pipelines[0].name").isEqualTo("pipeline-name-1");
     }
 }

@@ -1,7 +1,9 @@
 package org.ct42.fnflow.fnflow_json_processors_kafka;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.opensearch.client.opensearch._types.BuiltinScriptLanguage;
+import org.opensearch.client.opensearch._types.ScriptLanguage;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,7 @@ import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.PutScriptRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,7 +51,7 @@ class FnflowJsonProcessorsKafkaApplicationTests extends AbstractKafkaTest {
 	public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
 
 	@Container
-	static final OpensearchContainer<?> container = new OpensearchContainer<>("opensearchproject/opensearch:2.19.0");
+	static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opensearchproject/opensearch:3.5.0");
 
 	@Autowired
 	private OpenSearchClient client;
@@ -66,7 +68,7 @@ class FnflowJsonProcessorsKafkaApplicationTests extends AbstractKafkaTest {
 	@BeforeEach
 	void setup() throws Exception{
 		StoredScript storedScript = new StoredScript.Builder()
-				.lang("mustache")
+				.lang(ScriptLanguage.builder().builtin(BuiltinScriptLanguage.Mustache).build())
 				.source("""
                         {
                           "query": {
@@ -137,5 +139,4 @@ class FnflowJsonProcessorsKafkaApplicationTests extends AbstractKafkaTest {
 		then(results).hasSize(666);
 		then(errors).hasSize(334);
 	}
-
 }

@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.fnlibtest.script;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.fnlib.script.ScriptRunnerException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -55,7 +55,7 @@ public class ScriptRunnerTest {
                 When the 'ScriptRunner' function is executed
                 Then the output should contain records content with duplicated the 'value' of each item
                 """)
-        void normalScriptTest() throws Exception {
+        void normalScriptTest() {
             JsonNode input = mapper.readTree("""
                     {
                       "records": {
@@ -72,7 +72,7 @@ public class ScriptRunnerTest {
 
             JsonNode result = script.apply(input);
 
-            then(result.at("/items/0/value").asText()).isEqualTo("ABAB");
+            then(result.at("/items/0/value").asString()).isEqualTo("ABAB");
         }
     }
 
@@ -91,7 +91,7 @@ public class ScriptRunnerTest {
                 When the 'ScriptRunner' function is executed
                 Then the output should raises the 'ScriptRunnerException' exception
                 """)
-        void wrongScriptTest() throws Exception {
+        void wrongScriptTest() {
             JsonNode input = mapper.readTree("""
                     {
                       "records": {
@@ -124,7 +124,7 @@ public class ScriptRunnerTest {
                 When the 'ScriptRunner' function is executed
                 Then the output should raises the 'ScriptRunnerException' exception
                 """)
-        void wrongResultScriptTest() throws Exception {
+        void wrongResultScriptTest() {
             JsonNode input = mapper.readTree("""
                     {
                       "none-records": {
@@ -158,7 +158,7 @@ public class ScriptRunnerTest {
                 When the 'ScriptRunner' function is executed
                 Then the output should contain records content with duplicated the 'value' of each item
                 """)
-        void normalScriptTest() throws Exception {
+        void normalScriptTest() {
             JsonNode input = mapper.readTree("""
                     {
                       "records": {
@@ -175,7 +175,7 @@ public class ScriptRunnerTest {
 
             JsonNode result = script.apply(input);
 
-            then(result.at("/items/0/value").asText()).isEqualTo("ABAB");
+            then(result.at("/items/0/value").asString()).isEqualTo("ABAB");
         }
     }
 

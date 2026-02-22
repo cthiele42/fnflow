@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.fnlibtest.merger;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class MergeCreateTest {
             AND the non existing property is created together with its container object
             AND the non existing input property is ignored, no exception is thrown
             """)
-    void testMergeCreate() throws Exception {
+    void testMergeCreate() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "createmerge");
         JsonNode input = mapper.readTree("""
                 {
@@ -83,7 +83,7 @@ public class MergeCreateTest {
             AND the non existing property is created together with its container object
             AND the non existing input property is ignored, no exception is thrown
             """)
-    void testMergeCreateIntoExistingObject() throws Exception {
+    void testMergeCreateIntoExistingObject() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "createmerge");
         JsonNode input = mapper.readTree("""
                 {
@@ -104,7 +104,7 @@ public class MergeCreateTest {
             THEN the result will be an unchanged input
             AND no exception is thrown
             """)
-    void testMergeCreateNoMatch() throws Exception {
+    void testMergeCreateNoMatch() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "createmerge");
         JsonNode input = mapper.readTree("""
                 {
@@ -123,7 +123,7 @@ public class MergeCreateTest {
             THEN the result will be an unchanged input
             AND no exception is thrown
             """)
-    void testMergeNoSource() throws Exception {
+    void testMergeNoSource() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "createmerge");
         JsonNode input = mapper.readTree("""
                 {

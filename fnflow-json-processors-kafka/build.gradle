@@ -4,29 +4,30 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.17' + "$ext.versionSuffix"
+version = '0.1.0' + "$ext.versionSuffix"
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.cloud:spring-cloud-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
-	implementation 'org.opensearch.client:opensearch-java:2.15.0'
-	implementation ('org.opensearch.client:spring-data-opensearch-starter:1.6.1') {
+	implementation 'org.opensearch.client:opensearch-java:3.6.0'
+	implementation ('org.opensearch.client:spring-data-opensearch-starter:3.0.1') {
 		exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
 		exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
 	}
 	implementation project(':fnlib')
 	implementation project(':batchfnlib')
+	implementation project(':jackson34opensearch')
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test-classic'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
-	testImplementation 'org.testcontainers:kafka'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
+	testImplementation 'org.testcontainers:testcontainers-kafka'
 }
 
 bootBuildImage {

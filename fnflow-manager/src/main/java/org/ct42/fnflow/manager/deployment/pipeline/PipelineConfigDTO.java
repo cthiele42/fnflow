@@ -16,26 +16,25 @@
 
 package org.ct42.fnflow.manager.deployment.pipeline;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.SerializationContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.ct42.fnflow.manager.deployment.AbstractConfigDTO;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
+import static tools.jackson.databind.type.TypeFactory.createDefaultInstance;
 
 /**
  * @author Claas Thiele
@@ -75,15 +74,15 @@ public class PipelineConfigDTO extends AbstractConfigDTO {
         private List<FunctionCfg> functions;
     }
 
-    public static class FunctionDeserializer extends JsonDeserializer<Function> {
+    public static class FunctionDeserializer extends ValueDeserializer<Function> {
         @Override
-        public Function deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            if (p.getCurrentToken() == JsonToken.START_OBJECT) {
+        public Function deserialize(JsonParser p, DeserializationContext ctxt) {
+            if (p.currentToken() == JsonToken.START_OBJECT) {
                 FunctionCfg function = p.readValueAs(FunctionCfg.class);
                 return new SingleFunction(function);
-            } else if (p.getCurrentToken() == JsonToken.START_ARRAY) {
+            } else if (p.currentToken() == JsonToken.START_ARRAY) {
                 List<FunctionCfg> functions =
-                        ctxt.readValue(p, defaultInstance().constructCollectionType(List.class, FunctionCfg.class));
+                        ctxt.readValue(p, createDefaultInstance().constructCollectionType(List.class, FunctionCfg.class));
 
                 return new MultipleFunctions(functions);
             }
@@ -92,14 +91,14 @@ public class PipelineConfigDTO extends AbstractConfigDTO {
         }
     }
 
-    public static class FunctionSerializer extends JsonSerializer<Function> {
+    public static class FunctionSerializer extends ValueSerializer<Function> {
         @Override
-        public void serialize(Function value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        public void serialize(Function value, JsonGenerator gen, SerializationContext serializers) {
             switch (value) {
                 case SingleFunction singleFunction ->
-                        gen.writeObject(singleFunction.getFunction());
+                        gen.writePOJO(singleFunction.getFunction());
                 case MultipleFunctions multipleFunctions ->
-                        gen.writeObject(multipleFunctions.getFunctions());
+                        gen.writePOJO(multipleFunctions.getFunctions());
                 default ->
                         gen.writeNull();
             }

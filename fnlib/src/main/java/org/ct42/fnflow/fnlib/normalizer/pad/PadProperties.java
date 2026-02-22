@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnlib.normalizer.pad;
 
-import com.fasterxml.jackson.core.JsonPointer;
+import tools.jackson.core.JsonPointer;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

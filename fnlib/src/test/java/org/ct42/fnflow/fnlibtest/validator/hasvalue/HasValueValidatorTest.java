@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.fnlibtest.validator.hasvalue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.fnlib.validator.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,7 +63,7 @@ class HasValueValidatorTest {
 
     @ParameterizedTest
     @MethodSource("createExceptionalSamples")
-    void exceptionalSituationTest(String json, String exceptionMessage) throws Exception {
+    void exceptionalSituationTest(String json, String exceptionMessage) {
         JsonNode input = convert(json);
 
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "myvaluecheck");
@@ -108,7 +108,7 @@ class HasValueValidatorTest {
 
     @ParameterizedTest
     @MethodSource("createNormalSamples")
-    void normalSituationTest(String json) throws Exception {
+    void normalSituationTest(String json) {
         JsonNode input = convert(json);
 
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "myvaluecheck");
@@ -139,7 +139,7 @@ class HasValueValidatorTest {
     }
 
 
-    private JsonNode convert(String jsonString) throws Exception {
+    private JsonNode convert(String jsonString) {
         return mapper.readValue(jsonString, JsonNode.class);
     }
 

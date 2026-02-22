@@ -19,13 +19,14 @@ package org.ct42.fnflow.manager.ui.view;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.dependency.JsModule;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.theme.lumo.Lumo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ct42.fnflow.manager.deployment.DeploymentService;
@@ -40,7 +41,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Layout
 @Slf4j
-@JsModule("@vaadin/vaadin-lumo-styles/presets/compact.js")
+@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet(Lumo.COMPACT_STYLESHEET)
 public class RootLayout extends AppLayout implements AfterNavigationObserver {
     private final Map<String, DeploymentService<?>> deploymentServices;
 
@@ -62,7 +64,7 @@ public class RootLayout extends AppLayout implements AfterNavigationObserver {
         splitLayout.addThemeVariants(SplitLayoutVariant.LUMO_MINIMAL);
         splitLayout.setSplitterPosition(70);
         splitLayout.setSizeFull();
-        splitLayout.addSplitterDragendListener(dragEndEvent -> {
+        splitLayout.addSplitterDragEndListener(dragEndEvent -> {
             //trigger the resizing of the blockly editor
             UI.getCurrent().getPage().executeJs("window.dispatchEvent(new Event('resize'));");
         });

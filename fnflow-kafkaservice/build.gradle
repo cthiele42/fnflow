@@ -4,19 +4,22 @@ plugins {
 }
 
 group = 'org.ct42.fnflow'
-version = '0.0.9' + "$ext.versionSuffix"
+version = '0.1.0' + "$ext.versionSuffix"
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.springframework.boot:spring-boot-starter-kafka'
 	implementation 'org.apache.commons:commons-lang3'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-resttestclient'
+	testImplementation 'org.springframework.boot:spring-boot-restclient'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
-	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.testcontainers:kafka'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-kafka'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

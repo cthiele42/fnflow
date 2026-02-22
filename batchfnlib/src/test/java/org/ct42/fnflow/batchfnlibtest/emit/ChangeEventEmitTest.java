@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.batchfnlibtest.emit;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.batchdlt.HeaderAware;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class ChangeEventEmitTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void testInputEmitExistingInput() throws Exception{
+    void testInputEmitExistingInput() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": {"foo": "bar"},
@@ -71,7 +71,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testInputEmitNullInput() throws Exception{
+    void testInputEmitNullInput() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": null,
@@ -84,7 +84,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testInputEmitNonExistingInput() throws Exception{
+    void testInputEmitNonExistingInput() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "matches": []
@@ -96,7 +96,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testEntityEmitExistingMatchWithTextId() throws Exception{
+    void testEntityEmitExistingMatchWithTextId() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": {"foo": "bar"},
@@ -118,7 +118,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testEntityEmitExistingMatchWithNumberId() throws Exception{
+    void testEntityEmitExistingMatchWithNumberId() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": {"foo": "bar"},
@@ -140,7 +140,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testEntityEmitMatchNoSource() throws Exception{
+    void testEntityEmitMatchNoSource() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": {"foo": "bar"},
@@ -153,7 +153,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testEntityEmitMatchNullSource() throws Exception{
+    void testEntityEmitMatchNullSource() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": {"foo": "bar"},
@@ -166,7 +166,7 @@ public class ChangeEventEmitTest {
     }
 
     @Test
-    void testEntityEmitNoMatch() throws Exception{
+    void testEntityEmitNoMatch() {
         JsonNode input = objectMapper.readTree("""
                 {
                     "input": {"foo": "bar"},

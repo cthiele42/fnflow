@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.batchdlt;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
@@ -25,7 +25,6 @@ import reactor.core.publisher.Sinks;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -41,7 +40,6 @@ public class MultiFnWrapper implements BiFunction<Flux<Message<JsonNode>>, Sinks
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Flux<Message<JsonNode>> apply(Flux<Message<JsonNode>> messageFlux, Sinks.Many<Message<Throwable>> error) {
         return messageFlux.flatMapSequential(m ->
             Flux.fromIterable(targets).concatMap(f -> {

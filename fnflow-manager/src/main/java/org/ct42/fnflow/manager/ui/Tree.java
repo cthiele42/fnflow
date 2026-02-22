@@ -22,14 +22,15 @@ import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
-import elemental.json.JsonObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.ct42.fnflow.manager.deployment.DeploymentDoesNotExistException;
 import org.ct42.fnflow.manager.deployment.DeploymentInfo;
 import org.ct42.fnflow.manager.deployment.DeploymentService;
+import tools.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.util.List;
@@ -188,9 +189,9 @@ public class Tree extends ReactAdapterComponent {
         });
 
         getElement().addEventListener("execute", event -> {
-            JsonObject cmd = event.getEventData().getObject("event.detail");
-            String key = cmd.getString("key");
-            String type = cmd.getString("type");
+            JsonNode cmd = event.getEventData().at("/event/detail");
+            String key = cmd.at("key").asString();
+            String type = cmd.at("type").asString();
 
             DeploymentServiceUtil.DeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key);
             String name = key.replaceFirst(serviceInfo.getKeyPrefix(), "");
@@ -233,13 +234,13 @@ public class Tree extends ReactAdapterComponent {
         if (suppressLeadingZeroElements) {
             // this is a temporary marker on the front. Like ^ in regexp.
             duration = " " + duration;
-            String tmp = StringUtils.replaceOnce(duration, " 0d", StringUtils.EMPTY);
+            String tmp = Strings.CS.replaceOnce(duration, " 0d", StringUtils.EMPTY);
             if (tmp.length() != duration.length()) {
                 duration = tmp;
-                tmp = StringUtils.replaceOnce(duration, " 0h", StringUtils.EMPTY);
+                tmp = Strings.CS.replaceOnce(duration, " 0h", StringUtils.EMPTY);
                 if (tmp.length() != duration.length()) {
                     duration = tmp;
-                    tmp = StringUtils.replaceOnce(duration, " 0m", StringUtils.EMPTY);
+                    tmp = Strings.CS.replaceOnce(duration, " 0m", StringUtils.EMPTY);
                     duration = tmp;
                 }
             }
@@ -249,15 +250,15 @@ public class Tree extends ReactAdapterComponent {
             }
         }
         if (suppressTrailingZeroElements) {
-            String tmp = StringUtils.replaceOnce(duration, " 0s", StringUtils.EMPTY);
+            String tmp = Strings.CS.replaceOnce(duration, " 0s", StringUtils.EMPTY);
             if (tmp.length() != duration.length()) {
                 duration = tmp;
-                tmp = StringUtils.replaceOnce(duration, " 0m", StringUtils.EMPTY);
+                tmp = Strings.CS.replaceOnce(duration, " 0m", StringUtils.EMPTY);
                 if (tmp.length() != duration.length()) {
                     duration = tmp;
-                    tmp = StringUtils.replaceOnce(duration, " 0h", StringUtils.EMPTY);
+                    tmp = Strings.CS.replaceOnce(duration, " 0h", StringUtils.EMPTY);
                     if (tmp.length() != duration.length()) {
-                        duration = StringUtils.replaceOnce(tmp, " 0d", StringUtils.EMPTY);
+                        duration = Strings.CS.replaceOnce(tmp, " 0d", StringUtils.EMPTY);
                     }
                 }
             }

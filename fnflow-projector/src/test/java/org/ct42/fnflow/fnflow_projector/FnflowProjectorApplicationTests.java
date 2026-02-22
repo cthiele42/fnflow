@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnflow_projector;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.CountRequest;
 import org.opensearch.client.opensearch.core.GetRequest;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
@@ -55,7 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 class FnflowProjectorApplicationTests {
 	@Container
-	static final OpensearchContainer<?> container = new OpensearchContainer<>("opensearchproject/opensearch:2.19.0");
+	static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opensearchproject/opensearch:3.5.0");
 
 	@Container
 	static KafkaContainer kafkaContainer = new KafkaContainer("apache/kafka-native:3.8.1");
@@ -69,7 +69,8 @@ class FnflowProjectorApplicationTests {
 		registry.add("spring.cloud.stream.kafka.binder.brokers", kafkaContainer::getBootstrapServers);
 	}
 
-	@Autowired
+	@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Autowired
 	private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
 	private KafkaTemplate<String, String> template;

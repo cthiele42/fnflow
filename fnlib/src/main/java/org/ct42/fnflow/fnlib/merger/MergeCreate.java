@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.fnlib.merger;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.ct42.fnflow.fnlib.utils.TreeByPointerBuilder;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;

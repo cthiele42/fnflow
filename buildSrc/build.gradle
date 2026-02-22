@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.graalvm.buildtools:native-gradle-plugin:0.10.6'
-    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.5.10'
+    implementation 'org.graalvm.buildtools:native-gradle-plugin:0.11.4'
+    implementation 'org.springframework.boot:spring-boot-gradle-plugin:4.0.2'
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7'
 }
