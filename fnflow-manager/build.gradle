@@ -26,6 +26,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
 	testImplementation "org.testcontainers:testcontainers-k3s:2.0.3"
+	developmentOnly 'com.vaadin:vaadin-dev'
 }
 
 dependencyManagement {

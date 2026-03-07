@@ -1,7 +1,5 @@
 package org.ct42.fnflow.manager.ui.view;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -26,6 +24,8 @@ import org.ct42.fnflow.manager.ui.Blockly;
 import org.ct42.fnflow.manager.ui.DeploymentServiceUtil;
 import org.ct42.fnflow.manager.ui.PrimeIcon;
 import org.ct42.fnflow.manager.ui.Tree;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -164,7 +164,7 @@ public class EditorView extends VerticalLayout {
             String configContent = config != null ? objectMapper.writeValueAsString(config) : null;
             Tab newTab = tabSheet.add(tab, new Blockly(configContent, key, deploymentServices));
             tabSheet.setSelectedTab(newTab);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             Notification notification = Notification.show("Loading of deployment of processor " + name + " failed due to format errors");
             notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             notification.setPosition(Notification.Position.BOTTOM_END);

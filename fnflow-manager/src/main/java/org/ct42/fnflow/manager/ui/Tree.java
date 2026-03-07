@@ -189,9 +189,9 @@ public class Tree extends ReactAdapterComponent {
         });
 
         getElement().addEventListener("execute", event -> {
-            JsonNode cmd = event.getEventData().at("/event/detail");
-            String key = cmd.at("key").asString();
-            String type = cmd.at("type").asString();
+            JsonNode cmd = event.getEventData().at("/event.detail");
+            String key = cmd.at("/key").asString();
+            String type = cmd.at("/type").asString();
 
             DeploymentServiceUtil.DeploymentServiceInfo serviceInfo = getDeploymentServiceInfoBasedOnKey(key);
             String name = key.replaceFirst(serviceInfo.getKeyPrefix(), "");
