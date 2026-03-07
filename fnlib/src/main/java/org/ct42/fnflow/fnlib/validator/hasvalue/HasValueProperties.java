@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnlib.validator.hasvalue;
 
-import com.fasterxml.jackson.core.JsonPointer;
+import tools.jackson.core.JsonPointer;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;

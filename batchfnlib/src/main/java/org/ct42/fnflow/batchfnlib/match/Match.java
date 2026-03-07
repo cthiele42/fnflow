@@ -16,11 +16,12 @@
 
 package org.ct42.fnflow.batchfnlib.match;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.opensearch.client.json.jackson.Jackson3JsonpMapper;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.batchdlt.BatchElement;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
@@ -53,8 +54,10 @@ public class Match extends ConfigurableFunction<List<BatchElement>, List<BatchEl
         MultisearchHeader emptyHeader = new MultisearchHeader.Builder().build();
         input.forEach(batchElement -> {
             Map<String, JsonData> targetParams = new HashMap<>();
-            properties.getParamsFromInput().forEach((key, value) -> targetParams.put(key, JsonData.of(batchElement.getInput().at(value))));
-            properties.getLiteralParams().forEach((key, value) -> targetParams.put(key, JsonData.of(value)));
+            properties.getParamsFromInput().forEach((key, value) ->
+                    targetParams.put(key, JsonData.of(batchElement.getInput().at(value), new Jackson3JsonpMapper())));
+            properties.getLiteralParams().forEach((key, value) ->
+                    targetParams.put(key, JsonData.of(value, new Jackson3JsonpMapper())));
             requestItems.add(new RequestItem.Builder()
                     .header(emptyHeader)
                     .body(new TemplateConfig.Builder()

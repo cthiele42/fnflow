@@ -16,10 +16,10 @@
 
 package org.ct42.fnflow.fnlib.normalizer.pad;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.springframework.stereotype.Component;
@@ -37,18 +37,18 @@ public class PadNormalizer extends ConfigurableFunction<JsonNode, JsonNode, PadP
         JsonPointer pointer = properties.getElementPath();
         JsonNode resultNode = input.at(pointer);
 
-        if(resultNode.isTextual()) {
+        if(resultNode.isString()) {
             JsonNode parentNode = input.at(pointer.head());
             if(parentNode.isObject()) {
-                ((ObjectNode) parentNode).put(pointer.last().getMatchingProperty(), padString(resultNode.asText()));
+                ((ObjectNode) parentNode).put(pointer.last().getMatchingProperty(), padString(resultNode.asString()));
             }
         }
 
         if(resultNode.isArray()) {
             ArrayNode array = (ArrayNode) resultNode;
             for (int i = 0; i <array.size(); i++) {
-                if(array.get(i).isTextual()) {
-                    array.set(i, padString(array.get(i).asText()));
+                if(array.get(i).isString()) {
+                    array.set(i, padString(array.get(i).asString()));
                 }
             }
         }

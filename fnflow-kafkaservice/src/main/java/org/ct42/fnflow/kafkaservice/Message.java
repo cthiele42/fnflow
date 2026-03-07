@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.kafkaservice;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import lombok.Data;
 
 /**

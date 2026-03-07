@@ -16,8 +16,12 @@
 
 package org.ct42.fnflow.batchfnlibtest.match;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.opensearch.client.opensearch._types.BuiltinScriptLanguage;
+import org.opensearch.client.opensearch._types.ScriptLanguage;
+import org.opensearch.testcontainers.OpenSearchContainer;
+import org.springframework.test.context.ContextConfiguration;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.batchdlt.BatchElement;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,12 +33,9 @@ import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.PutScriptRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
-import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.function.context.FunctionCatalog;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -51,10 +52,11 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 @Testcontainers
 @SpringBootTest
+@ContextConfiguration(classes = MatchTestConfiguration.class)
 @TestPropertySource(locations = "classpath:/matchtest.properties")
 public class MatchNoMatchTest {
     @Container
-    static final OpensearchContainer<?> container = new OpensearchContainer<>("opensearchproject/opensearch:2.19.0");
+    static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opensearchproject/opensearch:3.5.0");
 
     @Autowired
     private FunctionCatalog functionCatalog;
@@ -78,7 +80,7 @@ public class MatchNoMatchTest {
     public void testMatchFunction() throws Exception {
         //given a search template with name 'testtemplate'
         StoredScript storedScript = new StoredScript.Builder()
-                .lang("mustache")
+                .lang(ScriptLanguage.builder().builtin(BuiltinScriptLanguage.Mustache).build())
                 .source("""
                         {
                           "query": {
@@ -143,8 +145,4 @@ public class MatchNoMatchTest {
         then(result.getFirst().getOutput().at("/matches").isArray()).isTrue();
         then(result.getFirst().getOutput().at("/matches").size()).isEqualTo(0);
     }
-
-    @SpringBootApplication
-    @ComponentScan
-    protected static class TestConfiguration {}
 }

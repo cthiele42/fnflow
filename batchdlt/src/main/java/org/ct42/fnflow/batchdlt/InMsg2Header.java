@@ -16,13 +16,12 @@
 
 package org.ct42.fnflow.batchdlt;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 /**
@@ -35,16 +34,10 @@ public class InMsg2Header implements Function<Flux<Message<byte[]>>, Flux<Messag
 
     @Override
     public Flux<Message<JsonNode>> apply(Flux<Message<byte[]>> messageFlux) {
-        return messageFlux.handle((m, sink) -> {
-            try {
-                sink.next(MessageBuilder
-                        .withPayload(mapper.readValue(m.getPayload(), JsonNode.class))
-                        .copyHeaders(m.getHeaders())
-                        .setHeader(IN_PAYLOAD_HEADER, m.getPayload())
-                        .build());
-            } catch (IOException e) {
-                sink.error(new IllegalStateException("Failed to convert payload", e));
-            }
-        });
+        return messageFlux.handle((m, sink) -> sink.next(MessageBuilder
+                .withPayload(mapper.readValue(m.getPayload(), JsonNode.class))
+                .copyHeaders(m.getHeaders())
+                .setHeader(IN_PAYLOAD_HEADER, m.getPayload())
+                .build()));
     }
 }

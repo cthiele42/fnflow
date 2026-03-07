@@ -16,7 +16,6 @@
 
 package org.ct42.fnflow.manager.ui;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
@@ -31,6 +30,7 @@ import org.ct42.fnflow.manager.deployment.DeploymentService;
 import org.ct42.fnflow.manager.deployment.pipeline.PipelineConfigDTO;
 import org.ct42.fnflow.manager.deployment.projector.ProjectorConfigDTO;
 import org.ct42.fnflow.manager.ui.view.EditorView;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;

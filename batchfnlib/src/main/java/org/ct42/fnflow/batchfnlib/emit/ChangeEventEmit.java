@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.batchfnlib.emit;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
 import org.ct42.fnflow.batchdlt.HeaderAware;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.opensearch.common.UUIDs;
@@ -53,8 +53,8 @@ public class ChangeEventEmit extends ConfigurableFunction<JsonNode, JsonNode, Em
         if(keyPointer != null) {
             JsonNode keyNode = input.at(keyPointer);
             if(!keyNode.isMissingNode() && !keyNode.isNull()) {
-                if(keyNode.isTextual()) {
-                    headers.put(KafkaHeaders.KEY, keyNode.asText().getBytes(StandardCharsets.UTF_8));
+                if(keyNode.isString()) {
+                    headers.put(KafkaHeaders.KEY, keyNode.asString().getBytes(StandardCharsets.UTF_8));
                 } else {
                     headers.put(KafkaHeaders.KEY, keyNode.toString().getBytes(StandardCharsets.UTF_8));
                 }

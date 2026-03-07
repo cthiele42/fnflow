@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.fnlibtest.reducer;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -51,7 +51,7 @@ public class Reduce2OneTest {
 
 
     @Test
-    void testReduceOneMatch() throws Exception {
+    void testReduceOneMatch() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
         JsonNode input = mapper.readTree("""
                 {
@@ -67,7 +67,7 @@ public class Reduce2OneTest {
 
     @ParameterizedTest
     @MethodSource("createAmbiguousMatchSamples")
-    void testReduceOneAmbiguousMatch(String inputJson, String expectedJson) throws Exception {
+    void testReduceOneAmbiguousMatch(String inputJson, String expectedJson) {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
         JsonNode input = mapper.readTree(inputJson);
 
@@ -196,7 +196,7 @@ public class Reduce2OneTest {
     }
 
     @Test
-    void testReduceOneNoMatch() throws Exception {
+    void testReduceOneNoMatch() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
         JsonNode input = mapper.readTree("""
                 {
@@ -209,7 +209,7 @@ public class Reduce2OneTest {
     }
 
     @Test
-    void testReduceOneNoMatchesArray() throws Exception {
+    void testReduceOneNoMatchesArray() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
         JsonNode input = mapper.readTree("""
                 {
@@ -221,7 +221,7 @@ public class Reduce2OneTest {
     }
 
     @Test
-    void testReduceOneMatchesOfWrongType() throws Exception {
+    void testReduceOneMatchesOfWrongType() {
         Function<JsonNode, JsonNode> function = catalog.lookup(Function.class, "reduce");
         JsonNode input = mapper.readTree("""
                 {

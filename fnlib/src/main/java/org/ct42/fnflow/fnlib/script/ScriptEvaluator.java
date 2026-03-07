@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 /**
  * @author Sajjad Safaeian

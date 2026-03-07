@@ -9,19 +9,21 @@ description = 'Function library with functions utilizing batches'
 dependencies {
     implementation project(':configurablefunctions')
     implementation project(':batchdlt')
+    implementation project(':jackson34opensearch')
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.cloud:spring-cloud-function-context'
-    implementation 'org.opensearch.client:opensearch-java:2.15.0'
-    implementation 'org.opensearch:opensearch-common:2.19.1'
+    implementation 'org.opensearch.client:opensearch-java:3.6.0'
+    implementation 'org.opensearch:opensearch-common:3.4.0'
     implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.10'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation ('org.opensearch.client:spring-data-opensearch-starter:1.6.1') {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test-classic'
+    testImplementation ('org.opensearch.client:spring-data-opensearch-starter:3.0.1') {
         exclude group: 'org.opensearch.client', module: 'opensearch-rest-high-level-client'
         exclude group: 'org.springframework.data', module: 'spring-data-elasticsearch'
     }
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.opensearch:opensearch-testcontainers:2.1.2'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.opensearch:opensearch-testcontainers:4.1.0'
 }

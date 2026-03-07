@@ -16,9 +16,9 @@
 
 package org.ct42.fnflow.fnlibtest.normalizer.pad;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -83,8 +83,7 @@ public class PadNormalizerTest {
 
     }
 
-    private void testPad(String json, String elementPath, Function<JsonNode, JsonNode> function, String expectedValue)
-            throws Exception {
+    private void testPad(String json, String elementPath, Function<JsonNode, JsonNode> function, String expectedValue) {
         JsonPointer pointer = JsonPointer.compile(elementPath);
         JsonNode input = convert(json);
 
@@ -130,7 +129,7 @@ public class PadNormalizerTest {
         );
     }
 
-    private JsonNode convert(String jsonString) throws Exception {
+    private JsonNode convert(String jsonString) {
         return (new ObjectMapper()).readValue(jsonString, JsonNode.class);
     }
 

@@ -16,22 +16,21 @@
 
 package org.ct42.fnflow.batchfnlibtest.match;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.opensearch.testcontainers.OpenSearchContainer;
+import org.springframework.test.context.ContextConfiguration;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.ct42.fnflow.batchdlt.BatchElement;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.function.context.FunctionCatalog;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.function.Function;
@@ -43,10 +42,11 @@ import static org.assertj.core.api.BDDAssertions.then;
  */
 @Testcontainers
 @SpringBootTest
+@ContextConfiguration(classes = MatchTestConfiguration.class)
 @TestPropertySource(locations = "classpath:/matchtest.properties")
 public class MatchErrorTest {
     @Container
-    static final OpensearchContainer<?> container = new OpensearchContainer<>("opensearchproject/opensearch:2.19.0");
+    static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opensearchproject/opensearch:3.5.0");
 
     @Autowired
     private FunctionCatalog functionCatalog;
@@ -63,7 +63,7 @@ public class MatchErrorTest {
             THEN it results to no output
             AND an error is set in the result
             """)
-    public void testMatchFunction() throws Exception {
+    public void testMatchFunction() {
         //given no search template with name 'testtemplate'
         ObjectMapper objectMapper = new ObjectMapper();
         Function<List<BatchElement>, List<BatchElement>> fn = functionCatalog.lookup("testmatch");
@@ -80,8 +80,4 @@ public class MatchErrorTest {
         then(result.getFirst().getOutput()).isNull();
         then(result.getFirst().getError().getMessage()).contains("Request failed");
     }
-
-    @SpringBootApplication
-    @ComponentScan
-    protected static class TestConfiguration {}
 }

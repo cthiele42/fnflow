@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.graalvm.polyglot.Context;
 import org.springframework.stereotype.Component;
 

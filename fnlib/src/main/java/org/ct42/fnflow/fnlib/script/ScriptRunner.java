@@ -16,7 +16,7 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.ct42.fnflow.cfgfns.ConfigurableFunction;
 import org.springframework.stereotype.Component;

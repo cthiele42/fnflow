@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.batchdlttest.batchdlt;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.ct42.fnflow.batchdlt.BatchElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,9 +68,11 @@ public class BatchDltTest {
     public static final String OUT_TOPIC = "fnFlowComposedFnBean-out-0";
     public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private EmbeddedKafkaBroker embeddedKafka;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
@@ -142,7 +144,7 @@ public class BatchDltTest {
     protected final static class BiFunLogic implements Function<JsonNode, JsonNode> {
         @Override
         public JsonNode apply(JsonNode n) {
-            String s = n.get("text").textValue();
+            String s = n.get("text").asString();
             if(s.contains("T1")) return null;
             if (s.contains("T3") || s.contains("T7")) throw new RuntimeException("ERR");
             ((ObjectNode)n).put("text", "MO: " + s);
@@ -154,7 +156,7 @@ public class BatchDltTest {
     protected final static class BiFunLogic2 implements Function<JsonNode, JsonNode> {
         @Override
         public JsonNode apply(JsonNode n) {
-            String s = n.get("text").textValue();
+            String s = n.get("text").asString();
             if (s.contains("T5") || s.contains("T8")) throw new RuntimeException("ERR2");
             ((ObjectNode)n).put("text", "MO2: " + s);
             return n;
@@ -171,7 +173,7 @@ public class BatchDltTest {
         public List<BatchElement> apply(List<BatchElement> b) {
             b.forEach(e -> {
                 JsonNode inputRoot = e.getInput();
-                String s = inputRoot.get("text").textValue();
+                String s = inputRoot.get("text").asString();
                 if(s.contains("T4")) {
                     e.processWithOutput(null);
                 } else {
@@ -190,7 +192,7 @@ public class BatchDltTest {
     private void setupConsumer(BlockingQueue<ConsumerRecord<String, String>> queue, String topic) {
         // set up the Kafka consumer properties
         Map<String, Object> consumerProperties =
-                KafkaTestUtils.consumerProps("sender", "false", embeddedKafka);
+                KafkaTestUtils.consumerProps(embeddedKafka, "sender", false);
 
         // create a Kafka consumer factory
         DefaultKafkaConsumerFactory<String, String> consumerFactory =

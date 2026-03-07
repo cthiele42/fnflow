@@ -1,0 +1,13 @@
+plugins {
+    id 'fnflow-java-conventions'
+}
+
+group = 'org.ct42.fnflow'
+description = 'Provide Jackson3 for Opensearch'
+
+dependencies {
+    implementation 'tools.jackson.core:jackson-core:3.0.4'
+    implementation 'tools.jackson.core:jackson-databind:3.0.4'
+    implementation 'org.opensearch.client:opensearch-java:3.6.0'
+    implementation 'jakarta.json:jakarta.json-api:2.1.3'
+}

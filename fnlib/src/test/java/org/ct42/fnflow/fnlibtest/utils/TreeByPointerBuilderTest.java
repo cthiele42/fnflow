@@ -16,9 +16,9 @@
 
 package org.ct42.fnflow.fnlibtest.utils;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JsonPointer;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 import org.ct42.fnflow.fnlib.utils.TreeByPointerBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +38,7 @@ public class TreeByPointerBuilderTest {
 
         TreeByPointerBuilder.buildAndSet(pointer, root, node);
 
-        then(root.at("/a/1/b/x").asText()).isEqualTo("value");
+        then(root.at("/a/1/b/x").asString()).isEqualTo("value");
     }
 
     @Test
@@ -51,7 +51,7 @@ public class TreeByPointerBuilderTest {
 
         TreeByPointerBuilder.buildAndSet(pointer, root, node);
 
-        then(root.at("/a/b/c/x").asText()).isEqualTo("value");
+        then(root.at("/a/b/c/x").asString()).isEqualTo("value");
     }
 
     @Test

@@ -16,8 +16,8 @@
 
 package org.ct42.fnflow.batchdlttest.multiply;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,9 +68,11 @@ public class MultiplyTest {
     public static final String OUT_TOPIC = "fnFlowComposedFnBean-out-0";
     public static final String DLT_TOPIC = "fnFlowComposedFnBean-out-1";
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private EmbeddedKafkaBroker embeddedKafka;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 

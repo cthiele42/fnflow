@@ -16,9 +16,9 @@
 
 package org.ct42.fnflow.fnlib.script;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
@@ -38,7 +38,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             Object raw = evaluationResult.as(Object.class);
             String json = mapper.writeValueAsString(raw);
             return mapper.readTree(json);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
